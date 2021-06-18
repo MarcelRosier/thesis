@@ -1,3 +1,4 @@
-from baseline import baseline
+from baseline import baseline, baseline_parallel
 
-baseline.run()
+# baseline.run()
+baseline_parallel.run()
