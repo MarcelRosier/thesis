@@ -52,7 +52,7 @@ def get_dice_scores_for_real_tumor(tumor_path):
     }
 
     # loop through synthetic tumors
-    for i, f in enumerate(folders):
+    for f in folders:
         # load tumor data
         tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=f))['data']
 
@@ -86,9 +86,6 @@ def get_dice_scores_for_real_tumor(tumor_path):
         if maximum['max_score'] < combined:
             maximum['max_score'] = combined
             maximum['partner'] = f
-
-        if i > 20:
-            break
 
     return scores, maximum
 
