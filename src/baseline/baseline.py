@@ -5,33 +5,7 @@ import torch
 import torch.nn.functional as F
 import nibabel as nib
 import numpy as np
-import time
-from datetime import datetime
-
-
-def time_measure(log=False):
-    def timing_base(f):
-        def wrap(*args, **kwargs):
-            start = time.time()
-            ret = f(*args, **kwargs)
-            end = time.time()
-            output = '{:s} function took {:.3f} ms'.format(
-                f.__name__, (end-start)*1000.0)
-            print(output)
-            if log:
-                with open("run_time.log", "a+") as file:
-                    file.write('started: {}\nend: {} \n{}\n{}\n'.format(
-                        datetime.fromtimestamp(start), datetime.fromtimestamp(end), output, ("-"*10)))
-
-            return ret
-        return wrap
-    return timing_base
-
-
-@time_measure(log=True)
-def test():
-    for i in range(1000000):
-        pass
+from utils import time_measure, calc_dice_coef
 
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
@@ -41,16 +15,6 @@ SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001
 
 T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
 FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
-
-
-def calc_dice_coef(syn_data, real_data):
-    """calcualte the dice coefficient of the two input data"""
-    combined = syn_data + real_data
-    intersection = np.count_nonzero(combined == 2)
-    union = np.count_nonzero(syn_data) + np.count_nonzero(real_data)
-    if union == 0:
-        return 0
-    return (2 * intersection) / union
 
 
 def load_real_tumor(base_path):
@@ -88,7 +52,7 @@ def get_dice_scores_for_real_tumor(tumor_path):
     }
 
     # loop through synthetic tumors
-    for f in folders:
+    for i, f in enumerate(folders):
         # load tumor data
         tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=f))['data']
 
@@ -122,6 +86,9 @@ def get_dice_scores_for_real_tumor(tumor_path):
         if maximum['max_score'] < combined:
             maximum['max_score'] = combined
             maximum['partner'] = f
+
+        if i > 20:
+            break
 
     return scores, maximum
 
