@@ -9,7 +9,7 @@ import numpy as np
 from utils import time_measure, calc_dice_coef
 import multiprocessing
 from functools import partial
-import operator
+from datetime import datetime
 
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
@@ -81,7 +81,7 @@ def get_dice_scores_for_pair(t1c, flair, tumor_folder):
 
 
 @time_measure(log=True)
-def get_dice_scores_for_real_tumor_parallel(tumor_path):
+def get_dice_scores_for_real_tumor_parallel(tumor_path, is_test=False):
     """
     Calculate the max dice score of the given tumor based on the given dataset and return tuple (scores, maximum)
     scores - dump of the individual scores
@@ -91,9 +91,12 @@ def get_dice_scores_for_real_tumor_parallel(tumor_path):
 
     folders = os.listdir(SYN_TUMOR_BASE_PATH)
     folders.sort(key=lambda f: int(f))
-    # folders = folders[:200]  # for testing
+    # only get a subset of the data if its a test
+    if is_test:
+        folders = folders[:1000]
     scores = {}
 
+    print("Starting parallel loop for {} folders".format(len(folders)))
     func = partial(get_dice_scores_for_pair, t1c, flair)
     with multiprocessing.Pool(PROCESSES) as pool:
         results = pool.map_async(func, folders)
@@ -109,11 +112,12 @@ def get_dice_scores_for_real_tumor_parallel(tumor_path):
     return scores, maximum
 
 
-def run():
+def run(is_test=False):
     scores, maximum = get_dice_scores_for_real_tumor_parallel(
-        tumor_path=REAL_TUMOR_PATH)
+        tumor_path=REAL_TUMOR_PATH, is_test=is_test)
     print(maximum)
-    with open("parallel_datadump.json", "w") as file:
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("data/{}_parallel_datadump.json".format(now), "w") as file:
         json.dump(scores, file)
-    with open("parallel_maximum.json", "w") as file:
+    with open("data/{}_parallel_maximum.json".format(now), "w") as file:
         json.dump(maximum, file)

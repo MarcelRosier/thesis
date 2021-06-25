@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import numpy as np
+import json
 
 
 def time_measure(log=False):
@@ -9,8 +10,8 @@ def time_measure(log=False):
             start = time.time()
             ret = f(*args, **kwargs)
             end = time.time()
-            output = '{:s} function took {:.3f} ms'.format(
-                f.__name__, (end-start)*1000.0)
+            output = '{:s} function took {:.3f} ms -> {:.0f} h {:.0f} m {:.0f} s'.format(
+                f.__name__, (end-start)*1000.0, (end-start) // 60 * 60, ((end-start) / 60) % 60, (end-start) % 60)
             print(output)
             if log:
                 with open("run_time.log", "a+") as file:
@@ -29,3 +30,11 @@ def calc_dice_coef(syn_data, real_data):
     if union == 0:
         return 0
     return (2 * intersection) / union
+
+
+def get_number_of_entries(path):
+    data = {}
+    with open(path) as json_file:
+        data = json.load(json_file)
+    print("data_len: ", len(data))
+    return len(data)
