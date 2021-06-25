@@ -28,7 +28,7 @@ def time_measure(log=False):
 
 
 def calc_dice_coef(syn_data, real_data):
-    """calcualte the dice coefficient of the two input data"""
+    """calculate the dice coefficient of the two input data"""
     combined = syn_data + real_data
     intersection = np.count_nonzero(combined == 2)
     union = np.count_nonzero(syn_data) + np.count_nonzero(real_data)
