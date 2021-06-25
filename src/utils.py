@@ -2,6 +2,11 @@ import time
 from datetime import datetime
 import numpy as np
 import json
+from scipy.ndimage import zoom
+import torch
+import nibabel as nib
+import os
+import torch.nn.functional as F
 
 
 def time_measure(log=False):
@@ -38,3 +43,19 @@ def get_number_of_entries(path):
         data = json.load(json_file)
     print("data_len: ", len(data))
     return len(data)
+
+
+def load_real_tumor(base_path):
+    """Return pair (t1c,flair) of a real tumor"""
+    t1c = nib.load(os.path.join(
+        base_path, 'tumor_mask_t_to_atlas229.nii')).get_fdata()
+    flair = nib.load(os.path.join(
+        base_path, 'tumor_mask_f_to_atlas229.nii')).get_fdata()
+
+    flair = torch.from_numpy(flair)
+    t1c = torch.from_numpy(t1c)
+
+    t1c = zoom(F.pad(t1c, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
+    flair = zoom(F.pad(flair, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
+
+    return (t1c, flair)

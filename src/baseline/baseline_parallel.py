@@ -1,12 +1,7 @@
 import json
 import os
-from pickle import PROTO
-from scipy.ndimage import zoom
-import torch
-import torch.nn.functional as F
-import nibabel as nib
 import numpy as np
-from utils import time_measure, calc_dice_coef
+from utils import time_measure, calc_dice_coef, load_real_tumor
 import multiprocessing
 from functools import partial
 from datetime import datetime
@@ -20,22 +15,6 @@ SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001
 T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
 FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
 PROCESSES = 7
-
-
-def load_real_tumor(base_path):
-    """Return pair (t1c,flair) of a real tumor"""
-    t1c = nib.load(os.path.join(
-        base_path, 'tumor_mask_t_to_atlas229.nii')).get_fdata()
-    flair = nib.load(os.path.join(
-        base_path, 'tumor_mask_f_to_atlas229.nii')).get_fdata()
-
-    flair = torch.from_numpy(flair)
-    t1c = torch.from_numpy(t1c)
-
-    t1c = zoom(F.pad(t1c, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
-    flair = zoom(F.pad(flair, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
-
-    return (t1c, flair)
 
 
 def get_dice_scores_for_pair(t1c, flair, tumor_folder):
