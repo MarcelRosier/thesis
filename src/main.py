@@ -13,9 +13,9 @@ def run_parallel_comparison(is_test=False):
         start = datetime.now()
         maximum = baseline_parallel.run(processes=p_count, is_test=is_test)
         end = datetime.now()
-        time = str(end-start)
+        total_seconds = str((end-start).total_seconds())
         results[p_count] = {
-            'runtime': time,
+            'runtime': total_seconds,
             'partner': maximum['partner']
         }
 
