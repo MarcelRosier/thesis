@@ -14,7 +14,7 @@ SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001
 
 T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
 FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
-PROCESSES = 7
+# PROCESSES = 7
 
 
 def get_dice_scores_for_pair(t1c, flair, tumor_folder):
@@ -60,7 +60,7 @@ def get_dice_scores_for_pair(t1c, flair, tumor_folder):
 
 
 @time_measure(log=True)
-def get_dice_scores_for_real_tumor_parallel(tumor_path, is_test=False):
+def get_dice_scores_for_real_tumor_parallel(processes, tumor_path, is_test=False):
     """
     Calculate the max dice score of the given tumor based on the given dataset and return tuple (scores, maximum)
     scores - dump of the individual scores
@@ -72,12 +72,12 @@ def get_dice_scores_for_real_tumor_parallel(tumor_path, is_test=False):
     folders.sort(key=lambda f: int(f))
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:1000]
+        folders = folders[:200]
     scores = {}
 
     print("Starting parallel loop for {} folders".format(len(folders)))
     func = partial(get_dice_scores_for_pair, t1c, flair)
-    with multiprocessing.Pool(PROCESSES) as pool:
+    with multiprocessing.Pool(processes) as pool:
         results = pool.map_async(func, folders)
         single_scores = results.get()
         scores = {k: v for d in single_scores for k, v in d.items()}
@@ -91,12 +91,13 @@ def get_dice_scores_for_real_tumor_parallel(tumor_path, is_test=False):
     return scores, maximum
 
 
-def run(is_test=False):
+def run(processes, is_test=False):
     scores, maximum = get_dice_scores_for_real_tumor_parallel(
-        tumor_path=REAL_TUMOR_PATH, is_test=is_test)
+        processes=processes, tumor_path=REAL_TUMOR_PATH, is_test=is_test)
     print(maximum)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("data/{}_parallel_datadump.json".format(now), "w") as file:
         json.dump(scores, file)
     with open("data/{}_parallel_maximum.json".format(now), "w") as file:
         json.dump(maximum, file)
+    return maximum

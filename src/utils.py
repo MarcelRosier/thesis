@@ -16,7 +16,7 @@ def time_measure(log=False):
             ret = f(*args, **kwargs)
             end = time.time()
             output = '{:s} function took {:.3f} ms -> {:.0f} h {:.0f} m {:.0f} s'.format(
-                f.__name__, (end-start)*1000.0, (end-start) // 60 * 60, ((end-start) / 60) % 60, (end-start) % 60)
+                f.__name__, (end-start)*1000.0, (end-start) // (60 * 60), ((end-start) // 60) % 60, (end-start) % 60)
             print(output)
             if log:
                 with open("run_time.log", "a+") as file:
