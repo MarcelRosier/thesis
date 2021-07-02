@@ -32,7 +32,33 @@
     ```
 
 ### Usage
-- TODO
+- Create Index
+    ```python
+    dimension = 128 * 128  # dimensions of each vector
+    n = 50000   # number of vectors
+    np.random.seed(1)
+    db_vectors = np.random.random((n, dimension)).astype('float32')
+
+    nlist = 5  # number of clusters
+    quantiser = faiss.IndexFlatL2(dimension)
+    index = faiss.IndexIVFFlat(quantiser, dimension, nlist,   faiss.METRIC_L2)
+
+    index.train(db_vectors)  # train on the database vectors
+    index.add(db_vectors)   # add the vectors and update the index
+    ```
+- Save/ Load the index
+    ```python
+    faiss.write_index(index, "vector.index")
+    index = faiss.read_index("vector.index")
+    ```   
+- Query
+    ```python
+    n_query = 10
+    k = 3  # return 3 nearest neighbours
+    np.random.seed(0)
+    query_vectors = np.random.random((n_query, dimension)).astype('float32')
+    distances, indices = index.search(query_vectors, k)
+    ```   
 
 ---  
 
