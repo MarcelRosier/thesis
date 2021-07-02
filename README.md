@@ -14,7 +14,7 @@ if not installed refer to [this install guide](https://www.elastic.co/de/downloa
  `virtualenv -p python3.5 image-match-env/`  
  python 3.5.10 seems to work, higher version are apparently not compatible
 
-- Activate the venv and install all relevant libraries via pip
+- Activate the venv and install all relevant libraries via pip `pip install -r requirements.txt`
     ```
     numpy
     scikit-image>=0.14
