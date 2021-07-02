@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import json
 import numpy as np
 
-DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/2021-06-25 12:15:10_comparison.json'
+DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/2021-06-26 04:47:47_comparison.json'
 
 
 def load_json_data(path):
