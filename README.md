@@ -6,7 +6,7 @@
 - Create a new conda env   
 `conda create --name myenv`
 - Install faiss-cpu (or gpu if applicable)
-    ```
+    ```shell
     # CPU-only version
     conda install -c pytorch faiss-cpu
 
@@ -18,16 +18,16 @@
     ```
 - Troubleshooting:
     - MKL Errors:  
-    For some reason adding and deleting nomkl fixed the issue for me:  
-    ```
-    # add nomkl
+    A few to try when running into *Intel MKL FATAL ERROR: Cannot load libmkl_avx2.so or libmkl_def.so.* or similar:  
+    ```shell
+    # Add nomkl
     conda install nomkl numpy scipy scikit-learn numexpr
     conda remove mkl mkl-service
 
-    # remove it adding didnt help
+    # Remove it adding didnt help
     conda remove nomkl
 
-    # not sure why, but helps sometimes
+    # Not sure why, but helps sometimes
     conda install  -f  numpy
     ```
 
