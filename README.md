@@ -1,6 +1,42 @@
 # thesis
 
-## image-match
+## FAISS
+
+### Setup
+- Create a new conda env   
+`conda create --name myenv`
+- Install faiss-cpu (or gpu if applicable)
+    ```
+    # CPU-only version
+    conda install -c pytorch faiss-cpu
+
+    # GPU(+CPU) version
+    conda install -c pytorch faiss-gpu
+
+    # or for a specific CUDA version
+    conda install -c pytorch faiss-gpu cudatoolkit=10.2 # for CUDA 10.2
+    ```
+- Troubleshooting:
+    - MKL Errors:  
+    For some reason adding and deleting nomkl fixed the issue for me:  
+    ```
+    # add nomkl
+    conda install nomkl numpy scipy scikit-learn numexpr
+    conda remove mkl mkl-service
+
+    # remove it adding didnt help
+    conda remove nomkl
+
+    # not sure why, but helps sometimes
+    conda install  -f  numpy
+    ```
+
+### Usage
+- TODO
+
+---  
+
+## IMAGE-MATCH
 ![](https://cloud.githubusercontent.com/assets/6517700/17741093/41040a64-649b-11e6-8499-48b78ddca56b.png
 )
 ### Setup
