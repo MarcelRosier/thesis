@@ -72,7 +72,7 @@ def get_dice_scores_for_real_tumor_parallel(processes, tumor_path, is_test=False
     folders.sort(key=lambda f: int(f))
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:500]
+        folders = folders[:200]
     scores = {}
 
     print("Starting parallel loop for {} folders".format(len(folders)))

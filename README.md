@@ -3,8 +3,9 @@
 ## FAISS
 
 ### Setup
-- Create a new conda env   
-`conda create --name myenv`
+- Create a new conda env or activate it  
+`conda create --name myenv`  
+`conda activate myenv`
 - Install faiss-cpu (or gpu if applicable)
     ```shell
     # CPU-only version
@@ -24,7 +25,7 @@
     conda install nomkl numpy scipy scikit-learn numexpr
     conda remove mkl mkl-service
 
-    # Remove it adding didnt help
+    # Remove it if adding didnt help
     conda remove nomkl
 
     # Not sure why, but helps sometimes

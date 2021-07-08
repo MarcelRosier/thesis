@@ -27,7 +27,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
 
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:1000]
+        folders = folders[:200]
 
     # init dicts
     scores = {}
