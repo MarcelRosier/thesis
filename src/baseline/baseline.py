@@ -1,17 +1,18 @@
 import json
 import os
-import numpy as np
-from utils import time_measure, calc_dice_coef, load_real_tumor
 from datetime import datetime
 
+import numpy as np
+from utils import calc_dice_coef, load_real_tumor, time_measure
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
-REAL_TUMOR_PATH = '/home/rosierm/marcel_tgm/tgm001_preop'
-SYN_TUMOR_BASE_PATH = '/home/rosierm/samples_extended/Dataset'
-SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz'
+REAL_TUMOR_PATH = '/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop'
+SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
+SYN_TUMOR_PATH_TEMPLATE = '//home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
 
 T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
 FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
+TUMOR_SUBSET_TESTING_SIZE = 200
 
 
 @time_measure(log=True)
@@ -27,7 +28,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
 
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:200]
+        folders = folders[:TUMOR_SUBSET_TESTING_SIZE]
 
     # init dicts
     scores = {}

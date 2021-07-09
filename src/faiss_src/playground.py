@@ -1,9 +1,10 @@
-import numpy as np
-from numpy.core.numeric import count_nonzero
-from numpy.lib.shape_base import tile
-from numpy.testing._private.utils import print_assert_equal
-import faiss
+import json
+import logging
 import os
+from datetime import datetime
+
+import faiss
+import numpy as np
 from utils import load_real_tumor
 
 dimension = 128 * 128 * 128  # dimensions of each vector
@@ -13,14 +14,15 @@ n = 200
 
 SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
 SYN_TUMOR_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
+TUMOR_SUBSET_TESTING_SIZE = 200
 
 
-def create_and_store_index(path, is_test=True):
-    # np.random.seed(1)
-    # db_vectors = np.random.random((n, dimension)).astype('float32')
-    # # map to 0/ 1
-    # db_vectors[db_vectors < 0.5] = 0
-    # db_vectors[db_vectors >= 0.5] = 1
+def create_and_store_index(index_path, map_path=None, is_test=True):
+    """
+    creates the faiss index and stores it to @path
+    @test specifies if the entres tumor data or only a subste should be used
+    returns a dict that maps index id to tumor folder ids
+    """
     # build vector db
 
     folders = os.listdir(SYN_TUMOR_BASE_PATH)
@@ -28,26 +30,37 @@ def create_and_store_index(path, is_test=True):
 
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:n]
-    print("creating vector db...")
-    vectors_list = [get_vector_from_tumor_data(
-        tumor_id=f) for f in folders]
+        folders = folders[:TUMOR_SUBSET_TESTING_SIZE]
+
+    logging.info("creating vector db...")
+    vectors_list = []
+    id_index_map = {}
+    for i, f in enumerate(folders):
+        vectors_list.append(get_vector_from_tumor_data(tumor_id=f))
+        id_index_map[i] = f
+
     db_vectors = np.asarray(vectors_list, dtype=np.float32)
-    print("finished creating vector db...")
+
+    logging.info("finished creating vector db...")
 
     nlist = 5  # number of clusters
     quantiser = faiss.IndexFlatL2(dimension)
     index = faiss.IndexIVFFlat(quantiser, dimension, nlist,   faiss.METRIC_L2)
 
-    print(index.is_trained)   # False
     index.train(db_vectors)  # train on the database vectors
-    print(index.ntotal)   # 0
     index.add(db_vectors)   # add the vectors and update the index
-    print(index.ntotal)   # 200
+    logging.info("total vectors: {}".format(index.ntotal))   # 200
 
     # save the index to disk
     faiss.write_index(
-        index, path)
+        index, index_path)
+    logging.info("Saved index to: {}".format(index_path))
+
+    if map_path is not None:
+        with open(map_path.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), "w") as file:
+            json.dump(id_index_map, file)
+
+    return id_index_map
 
 
 def load_index(path):
@@ -55,21 +68,21 @@ def load_index(path):
 
 
 def execute_query(index, query=None):
-    n_query = 1
-    k = 10  # return 3 nearest neighbours
-    np.random.seed(0)
+    k = 10  # return 10 nearest neighbours
+    # np.random.seed(0)
     query_vectors = query.astype('float32')
-    if query is None:
-        query_vectors = np.random.random(
-            (n_query, dimension)).astype('float32')
-        query_vectors[query_vectors < 0.5] = 0
-        query_vectors[query_vectors >= 0.5] = 1
-    else:
-        pass
-    print(query_vectors.shape)
+    # if query is None:
+    #     query_vectors = np.random.random(
+    #         (n_query, dimension)).astype('float32')
+    #     query_vectors[query_vectors < 0.5] = 0
+    #     query_vectors[query_vectors >= 0.5] = 1
+    # else:
+    #     pass
+    # print(query_vectors.shape)
     distances, indices = index.search(query_vectors, k)
-    print(distances)
-    print(indices)
+    logging.info("distances: {}".format(distances))
+    logging.info("indices: {}".format(indices))
+    return distances, indices
 
 
 def get_vector_from_tumor_data(tumor_id):
@@ -91,7 +104,7 @@ def get_vector_from_tumor_data(tumor_id):
     return tumor_02_vector
 
 
-def load_query(path):
+def generate_query(path):
     (t1c, flair) = load_real_tumor(path)
     t1c_vector = t1c.flatten()
     t1c_vector = t1c_vector.reshape(1, len(t1c_vector))
@@ -100,12 +113,14 @@ def load_query(path):
 
 
 def run():
-    # get_vector_from_tumor_data(
-    #     path='/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/0/Data_0001.npz')
+    logging.basicConfig(level=logging.INFO)
     # create_and_store_index(
-    #     path="/home/marcel/Projects/uni/thesis/src/faiss_src/indices/200_02_vector.index", is_test=True)
+    #     index_path="/home/marcel/Projects/uni/thesis/src/faiss_src/indices/200_02_vector.index",
+    #     # map_path='/home/marcel/Projects/uni/thesis/src/faiss_src/indices/{}_id_index_map.json',
+    #     is_test=True)
     index = load_index(
         path="/home/marcel/Projects/uni/thesis/src/faiss_src/indices/200_02_vector.index")
-    query = load_query(
+    query = generate_query(
         path='/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop')
-    execute_query(index=index, query=query)
+    D, I = execute_query(index=index, query=query)
+    # [for i in I]

@@ -1,12 +1,21 @@
+import json
+import os
 import time
 from datetime import datetime
-import numpy as np
-import json
-from scipy.ndimage import zoom
-import torch
+
 import nibabel as nib
-import os
+import numpy as np
+import torch
 import torch.nn.functional as F
+from scipy.ndimage import zoom
+from enum import Enum
+
+
+class DSValueType(Enum):
+    """Dice score value types"""
+    T1C = 't1c'
+    FLAIR = 'flair'
+    COMBINED = 'combinedu'
 
 
 def time_measure(log=False):
@@ -59,3 +68,23 @@ def load_real_tumor(base_path):
     flair = zoom(F.pad(flair, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
 
     return (t1c, flair)
+
+
+def find_n_max_dice_score_ids(path, value_type, n_max=1):
+    """
+    Finds the n (@n_max) maximum values of given type stored in the given json file
+    @path - path to json file
+    @value_type - t1c/flair/combined
+    @n_max - number of max_values
+    """
+    max_keys = []
+    # cast enum to str if necessary
+    if not isinstance(value_type, str):
+        value_type = value_type.value
+    with open(path) as json_file:
+        data = json.load(json_file)
+        for _ in range(n_max):
+            max_key = max(data.keys(), key=lambda k: data[k][value_type])
+            max_keys.append(max_key)
+            del data[max_key]
+    return max_keys

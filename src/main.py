@@ -1,7 +1,11 @@
-from baseline import baseline, baseline_parallel
-from datetime import date, datetime
 import json
+from datetime import date, datetime
+
+import utils
+from baseline import baseline, baseline_parallel
 from faiss_src import playground
+from utils import DSValueType
+
 # baseline.run()
 # baseline_parallel.run()
 
@@ -26,4 +30,11 @@ def run_parallel_comparison(is_test=False):
 
 
 # run_parallel_comparison(is_test=True)
+# baseline.run(is_test=True)
+max_t1c = utils.find_n_max_dice_score_ids(
+    path='/home/marcel/Projects/uni/thesis/src/data/2021-07-09 11:07:20_datadump.json',
+    value_type=DSValueType.T1C,
+    n_max=10)
+print(max_t1c)
+
 playground.run()
