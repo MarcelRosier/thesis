@@ -3,9 +3,12 @@ import logging
 import os
 from datetime import datetime
 
+from numpy.lib import utils
+
 import faiss
 import numpy as np
 from utils import load_real_tumor
+import utils
 
 dimension = 128 * 128 * 128  # dimensions of each vector
 # number of vectors #! dont use ~ 1000, CRASHES YOUR PC (for 16GB RAM)
@@ -15,6 +18,7 @@ n = 200
 SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
 SYN_TUMOR_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
 TUMOR_SUBSET_TESTING_SIZE = 200
+REAL_TUMOR_BASE_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/real_tumors/{id}'
 
 
 def create_and_store_index(index_path, map_path=None, is_test=True):
@@ -69,16 +73,7 @@ def load_index(path):
 
 def execute_query(index, query=None):
     k = 10  # return 10 nearest neighbours
-    # np.random.seed(0)
     query_vectors = query.astype('float32')
-    # if query is None:
-    #     query_vectors = np.random.random(
-    #         (n_query, dimension)).astype('float32')
-    #     query_vectors[query_vectors < 0.5] = 0
-    #     query_vectors[query_vectors >= 0.5] = 1
-    # else:
-    #     pass
-    # print(query_vectors.shape)
     distances, indices = index.search(query_vectors, k)
     logging.info("distances: {}".format(distances))
     logging.info("indices: {}".format(indices))
@@ -112,8 +107,7 @@ def generate_query(path):
     return t1c_vector
 
 
-def run():
-    logging.basicConfig(level=logging.INFO)
+def run(real_tumor):
     # create_and_store_index(
     #     index_path="/home/marcel/Projects/uni/thesis/src/faiss_src/indices/200_02_vector.index",
     #     # map_path='/home/marcel/Projects/uni/thesis/src/faiss_src/indices/{}_id_index_map.json',
@@ -121,6 +115,7 @@ def run():
     index = load_index(
         path="/home/marcel/Projects/uni/thesis/src/faiss_src/indices/200_02_vector.index")
     query = generate_query(
-        path='/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop')
+        path=REAL_TUMOR_BASE_PATH_TEMPLATE.format(id=real_tumor))
     D, I = execute_query(index=index, query=query)
+    return D, I
     # [for i in I]

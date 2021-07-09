@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 
@@ -6,7 +7,8 @@ import numpy as np
 from utils import calc_dice_coef, load_real_tumor, time_measure
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
-REAL_TUMOR_PATH = '/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop'
+# tgm001_preop'
+REAL_TUMOR_PATH = '/home/marcel/Projects/uni/thesis/real_tumors/{id}'
 SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
 SYN_TUMOR_PATH_TEMPLATE = '//home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
 
@@ -77,14 +79,15 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
     return scores, maximum
 
 
-def run(is_test=False):
+def run(real_tumor, is_test=False):
     (scores, maximum) = get_dice_scores_for_real_tumor(
-        tumor_path=REAL_TUMOR_PATH, is_test=is_test)
-    print(maximum)
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("data/{}_datadump.json".format(now), "w") as file:
+        tumor_path=REAL_TUMOR_PATH.format(id=real_tumor), is_test=is_test)
+    logging.info("maximum dice score for tumor {}: {}".format(
+        real_tumor, maximum))
+    # now = datetime.now().strftime("%Y-%m-%d")
+    with open("data/{tumor}_datadump.json".format(tumor=real_tumor), "w") as file:
         json.dump(scores, file)
-    with open("data/{}_maximum.json".format(now), "w") as file:
+    with open("data/{tumor}_maximum.json".format(tumor=real_tumor), "w") as file:
         json.dump(maximum, file)
 
     # print(calc_tumor_score_map(working=False))

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import time
 from datetime import datetime
@@ -9,6 +10,8 @@ import torch
 import torch.nn.functional as F
 from scipy.ndimage import zoom
 from enum import Enum
+
+LOG_LEVEL = logging.INFO
 
 
 class DSValueType(Enum):
