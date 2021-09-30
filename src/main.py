@@ -55,12 +55,12 @@ def faiss_comparison(real_tumor):
 
 
 logging.basicConfig(level=utils.LOG_LEVEL)
-# run_parallel_comparison(is_test=True)
-faiss_comparison(real_tumor='tgm001_preop')
-faiss_comparison(real_tumor='tgm028_preop')
-faiss_comparison(real_tumor='tgm042_preop')
-faiss_comparison(real_tumor='tgm057_preop')
-faiss_comparison(real_tumor='tgm071_preop')
+run_parallel_comparison(is_test=True)
+# faiss_comparison(real_tumor='tgm001_preop')
+# faiss_comparison(real_tumor='tgm028_preop')
+# faiss_comparison(real_tumor='tgm042_preop')
+# faiss_comparison(real_tumor='tgm057_preop')
+# faiss_comparison(real_tumor='tgm071_preop')
 # run_baseline(real_tumor='tgm042_preop')
 # run_baseline(real_tumor='tgm057_preop')
 # run_baseline(real_tumor='tgm071_preop')

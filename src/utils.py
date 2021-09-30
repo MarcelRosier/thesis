@@ -18,7 +18,7 @@ class DSValueType(Enum):
     """Dice score value types"""
     T1C = 't1c'
     FLAIR = 'flair'
-    COMBINED = 'combinedu'
+    COMBINED = 'combined'
 
 
 def time_measure(log=False):
