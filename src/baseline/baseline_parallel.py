@@ -107,9 +107,19 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=F
         tumor_path=REAL_TUMOR_PATH,
         is_test=is_test)
     print(best_score)
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("data/{}_parallel_datadump.json".format(now), "w") as file:
+    now_date = datetime.now().strftime("%Y-%m-%d")
+    now_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    filename_dump = "data/{date}/{datetime}_parallel_datadump.json".format(
+        date=now_date, datetime=now_datetime)
+    os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
+
+    with open(filename_dump, "w") as file:
         json.dump(scores, file)
-    with open("data/{}_parallel_best.json".format(now), "w") as file:
+
+    filename_best = "data/{date}/{datetime}_parallel_best.json".format(
+        date=now_date, datetime=now_datetime)
+    os.makedirs(os.path.dirname(filename_best), exist_ok=True)
+
+    with open(filename_best, "w") as file:
         json.dump(best_score, file)
     return best_score

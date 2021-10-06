@@ -1,15 +1,17 @@
-import json
-from datetime import date, datetime
-import logging
 
+import json
+import logging
+import os
+from datetime import date, datetime
+
+import numpy as np
 from numpy.lib.arraysetops import intersect1d
 from numpy.lib.utils import info
 
 import utils
 from baseline import baseline, baseline_parallel
 # from faiss_src import playground
-from utils import DSValueType
-import numpy as np
+from utils import DSValueType, SimilarityMeasureType
 
 # baseline.run()
 # baseline_parallel.run()
@@ -17,22 +19,27 @@ import numpy as np
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = '~/thesis/src/data/{id}_datadump.json'
 
 
-def run_parallel_comparison(is_test=False):
+def run_parallel_comparison(similarity_measure_type, is_test=False):
     process_counts = [8]  # [1, 2, 4, 8, 16, 32]
 
     results = {}
     for p_count in process_counts:
         start = datetime.now()
-        maximum = baseline_parallel.run(processes=p_count, is_test=is_test)
+        best = baseline_parallel.run(
+            processes=p_count, similarity_measure_type=similarity_measure_type, is_test=is_test)
         end = datetime.now()
         total_seconds = str((end-start).total_seconds())
         results[p_count] = {
             'runtime': total_seconds,
-            'partner': maximum['partner']
+            'partner': best['partner']
         }
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("data/{}_comparison.json".format(now), "w") as file:
+    now_date = datetime.now().strftime("%Y-%m-%d")
+    now_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    filename = "data/{date}/{datetime}_comparison.json".format(
+        date=now_date, datetime=now_datetime)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "w") as file:
         json.dump(results, file)
 
 
@@ -55,8 +62,32 @@ def faiss_comparison(real_tumor):
     logging.info("intersection: {}".format(intersection))
 
 
+def run_top_10_l2_dice_comp():
+    best_dice = utils.find_n_best_score_ids(
+        path='/home/rosierm/thesis/src/data/2021-10-06 11:18:55_parallel_datadump.json',
+        value_type=DSValueType.COMBINED,
+        order_func=max,
+        n_best=10
+    )
+
+    best_l2 = utils.find_n_best_score_ids(
+        path='/home/rosierm/thesis/src/data/2021-10-06 11:21:24_parallel_datadump.json',
+        value_type=DSValueType.COMBINED,
+        order_func=min,
+        n_best=10
+    )
+
+    print("best_dice_matches: ", best_dice)
+    print("---")
+    print("best_l2_matches: ", best_l2)
+    print("---")
+    print("intersection: ", list(set(best_dice) & set(best_l2)))
+
+
 logging.basicConfig(level=utils.LOG_LEVEL)
-run_parallel_comparison(is_test=False)
+run_parallel_comparison(
+    similarity_measure_type=SimilarityMeasureType.L2,
+    is_test=True)
 # faiss_comparison(real_tumor='tgm001_preop')
 # faiss_comparison(real_tumor='tgm028_preop')
 # faiss_comparison(real_tumor='tgm042_preop')
@@ -65,3 +96,4 @@ run_parallel_comparison(is_test=False)
 # run_baseline(real_tumor='tgm042_preop')
 # run_baseline(real_tumor='tgm057_preop')
 # run_baseline(real_tumor='tgm071_preop')
+# run_top_10_l2_dice_comp()

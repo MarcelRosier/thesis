@@ -86,21 +86,22 @@ def load_real_tumor(base_path):
     return (t1c, flair)
 
 
-def find_n_max_dice_score_ids(path, value_type, n_max=1):
+def find_n_best_score_ids(path, value_type, order_func, n_best=1):
     """
     Finds the n (@n_max) maximum values of given type stored in the given json file
     @path - path to json file
     @value_type - t1c/flair/combined
     @n_max - number of max_values
     """
-    max_keys = []
+    best_keys = []
     # cast enum to str if necessary
     if not isinstance(value_type, str):
         value_type = value_type.value
     with open(path) as json_file:
         data = json.load(json_file)
-        for _ in range(n_max):
-            max_key = max(data.keys(), key=lambda k: data[k][value_type])
-            max_keys.append(max_key)
-            del data[max_key]
-    return max_keys
+        for _ in range(n_best):
+            best_key = order_func(
+                data.keys(), key=lambda k: data[k][value_type])
+            best_keys.append(best_key)
+            del data[best_key]
+    return best_keys
