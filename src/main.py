@@ -7,13 +7,14 @@ from numpy.lib.utils import info
 
 import utils
 from baseline import baseline, baseline_parallel
-from faiss_src import playground
+# from faiss_src import playground
 from utils import DSValueType
 import numpy as np
 
 # baseline.run()
 # baseline_parallel.run()
-DICE_SCORE_DATADUMP_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json'
+# '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json'
+DICE_SCORE_DATADUMP_PATH_TEMPLATE = '~/thesis/src/data/{id}_datadump.json'
 
 
 def run_parallel_comparison(is_test=False):
@@ -55,7 +56,7 @@ def faiss_comparison(real_tumor):
 
 
 logging.basicConfig(level=utils.LOG_LEVEL)
-run_parallel_comparison(is_test=True)
+run_parallel_comparison(is_test=False)
 # faiss_comparison(real_tumor='tgm001_preop')
 # faiss_comparison(real_tumor='tgm028_preop')
 # faiss_comparison(real_tumor='tgm042_preop')
