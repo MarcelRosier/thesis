@@ -21,6 +21,12 @@ class DSValueType(Enum):
     COMBINED = 'combined'
 
 
+class SimilarityMeasureType(Enum):
+    "Different similarity measures"
+    DICE = 'dice'
+    L2 = 'l2'
+
+
 def time_measure(log=False):
     def timing_base(f):
         def wrap(*args, **kwargs):
@@ -47,6 +53,13 @@ def calc_dice_coef(syn_data, real_data):
     if union == 0:
         return 0
     return (2 * intersection) / union
+
+
+def calc_l2_norm(syn_data, real_data):
+    """calculate the l2 norm of the two input data"""
+    combined = syn_data - real_data
+    # linalg.norm uses the Frobenius norm as default ord
+    return np.linalg.norm(combined)
 
 
 def get_number_of_entries(path):

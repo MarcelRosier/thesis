@@ -18,7 +18,7 @@ DICE_SCORE_DATADUMP_PATH_TEMPLATE = '~/thesis/src/data/{id}_datadump.json'
 
 
 def run_parallel_comparison(is_test=False):
-    process_counts = [1, 2, 4, 8, 16, 32]
+    process_counts = [8]  # [1, 2, 4, 8, 16, 32]
 
     results = {}
     for p_count in process_counts:

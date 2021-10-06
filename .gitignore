@@ -3,3 +3,4 @@ data/
 tumor_data/
 *.index
 *.nii
+test.py

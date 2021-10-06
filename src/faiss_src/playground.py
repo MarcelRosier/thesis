@@ -7,7 +7,6 @@ from numpy.lib import utils
 
 import faiss
 import numpy as np
-from utils import load_real_tumor
 import utils
 
 dimension = 128 * 128 * 128  # dimensions of each vector
@@ -100,7 +99,7 @@ def get_vector_from_tumor_data(tumor_id):
 
 
 def generate_query(path):
-    (t1c, flair) = load_real_tumor(path)
+    (t1c, flair) = utils.load_real_tumor(path)
     t1c_vector = t1c.flatten()
     t1c_vector = t1c_vector.reshape(1, len(t1c_vector))
     # only consider t1c for now

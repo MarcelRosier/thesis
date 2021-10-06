@@ -5,6 +5,8 @@ from utils import time_measure, calc_dice_coef, load_real_tumor
 import multiprocessing
 from functools import partial
 from datetime import datetime
+from utils import SimilarityMeasureType
+import utils
 
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
@@ -14,14 +16,11 @@ SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001
 
 T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
 FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
-# PROCESSES = 7
 
 
-def get_dice_scores_for_pair(t1c, flair, tumor_folder):
+def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
     """
-    Calculate the max dice score of the given tumor based on the given ***subset*** of the dataset and return tuple (scores, maximum)
-    scores - dump of the individual scores
-    maximum - info about the best combined dice score
+    Calculate the similarity score of the passed tumor pair
     """
 
     # load tumor data
@@ -47,8 +46,8 @@ def get_dice_scores_for_pair(t1c, flair, tumor_folder):
     tumor_06[tumor_06 >= 0.6] = 1
 
     # calc and update dice scores and partners
-    cur_flair = calc_dice_coef(tumor_02, flair)
-    cur_t1c = calc_dice_coef(tumor_06, t1c)
+    cur_flair = measure_func(tumor_02, flair)
+    cur_t1c = measure_func(tumor_06, t1c)
     combined = cur_t1c + cur_flair
     scores = {}
     scores[tumor_folder] = {
@@ -60,11 +59,12 @@ def get_dice_scores_for_pair(t1c, flair, tumor_folder):
 
 
 @time_measure(log=True)
-def get_dice_scores_for_real_tumor_parallel(processes, tumor_path, is_test=False):
+def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path, is_test=False):
     """
-    Calculate the max dice score of the given tumor based on the given dataset and return tuple (scores, maximum)
+    Calculate the best similarity measure score of the given tumor based on the given dataset and return tuple (scores, best_score)
+    @similarity_measure determines the used comparison function 
     scores - dump of the individual scores
-    maximum - info about the best combined dice score
+    best_score - info about the best combined score
     """
     (t1c, flair) = load_real_tumor(tumor_path)
 
@@ -77,30 +77,39 @@ def get_dice_scores_for_real_tumor_parallel(processes, tumor_path, is_test=False
     folders = folders[:50000]
     scores = {}
 
-    print("Starting parallel loop with {} processes for {} folders".format(
-        processes, len(folders)))
-    func = partial(get_dice_scores_for_pair, t1c, flair)
+    print("Starting parallel loop for {} folders".format(len(folders)))
+
+    measure_func = utils.calc_dice_coef if similarity_measure == SimilarityMeasureType.DICE else utils.calc_l2_norm
+    func = partial(get_scores_for_pair, measure_func, t1c, flair)
     with multiprocessing.Pool(processes) as pool:
         results = pool.map_async(func, folders)
         single_scores = results.get()
         scores = {k: v for d in single_scores for k, v in d.items()}
 
-    # find max
-    max_key = max(scores.keys(), key=lambda k: scores[k]['combined'])
-    maximum = {
-        'max_score': scores[max_key],
-        'partner': max_key
+    # find best
+    best_key = 0
+    if similarity_measure == SimilarityMeasureType.DICE:
+        best_key = max(scores.keys(), key=lambda k: scores[k]['combined'])
+    elif similarity_measure == SimilarityMeasureType.L2:
+        best_key = min(scores.keys(), key=lambda k: scores[k]['combined'])
+
+    best_score = {
+        'best_score': scores[best_key],
+        'partner': best_key
     }
-    return scores, maximum
+    return scores, best_score
 
 
-def run(processes, is_test=False):
-    scores, maximum = get_dice_scores_for_real_tumor_parallel(
-        processes=processes, tumor_path=REAL_TUMOR_PATH, is_test=is_test)
-    print(maximum)
+def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=False):
+    scores, best_score = get_scores_for_real_tumor_parallel(
+        similarity_measure=similarity_measure_type,
+        processes=processes,
+        tumor_path=REAL_TUMOR_PATH,
+        is_test=is_test)
+    print(best_score)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("data/{}_parallel_datadump.json".format(now), "w") as file:
         json.dump(scores, file)
-    with open("data/{}_parallel_maximum.json".format(now), "w") as file:
-        json.dump(maximum, file)
-    return maximum
+    with open("data/{}_parallel_best.json".format(now), "w") as file:
+        json.dump(best_score, file)
+    return best_score
