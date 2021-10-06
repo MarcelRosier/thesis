@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import json
 import numpy as np
 
-DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/2021-06-26 04:47:47_comparison.json'
+DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:47:08_comparison.json'
 
 
 def load_json_data(path):
@@ -28,7 +28,7 @@ def plot_runtime_vs_threads(data):
     plt.xticks(objects, x_data)
     plt.xlabel('Number of processes')
     plt.ylabel('Runtime in seconds')
-    plt.title('Process count and corresponding runtime')
+    plt.title('Process count and corresponding runtime for 50k synthetic tumors')
 
     plt.show()
 
