@@ -7,7 +7,7 @@ from numpy.lib.utils import info
 
 import utils
 from baseline import baseline, baseline_parallel
-from faiss_src import playground
+# from faiss_src import playground
 from utils import DSValueType
 import numpy as np
 
@@ -17,7 +17,7 @@ DICE_SCORE_DATADUMP_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/src/data/{
 
 
 def run_parallel_comparison(is_test=False):
-    process_counts = [1, 2, 4, 8, 16, 32]
+    process_counts = [8]  # [1, 2, 4, 8, 16, 32]
 
     results = {}
     for p_count in process_counts:
