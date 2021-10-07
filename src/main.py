@@ -92,10 +92,16 @@ def run_top_10_l2_dice_comp():
 
 
 logging.basicConfig(level=utils.LOG_LEVEL)
-run_parallel_comparison(
-    similarity_measure_type=SimilarityMeasureType.L2,
-    is_test=True)
 
+###
+# Exec
+###
+
+run_faiss_test(real_tumor='test')
+
+# run_parallel_comparison(
+#     similarity_measure_type=SimilarityMeasureType.L2,
+#     is_test=True)
 # faiss_comparison(real_tumor='tgm001_preop')
 # faiss_comparison(real_tumor='tgm028_preop')
 # faiss_comparison(real_tumor='tgm042_preop')
@@ -105,24 +111,3 @@ run_parallel_comparison(
 # run_baseline(real_tumor='tgm057_preop')
 # run_baseline(real_tumor='tgm071_preop')
 # run_top_10_l2_dice_comp()
-
-# best_l2 = utils.find_n_best_score_ids(
-#     path='/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-10-06 16:33:52_parallel_datadump.json',
-#     value_type=DSValueType.COMBINED,
-#     order_func=min,
-#     n_best=10
-# )
-
-# print("best_l2_matches: ", best_l2)
-# print("---")
-
-# best_dice = utils.find_n_best_score_ids(
-#     path='/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:23:06_parallel_datadump.json',
-#     value_type=DSValueType.COMBINED,
-#     order_func=max,
-#     n_best=10
-# )
-
-# print("best_dice_matches: ", best_dice)
-# print("---")
-# print("intersection: ", list(set(best_dice) & set(best_l2)))
