@@ -17,6 +17,7 @@ n = 200
 SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
 SYN_TUMOR_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
 TUMOR_SUBSET_TESTING_SIZE = 200
+TUMOR_SUBSET_BENCHMARK_SIZE = 50000
 REAL_TUMOR_BASE_PATH_TEMPLATE = '/home/marcel/Projects/uni/thesis/real_tumors/{id}'
 
 
@@ -34,6 +35,8 @@ def create_and_store_index(index_path, map_path=None, is_test=True):
     # only get a subset of the data if its a test
     if is_test:
         folders = folders[:TUMOR_SUBSET_TESTING_SIZE]
+    else:
+        folders = folders[:TUMOR_SUBSET_BENCHMARK_SIZE]
 
     logging.info("creating vector db...")
     vectors_list = []
@@ -116,5 +119,4 @@ def run(real_tumor):
     query = generate_query(
         path=REAL_TUMOR_BASE_PATH_TEMPLATE.format(id=real_tumor))
     D, I = execute_query(index=index, query=query)
-    return D, I
-    # [for i in I]
+    # return D, I
