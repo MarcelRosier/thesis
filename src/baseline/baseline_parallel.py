@@ -1,12 +1,13 @@
 import json
-import os
-import numpy as np
-from utils import time_measure, calc_dice_coef, load_real_tumor
 import multiprocessing
-from functools import partial
+import os
 from datetime import datetime
-from utils import SimilarityMeasureType
+from functools import partial
+
+import numpy as np
 import utils
+from utils import (SimilarityMeasureType, calc_dice_coef, load_real_tumor,
+                   time_measure)
 
 
 # tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
@@ -72,12 +73,13 @@ def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path
     folders.sort(key=lambda f: int(f))
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:200]
+        folders = folders[:20]
     # cap test set to 50k
     folders = folders[:50000]
     scores = {}
 
-    print("Starting parallel loop for {} folders".format(len(folders)))
+    print("Starting parallel loop for {} folders with {} processes".format(
+        len(folders), processes))
 
     measure_func = utils.calc_dice_coef if similarity_measure == SimilarityMeasureType.DICE else utils.calc_l2_norm
     func = partial(get_scores_for_pair, measure_func, t1c, flair)
@@ -109,15 +111,15 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=F
     print(best_score)
     now_date = datetime.now().strftime("%Y-%m-%d")
     now_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    filename_dump = "data/{date}/{datetime}_parallel_datadump.json".format(
-        date=now_date, datetime=now_datetime)
+    filename_dump = "data/{date}/{datetime}_parallel_datadump_{metric}.json".format(
+        date=now_date, datetime=now_datetime, metric=similarity_measure_type.value)
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
         json.dump(scores, file)
 
-    filename_best = "data/{date}/{datetime}_parallel_best.json".format(
-        date=now_date, datetime=now_datetime)
+    filename_best = "data/{date}/{datetime}_parallel_best_{metric}.json".format(
+        date=now_date, datetime=now_datetime, metric=similarity_measure_type.value)
     os.makedirs(os.path.dirname(filename_best), exist_ok=True)
 
     with open(filename_best, "w") as file:

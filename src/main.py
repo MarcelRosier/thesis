@@ -7,21 +7,24 @@ from datetime import date, datetime
 import numpy as np
 from numpy.lib.arraysetops import intersect1d
 from numpy.lib.utils import info
+# import cProfile
+# import pstats
+
 
 import utils
 from baseline import baseline, baseline_parallel
 # from faiss_src import playground
 from utils import DSValueType, SimilarityMeasureType
 
-# baseline.run()
-# baseline_parallel.run()
 # '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json'
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = '~/thesis/src/data/{id}_datadump.json'
 
 
 def run_parallel_comparison(similarity_measure_type, is_test=False):
-    process_counts = [8]  # [1, 2, 4, 8, 16, 32]
+    process_counts = [1, 2, 4, 8, 16, 32]
 
+    print("Starting parallel baseline comparison for process_counts= {} and similarity_measure_type= {}".format(
+          process_counts, similarity_measure_type))
     results = {}
     for p_count in process_counts:
         start = datetime.now()
@@ -36,8 +39,8 @@ def run_parallel_comparison(similarity_measure_type, is_test=False):
 
     now_date = datetime.now().strftime("%Y-%m-%d")
     now_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    filename = "data/{date}/{datetime}_comparison.json".format(
-        date=now_date, datetime=now_datetime)
+    filename = "data/{date}/{datetime}_comparison_{metric}.json".format(
+        date=now_date, datetime=now_datetime, metric=similarity_measure_type.value)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as file:
         json.dump(results, file)
@@ -88,6 +91,7 @@ logging.basicConfig(level=utils.LOG_LEVEL)
 run_parallel_comparison(
     similarity_measure_type=SimilarityMeasureType.L2,
     is_test=True)
+
 # faiss_comparison(real_tumor='tgm001_preop')
 # faiss_comparison(real_tumor='tgm028_preop')
 # faiss_comparison(real_tumor='tgm042_preop')
