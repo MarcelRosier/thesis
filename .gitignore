@@ -4,3 +4,4 @@ tumor_data/
 *.index
 *.nii
 test.py
+src/autoencoder/outputs
