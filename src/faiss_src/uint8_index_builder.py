@@ -76,7 +76,7 @@ def get_tumors_as_vectors(range_start=0, range_end=250, is_test=False):
     folders = folders[range_start:range_end]
 
     # db = np.empty((range_end - range_start, dimension // 8), dtype='uint8')
-    db = np.empty((range_end - range_start, dimension), dtype='bool_')
+    db = np.empty((range_end - range_start, dimension), dtype='uint8')
 
     for i, f in enumerate(folders):
         db[i] = get_vector_from_tumor_data(tumor_id=f)
