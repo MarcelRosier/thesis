@@ -43,7 +43,7 @@ sns.set()
 
 # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
 DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
-CHECKPOINT_PATH_LOCAL = "/home/marcel//Projects/uni/thesis/src/autoencoder/checkpoints"
+CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
 DATASET_PATH_SERVER = "~/thesis/src/autoencoder/dataset"
 CHECKPOINT_PATH_SERVER = "~/thesis/src/autoencoder/checkpoints"
 
