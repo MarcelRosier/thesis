@@ -41,11 +41,17 @@ sns.set()
 # Tensorboard extension (for visualization purposes later)
 # %load_ext tensorboard
 
+# env
+IS_LOCAL = False
+
 # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
 DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
 CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
-DATASET_PATH_SERVER = "~/thesis/src/autoencoder/dataset"
-CHECKPOINT_PATH_SERVER = "~/thesis/src/autoencoder/checkpoints"
+DATASET_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/dataset"
+CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/checkpoints"
+
+DATASET_PATH = DATASET_PATH_LOCAL if IS_LOCAL else DATASET_PATH_SERVER
+CHECKPOINT_PATH = CHECKPOINT_PATH_LOCAL if IS_LOCAL else CHECKPOINT_PATH_SERVER
 
 pl.seed_everything(42)
 # Ensure that all operations are deterministic on GPU (if used) for reproducibility
@@ -62,11 +68,11 @@ base_url = "https://raw.githubusercontent.com/phlippe/saved_models/main/tutorial
 pretrained_files = ["cifar10_64.ckpt", "cifar10_128.ckpt",
                     "cifar10_256.ckpt", "cifar10_384.ckpt"]
 # Create checkpoint path if it doesn't exist yet
-os.makedirs(CHECKPOINT_PATH_LOCAL, exist_ok=True)
+os.makedirs(CHECKPOINT_PATH, exist_ok=True)
 
 # For each file, check whether it already exists. If not, try downloading it.
 for file_name in pretrained_files:
-    file_path = os.path.join(CHECKPOINT_PATH_LOCAL, file_name)
+    file_path = os.path.join(CHECKPOINT_PATH, file_name)
     if not os.path.isfile(file_path):
         file_url = base_url + file_name
         print(f"Downloading {file_url}...")
@@ -80,14 +86,14 @@ transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5,), (0.5,))])
 
 # Loading the training dataset. We need to split it into a training and validation part
-train_dataset = CIFAR10(root=DATASET_PATH_LOCAL, train=True,
+train_dataset = CIFAR10(root=DATASET_PATH, train=True,
                         transform=transform, download=True)
 pl.seed_everything(42)
 train_set, val_set = torch.utils.data.random_split(
     train_dataset, [45000, 5000])
 
 # Loading the test set
-test_set = CIFAR10(root=DATASET_PATH_LOCAL, train=False,
+test_set = CIFAR10(root=DATASET_PATH, train=False,
                    transform=transform, download=True)
 
 # We define a set of data loaders that we can use for various purposes later.
@@ -162,9 +168,9 @@ class GenerateCallback(pl.Callback):
 
 def train_cifar(latent_dim):
     # Create a PyTorch Lightning trainer with the generation callback
-    trainer = pl.Trainer(default_root_dir=os.path.join(CHECKPOINT_PATH_LOCAL, f"cifar10_{latent_dim}"),
+    trainer = pl.Trainer(default_root_dir=os.path.join(CHECKPOINT_PATH, f"custom_cifar10_{latent_dim}"),
                          gpus=1 if str(device).startswith("cuda") else 0,
-                         max_epochs=500,
+                         max_epochs=250,  # 500,
                          callbacks=[ModelCheckpoint(save_weights_only=True),
                                     GenerateCallback(
                                         get_train_images(8), every_n_epochs=10),
@@ -176,7 +182,7 @@ def train_cifar(latent_dim):
 
     # Check whether pretrained model exists. If yes, load it and skip training
     pretrained_filename = os.path.join(
-        CHECKPOINT_PATH_LOCAL, f"cifar10_{latent_dim}.ckpt")
+        CHECKPOINT_PATH, f"custom_cifar10_{latent_dim}.ckpt")
     if os.path.isfile(pretrained_filename):
         print("Found pretrained model, loading...")
         model = Autoencoder.load_from_checkpoint(pretrained_filename)
@@ -193,7 +199,8 @@ def train_cifar(latent_dim):
 
 
 model_dict = {}
-for latent_dim in [64, 128, 256, 384]:
+latent_dim_list = [64, 512]  # [64, 128, 256, 384]
+for latent_dim in latent_dim_list:
     model_ld, result_ld = train_cifar(latent_dim)
     model_dict[latent_dim] = {"model": model_ld, "result": result_ld}
 
@@ -214,7 +221,7 @@ val_scores = [model_dict[k]["result"]["val"][0]["test_loss"]
 # plt.show()
 
 
-def visualize_reconstructions(model, input_imgs):
+def visualize_reconstructions(model, input_imgs, latent_dim):
     # Reconstruct images
     model.eval()
     with torch.no_grad():
@@ -230,10 +237,12 @@ def visualize_reconstructions(model, input_imgs):
     plt.title(f"Reconstructed from {model.hparams.latent_dim} latents")
     plt.imshow(grid)
     plt.axis('off')
-    plt.show()
+    plt.show() if IS_LOCAL else plt.savefig(f"fig_{latent_dim}.png")
 
 
 input_imgs = get_train_images(4)
 # for latent_dim in model_dict:
 #     visualize_reconstructions(model_dict[latent_dim]["model"], input_imgs)
-visualize_reconstructions(model_dict[384]["model"], input_imgs)
+for latent_dim in latent_dim_list:
+    visualize_reconstructions(
+        model_dict[latent_dim]["model"], input_imgs, latent_dim=latent_dim)
