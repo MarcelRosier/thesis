@@ -8,15 +8,8 @@ import numpy as np
 import utils
 from utils import (SimilarityMeasureType, calc_dice_coef, load_real_tumor,
                    time_measure)
-
-
-# tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
-REAL_TUMOR_PATH = '/home/rosierm/marcel_tgm/tgm001_preop'
-SYN_TUMOR_BASE_PATH = '/home/rosierm/samples_extended/Dataset'
-SYN_TUMOR_PATH_TEMPLATE = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz'
-
-T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
-FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
+from constants import (REAL_TUMOR_PATH_SERVER, SYN_TUMOR_BASE_PATH_SERVER,
+                       SYN_TUMOR_PATH_TEMPLATE_SERVER, T1C_PATH_SERVER, FLAIR_PATH_SERVER)
 
 
 def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
@@ -25,7 +18,7 @@ def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
     """
 
     # load tumor data
-    tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(
+    tumor = np.load(SYN_TUMOR_PATH_TEMPLATE_SERVER.format(
         id=tumor_folder))['data']
 
     # crop 129^3 to 128^3 if needed
@@ -69,7 +62,7 @@ def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path
     """
     (t1c, flair) = load_real_tumor(tumor_path)
 
-    folders = os.listdir(SYN_TUMOR_BASE_PATH)
+    folders = os.listdir(SYN_TUMOR_BASE_PATH_SERVER)
     folders.sort(key=lambda f: int(f))
     # only get a subset of the data if its a test
     if is_test:
@@ -106,7 +99,7 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=F
     scores, best_score = get_scores_for_real_tumor_parallel(
         similarity_measure=similarity_measure_type,
         processes=processes,
-        tumor_path=REAL_TUMOR_PATH,
+        tumor_path=REAL_TUMOR_PATH_SERVER,
         is_test=is_test)
     print(best_score)
     now_date = datetime.now().strftime("%Y-%m-%d")

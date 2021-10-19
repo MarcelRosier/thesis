@@ -5,3 +5,5 @@ tumor_data/
 *.nii
 test.py
 src/autoencoder/outputs
+src/autoencoder/dataset
+src/autoencoder/checkpoints

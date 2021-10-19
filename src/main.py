@@ -16,8 +16,7 @@ from baseline import baseline, baseline_parallel
 from faiss_src import playground, index_builder
 from utils import DSValueType, SimilarityMeasureType
 
-# '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json'
-DICE_SCORE_DATADUMP_PATH_TEMPLATE = '~/thesis/src/data/{id}_datadump.json'
+from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE_SERVER
 
 
 def run_parallel_comparison(similarity_measure_type, is_test=False):
@@ -54,7 +53,7 @@ def faiss_comparison(real_tumor):
     logging.info(
         "Running faiss comparison for real_tumor {}".format(real_tumor))
     max_t1c_dice = utils.find_n_max_dice_score_ids(
-        path=DICE_SCORE_DATADUMP_PATH_TEMPLATE.format(id=real_tumor),
+        path=DICE_SCORE_DATADUMP_PATH_TEMPLATE_SERVER.format(id=real_tumor),
         value_type=DSValueType.T1C,
         n_max=10)
     logging.info(max_t1c_dice)

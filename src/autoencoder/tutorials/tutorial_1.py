@@ -36,8 +36,8 @@ class AE(nn.Module):
 
 
 #  use gpu if available
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 # create a model from `AE` autoencoder class
 # load it to the specified device, either gpu or cpu
 model = AE(input_shape=784).to(device)
@@ -76,7 +76,7 @@ train_loader = torch.utils.data.DataLoader(
 ###
 
 
-epochs = 20
+epochs = 50
 
 for epoch in range(epochs):
     loss = 0

@@ -5,16 +5,8 @@ from datetime import datetime
 
 import numpy as np
 from utils import calc_dice_coef, load_real_tumor, time_measure
-
-# tumor_mask_f_to_atlas229 ; tumor_mask_t_to_atlas229
-# tgm001_preop'
-REAL_TUMOR_PATH = '/home/marcel/Projects/uni/thesis/real_tumors/{id}'
-SYN_TUMOR_BASE_PATH = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
-SYN_TUMOR_PATH_TEMPLATE = '//home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
-
-T1C_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
-FLAIR_PATH = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
-TUMOR_SUBSET_TESTING_SIZE = 200
+from constants import (REAL_TUMOR_PATH_SERVER, SYN_TUMOR_BASE_PATH_SERVER,
+                       SYN_TUMOR_PATH_TEMPLATE_SERVER, T1C_PATH_SERVER, FLAIR_PATH_SERVER, TUMOR_SUBSET_TESTING_200_SIZE)
 
 
 @time_measure(log=True)
@@ -25,12 +17,12 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
     """
     (t1c, flair) = load_real_tumor(tumor_path)
 
-    folders = os.listdir(SYN_TUMOR_BASE_PATH)
+    folders = os.listdir(SYN_TUMOR_BASE_PATH_SERVER)
     folders.sort(key=lambda f: int(f))
 
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:TUMOR_SUBSET_TESTING_SIZE]
+        folders = folders[:TUMOR_SUBSET_TESTING_200_SIZE]
 
     # init dicts
     scores = {}
@@ -43,7 +35,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
     # loop through synthetic tumors
     for f in folders:
         # load tumor data
-        tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=f))['data']
+        tumor = np.load(SYN_TUMOR_PATH_TEMPLATE_SERVER.format(id=f))['data']
 
         # crop 129^3 to 128^3 if needed
         if tumor.shape != (128, 128, 128):
@@ -81,7 +73,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
 
 def run(real_tumor, is_test=False):
     (scores, maximum) = get_dice_scores_for_real_tumor(
-        tumor_path=REAL_TUMOR_PATH.format(id=real_tumor), is_test=is_test)
+        tumor_path=REAL_TUMOR_PATH_SERVER.format(id=real_tumor), is_test=is_test)
     logging.info("maximum dice score for tumor {}: {}".format(
         real_tumor, maximum))
     # now = datetime.now().strftime("%Y-%m-%d")
