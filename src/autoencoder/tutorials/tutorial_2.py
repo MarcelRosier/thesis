@@ -42,9 +42,10 @@ sns.set()
 # %load_ext tensorboard
 
 # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-DATASET_PATH = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
-
-CHECKPOINT_PATH = "/home/marcel//Projects/uni/thesis/src/autoencoder/checkpoints"
+DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
+CHECKPOINT_PATH_LOCAL = "/home/marcel//Projects/uni/thesis/src/autoencoder/checkpoints"
+DATASET_PATH_SERVER = "~/thesis/src/autoencoder/dataset"
+CHECKPOINT_PATH_SERVER = "~/thesis/src/autoencoder/checkpoints"
 
 pl.seed_everything(42)
 # Ensure that all operations are deterministic on GPU (if used) for reproducibility
@@ -61,11 +62,11 @@ base_url = "https://raw.githubusercontent.com/phlippe/saved_models/main/tutorial
 pretrained_files = ["cifar10_64.ckpt", "cifar10_128.ckpt",
                     "cifar10_256.ckpt", "cifar10_384.ckpt"]
 # Create checkpoint path if it doesn't exist yet
-os.makedirs(CHECKPOINT_PATH, exist_ok=True)
+os.makedirs(CHECKPOINT_PATH_LOCAL, exist_ok=True)
 
 # For each file, check whether it already exists. If not, try downloading it.
 for file_name in pretrained_files:
-    file_path = os.path.join(CHECKPOINT_PATH, file_name)
+    file_path = os.path.join(CHECKPOINT_PATH_LOCAL, file_name)
     if not os.path.isfile(file_path):
         file_url = base_url + file_name
         print(f"Downloading {file_url}...")
@@ -79,14 +80,14 @@ transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5,), (0.5,))])
 
 # Loading the training dataset. We need to split it into a training and validation part
-train_dataset = CIFAR10(root=DATASET_PATH, train=True,
+train_dataset = CIFAR10(root=DATASET_PATH_LOCAL, train=True,
                         transform=transform, download=True)
 pl.seed_everything(42)
 train_set, val_set = torch.utils.data.random_split(
     train_dataset, [45000, 5000])
 
 # Loading the test set
-test_set = CIFAR10(root=DATASET_PATH, train=False,
+test_set = CIFAR10(root=DATASET_PATH_LOCAL, train=False,
                    transform=transform, download=True)
 
 # We define a set of data loaders that we can use for various purposes later.
@@ -161,7 +162,7 @@ class GenerateCallback(pl.Callback):
 
 def train_cifar(latent_dim):
     # Create a PyTorch Lightning trainer with the generation callback
-    trainer = pl.Trainer(default_root_dir=os.path.join(CHECKPOINT_PATH, f"cifar10_{latent_dim}"),
+    trainer = pl.Trainer(default_root_dir=os.path.join(CHECKPOINT_PATH_LOCAL, f"cifar10_{latent_dim}"),
                          gpus=1 if str(device).startswith("cuda") else 0,
                          max_epochs=500,
                          callbacks=[ModelCheckpoint(save_weights_only=True),
@@ -175,7 +176,7 @@ def train_cifar(latent_dim):
 
     # Check whether pretrained model exists. If yes, load it and skip training
     pretrained_filename = os.path.join(
-        CHECKPOINT_PATH, f"cifar10_{latent_dim}.ckpt")
+        CHECKPOINT_PATH_LOCAL, f"cifar10_{latent_dim}.ckpt")
     if os.path.isfile(pretrained_filename):
         print("Found pretrained model, loading...")
         model = Autoencoder.load_from_checkpoint(pretrained_filename)

@@ -33,6 +33,7 @@ class Encoder(nn.Module):
             nn.Conv2d(num_input_channels, c_hid, kernel_size=3,
                       padding=1, stride=2),  # 32x32 => 16x16
             act_fn(),
+            # keeps the size, purpose ??
             nn.Conv2d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
             nn.Conv2d(c_hid, 2*c_hid, kernel_size=3,
