@@ -182,7 +182,7 @@ def train_cifar(latent_dim):
 
     # Check whether pretrained model exists. If yes, load it and skip training
     pretrained_filename = os.path.join(
-        CHECKPOINT_PATH, f"custom_cifar10_{latent_dim}.ckpt")
+        CHECKPOINT_PATH, f"cifar10_{latent_dim}.ckpt")
     if os.path.isfile(pretrained_filename):
         print("Found pretrained model, loading...")
         model = Autoencoder.load_from_checkpoint(pretrained_filename)
@@ -199,7 +199,7 @@ def train_cifar(latent_dim):
 
 
 model_dict = {}
-latent_dim_list = [64, 512]  # [64, 128, 256, 384]
+latent_dim_list = [64, 128, 256, 384]
 for latent_dim in latent_dim_list:
     model_ld, result_ld = train_cifar(latent_dim)
     model_dict[latent_dim] = {"model": model_ld, "result": result_ld}
@@ -237,10 +237,42 @@ def visualize_reconstructions(model, input_imgs, latent_dim):
     plt.title(f"Reconstructed from {model.hparams.latent_dim} latents")
     plt.imshow(grid)
     plt.axis('off')
-    plt.show() if IS_LOCAL else plt.savefig(f"fig_{latent_dim}.png")
+    # plt.show() if IS_LOCAL else
+    plt.savefig(f"fig_{latent_dim}.png")
 
 
-input_imgs = get_train_images(4)
+def get_avg_reconstruction_loss_for_model(model, train_loader):
+    model.eval()
+    with torch.no_grad():
+        total_loss = 0
+        for batch in train_loader:
+            loss = model._get_reconstruction_loss(batch)
+            total_loss += loss
+        avg = total_loss / len(train_loader)
+        print(avg)
+        return avg
+
+
+def plot_loss_vs_latent_dims(dim_list, loss_list):
+    x_data = dim_list
+    y_data = loss_list
+    objects = np.arange(len(x_data))
+    plt.bar(objects, y_data, align='center', alpha=0.5)
+    plt.xticks(objects, x_data)
+    plt.xlabel('Latent Dimensions')
+    plt.ylabel('Average reconstruction loss')
+    # plt.title('')
+
+    plt.show()
+
+
+# reconstruction_loss_list = [get_avg_reconstruction_loss_for_model(
+#     model_dict[dim]["model"], train_loader=train_loader) for dim in latent_dim_list]
+
+# plot_loss_vs_latent_dims(dim_list=latent_dim_list,
+#                          loss_list=reconstruction_loss_list)
+
+input_imgs = get_train_images(8)
 # for latent_dim in model_dict:
 #     visualize_reconstructions(model_dict[latent_dim]["model"], input_imgs)
 for latent_dim in latent_dim_list:
