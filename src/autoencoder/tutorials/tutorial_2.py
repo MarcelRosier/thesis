@@ -47,8 +47,8 @@ IS_LOCAL = False
 # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
 DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
 CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
-DATASET_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/dataset"
-CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/checkpoints"
+DATASET_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/tutorials/dataset"
+CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/tutorials/checkpoints"
 
 DATASET_PATH = DATASET_PATH_LOCAL if IS_LOCAL else DATASET_PATH_SERVER
 CHECKPOINT_PATH = CHECKPOINT_PATH_LOCAL if IS_LOCAL else CHECKPOINT_PATH_SERVER
