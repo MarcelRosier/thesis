@@ -42,11 +42,11 @@ sns.set()
 # %load_ext tensorboard
 
 # env
-IS_LOCAL = False
+IS_LOCAL = True
 
 # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/dataset"
-CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
+DATASET_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/tutorials/dataset"
+CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/tutorials/checkpoints"
 DATASET_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/tutorials/dataset"
 CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/tutorials/checkpoints"
 

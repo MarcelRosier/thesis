@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import torch
-from torch.functional import Tensor
+from torch._C import dtype
 from constants import (IS_LOCAL, SYN_TUMOR_BASE_PATH_LOCAL,
                        SYN_TUMOR_PATH_TEMPLATE_SERVER, TUMOR_SUBSET_1K, TUMOR_SUBSET_200, SYN_TUMOR_PATH_TEMPLATE_SERVER, SYN_TUMOR_PATH_TEMPLATE_LOCAL)
 from torch.utils.data import Dataset
@@ -14,12 +14,15 @@ SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE_LOCAL if IS_LOCAL else SYN_TUM
 class TumorT1CDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, transform=None):
+    def __init__(self, subset=None, transform=None):
         """TODO"""
         folders = os.listdir(SYN_TUMOR_BASE_PATH)
-        folders = folders[:TUMOR_SUBSET_1K]
-        self.n_samples = len(folders)
         folders.sort(key=lambda f: int(f))
+        if subset:
+            folders = folders[subset[0]: subset[1]]
+        else:
+            folders = folders[:TUMOR_SUBSET_200]
+        self.n_samples = len(folders)
         self.tumor_ids = folders
         # data = np.empty([self.n_samples, 128, 128, 128])
         # for i, tumor_id in enumerate(folders):
@@ -32,7 +35,12 @@ class TumorT1CDataset(Dataset):
 
     def __getitem__(self, idx):
         tumor = self.load_single_tumor(tumor_id=self.tumor_ids[idx])
-        return torch.from_numpy(tumor), torch.empty(0)
+        tensor = torch.from_numpy(tumor)
+        # cast double to float to match weight dtype
+        tensor = tensor.float()
+        # add channel dim
+        tensor.unsqueeze_(0)
+        return tensor, torch.empty(0)
 
     def load_single_tumor(self, tumor_id):
         tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[

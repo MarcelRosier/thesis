@@ -7,3 +7,4 @@ test.py
 src/autoencoder/tutorials/outputs
 src/autoencoder/tutorials/dataset
 src/autoencoder/tutorials/checkpoints
+src/autoencoder/checkpoints
