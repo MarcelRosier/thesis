@@ -11,9 +11,7 @@ import torchvision
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
-
-writer = SummaryWriter(
-    '/home/marcel/Projects/uni/thesis/src/autoencoder/tensorboard_logs')
+import sys
 
 
 class Encoder(nn.Module):
@@ -32,9 +30,40 @@ class Encoder(nn.Module):
         """
         super().__init__()
         c_hid = base_channel_size
-        self.net = nn.Sequential(
+        self.net_1 = nn.Sequential(
             nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
                       padding=1, stride=2),  # 128^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 64^3 => 32^3
+            act_fn(),
+            nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 32^3 => 16^3
+            act_fn(),
+            # keeps the size, purpose ??
+            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(3 * c_hid, 4*c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 16^3 => 8^3
+            act_fn(),
+            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 8^3 => 4^3
+            act_fn(),
+            nn.Flatten(),  # Image grid to single feature vector
+            nn.Linear(4*64*c_hid, latent_dim)  # 2 * 4^3 * c_hid
+        )
+
+        self.net_2 = nn.Sequential(
+            nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 128^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
             nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
@@ -60,7 +89,7 @@ class Encoder(nn.Module):
         )
 
     def forward(self, x):
-        return self.net(x)
+        return self.net_2(x)
 
 
 class Decoder(nn.Module):
@@ -83,11 +112,34 @@ class Decoder(nn.Module):
             nn.Linear(latent_dim, 2*64*c_hid),
             act_fn()
         )
-        self.test = nn.ConvTranspose3d(2*c_hid, 2*c_hid, kernel_size=3,
-                                       output_padding=1, padding=1, stride=2)
-        # self.test_net =
-
-        self.net = nn.Sequential(
+        self.net_1 = nn.Sequential(
+            nn.ConvTranspose3d(4*c_hid, 4*c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 4^3 => 8^3
+            act_fn(),
+            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(4*c_hid, 3 * c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 8^3 => 16^3
+            act_fn(),
+            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(3 * c_hid, 2 * c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
+            act_fn(),
+            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(2*c_hid, c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
+            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
+        )
+        self.net_2 = nn.Sequential(
             nn.ConvTranspose3d(2*c_hid, 2*c_hid, kernel_size=3,
                                output_padding=1, padding=1, stride=2),  # 4^3 => 8^3
             act_fn(),
@@ -98,26 +150,28 @@ class Decoder(nn.Module):
             act_fn(),
             nn.Conv3d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
             act_fn(),
-            nn.ConvTranspose3d(2 * c_hid, 2 * c_hid, kernel_size=3,
+            nn.ConvTranspose3d(2 * c_hid, c_hid, kernel_size=3,
                                output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
             act_fn(),
-            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
-            nn.ConvTranspose3d(2*c_hid, c_hid, kernel_size=3,
+            nn.ConvTranspose3d(c_hid, c_hid, kernel_size=3,
                                output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
             nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
             act_fn(),
             nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
                                output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
-            nn.Sigmoid()  # The input images is scaled between -1 and 1, hence the output has to be bounded as well
+            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
         )
 
     def forward(self, x):
         x = self.linear(x)
         # reverse function for nn.Flatter()
         x = x.reshape(x.shape[0], -1, 4, 4, 4)
-        x = self.net(x)
+        x = self.net_2(x)
         return x
 
 
@@ -141,8 +195,8 @@ class Autoencoder(pl.LightningModule):
         self.decoder = decoder_class(
             num_input_channels, base_channel_size, latent_dim)
         # Example input array needed for visualizing the graph of the network
-        # self.example_input_array = torch.zeros(
-        #     2, num_input_channels, width, height, depth)
+        self.example_input_array = torch.zeros(
+            10, num_input_channels, width, height, depth)
 
     def forward(self, x):
         """
@@ -159,7 +213,8 @@ class Autoencoder(pl.LightningModule):
         x, _ = batch  # We do not need the labels
         x_hat = self.forward(x)
         loss = F.mse_loss(x, x_hat, reduction="none")
-        loss = loss.sum(dim=[1, 2, 3, 4]).mean(dim=[0])
+        loss = loss.sum(dim=[1, 2, 3, 4])  # TODO is this correct?
+        loss = loss.mean(dim=[0])
         return loss
 
     def configure_optimizers(self):
@@ -175,7 +230,7 @@ class Autoencoder(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -204,5 +259,5 @@ class GenerateCallback(pl.Callback):
                 reconst_tumors = pl_module(input_tumors)
                 pl_module.train()
             # Plot and add to tensorboard
-            writer.add_scalar('training loss', 1, trainer.current_epoch)
+            # writer.add_scalar('training loss', 1, trainer.current_epoch)
             #  running_loss /100, epoch * n_total_steps + i)
