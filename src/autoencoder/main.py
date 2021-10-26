@@ -28,7 +28,7 @@ print("Device:", device)
 # Hyper parameters
 BASE_CHANNELS = 16
 MAX_EPOCHS = 20
-LATENT_DIM = 1024
+LATENT_DIM = 8192
 
 
 def run():

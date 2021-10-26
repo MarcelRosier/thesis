@@ -87,9 +87,33 @@ class Encoder(nn.Module):
             nn.Flatten(),  # Image grid to single feature vector
             nn.Linear(2*64*c_hid, latent_dim)  # 2 * 4^3 * c_hid
         )
+        self.net_3 = nn.Sequential(
+            nn.Conv3d(num_input_channels, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 128^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 64^3 => 32^3
+            act_fn(),
+            nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 32^3 => 16^3
+            act_fn(),
+            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Conv3d(3 * c_hid, 3*c_hid, kernel_size=3,
+                      padding=1, stride=2),  # 16^3 => 8^3
+            act_fn(),
+            nn.Conv3d(3*c_hid, 3*c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Flatten(),  # Image grid to single feature vector
+            nn.Linear(3*8*8*8*c_hid, latent_dim)  # 2 * 8^3 * c_hid
+        )
 
     def forward(self, x):
-        return self.net_2(x)
+        return self.net_3(x)
 
 
 class Decoder(nn.Module):
@@ -108,8 +132,12 @@ class Decoder(nn.Module):
         """
         super().__init__()
         c_hid = base_channel_size
-        self.linear = nn.Sequential(
+        self.linear_1 = nn.Sequential(
             nn.Linear(latent_dim, 2*64*c_hid),
+            act_fn()
+        )
+        self.linear_3 = nn.Sequential(
+            nn.Linear(latent_dim, 3*8*8*8*c_hid),
             act_fn()
         )
         self.net_1 = nn.Sequential(
@@ -166,12 +194,34 @@ class Decoder(nn.Module):
                                output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
             nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
         )
+        self.net_3 = nn.Sequential(
+            nn.Conv3d(3*c_hid, 3*c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(3*c_hid, 3 * c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 8^3 => 16^3
+            act_fn(),
+            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(3 * c_hid, 2 * c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
+            act_fn(),
+            nn.ConvTranspose3d(2 * c_hid, c_hid, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
+            act_fn(),
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
+                               output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
+            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
+        )
 
     def forward(self, x):
-        x = self.linear(x)
+        x = self.linear_3(x)
         # reverse function for nn.Flatter()
-        x = x.reshape(x.shape[0], -1, 4, 4, 4)
-        x = self.net_2(x)
+        x = x.reshape(x.shape[0], -1, 8, 8, 8)
+        x = self.net_3(x)
         return x
 
 
