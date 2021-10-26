@@ -20,5 +20,10 @@ TUMOR_SUBSET_1K = 1000
 TUMOR_SUBSET_10K = 10000
 TUMOR_SUBSET_50K = 50000
 
+# autoencoder constants
+AE_CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
+AE_CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/checkpoints"
+
+
 # env var
-IS_LOCAL = True
+IS_LOCAL = False
