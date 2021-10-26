@@ -12,15 +12,12 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 import sys
+from autoencoder import networks
 
 
 class Encoder(nn.Module):
 
-    def __init__(self,
-                 num_input_channels: int,
-                 base_channel_size: int,
-                 latent_dim: int,
-                 act_fn: object = nn.GELU):
+    def __init__(self, net):
         """
         Inputs:
             - num_input_channels : Number of input channels of the image. For CIFAR, this parameter is 3
@@ -29,100 +26,17 @@ class Encoder(nn.Module):
             - act_fn : Activation function used throughout the encoder network
         """
         super().__init__()
-        c_hid = base_channel_size
-        self.net_1 = nn.Sequential(
-            nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 128^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 64^3 => 32^3
-            act_fn(),
-            nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 32^3 => 16^3
-            act_fn(),
-            # keeps the size, purpose ??
-            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(3 * c_hid, 4*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 16^3 => 8^3
-            act_fn(),
-            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 8^3 => 4^3
-            act_fn(),
-            nn.Flatten(),  # Image grid to single feature vector
-            nn.Linear(4*64*c_hid, latent_dim)  # 2 * 4^3 * c_hid
-        )
-
-        self.net_2 = nn.Sequential(
-            nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 128^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 64^3 => 32^3
-            act_fn(),
-            nn.Conv3d(2 * c_hid, 2 * c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 32^3 => 16^3
-            act_fn(),
-            # keeps the size, purpose ??
-            nn.Conv3d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(2 * c_hid, 2*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 16^3 => 8^3
-            act_fn(),
-            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 8^3 => 4^3
-            act_fn(),
-            nn.Flatten(),  # Image grid to single feature vector
-            nn.Linear(2*64*c_hid, latent_dim)  # 2 * 4^3 * c_hid
-        )
-        self.net_3 = nn.Sequential(
-            nn.Conv3d(num_input_channels, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 128^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 64^3 => 32^3
-            act_fn(),
-            nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 32^3 => 16^3
-            act_fn(),
-            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(3 * c_hid, 3*c_hid, kernel_size=3,
-                      padding=1, stride=2),  # 16^3 => 8^3
-            act_fn(),
-            nn.Conv3d(3*c_hid, 3*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Flatten(),  # Image grid to single feature vector
-            nn.Linear(3*8*8*8*c_hid, latent_dim)  # 2 * 8^3 * c_hid
-        )
+        self.net = net
 
     def forward(self, x):
-        return self.net_3(x)
+        return self.net(x)
 
 
 class Decoder(nn.Module):
 
     def __init__(self,
-                 num_input_channels: int,
-                 base_channel_size: int,
-                 latent_dim: int,
-                 act_fn: object = nn.GELU):
+                 linear: object,
+                 net: object):
         """
         Inputs:
             - num_input_channels : Number of channels of the image to reconstruct. For CIFAR, this parameter is 3
@@ -131,105 +45,21 @@ class Decoder(nn.Module):
             - act_fn : Activation function used throughout the decoder network
         """
         super().__init__()
-        c_hid = base_channel_size
-        self.linear_1 = nn.Sequential(
-            nn.Linear(latent_dim, 2*64*c_hid),
-            act_fn()
-        )
-        self.linear_3 = nn.Sequential(
-            nn.Linear(latent_dim, 3*8*8*8*c_hid),
-            act_fn()
-        )
-        self.net_1 = nn.Sequential(
-            nn.ConvTranspose3d(4*c_hid, 4*c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 4^3 => 8^3
-            act_fn(),
-            nn.Conv3d(4*c_hid, 4*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(4*c_hid, 3 * c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 8^3 => 16^3
-            act_fn(),
-            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(3 * c_hid, 2 * c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
-            act_fn(),
-            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(2*c_hid, c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
-            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
-        )
-        self.net_2 = nn.Sequential(
-            nn.ConvTranspose3d(2*c_hid, 2*c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 4^3 => 8^3
-            act_fn(),
-            nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(2*c_hid, 2 * c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 8^3 => 16^3
-            act_fn(),
-            nn.Conv3d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(2 * c_hid, c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(c_hid, c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
-            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
-        )
-        self.net_3 = nn.Sequential(
-            nn.Conv3d(3*c_hid, 3*c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(3*c_hid, 3 * c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 8^3 => 16^3
-            act_fn(),
-            nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(3 * c_hid, 2 * c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
-            act_fn(),
-            nn.ConvTranspose3d(2 * c_hid, c_hid, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
-            act_fn(),
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
-                               output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
-            nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
-        )
+        self.linear = linear
+        self.net = net
 
     def forward(self, x):
-        x = self.linear_3(x)
+        x = self.linear(x)
         # reverse function for nn.Flatter()
-        x = x.reshape(x.shape[0], -1, 8, 8, 8)
-        x = self.net_3(x)
+        x = x.reshape(x.shape[0], -1, 8, 8, 8)  # 4, 4, 4)  # TODO generalize?
+        x = self.net(x)
         return x
 
 
 class Autoencoder(pl.LightningModule):
 
     def __init__(self,
-                 base_channel_size: int,
-                 latent_dim: int,
+                 nets: object,
                  encoder_class: object = Encoder,
                  decoder_class: object = Decoder,
                  num_input_channels: int = 1,
@@ -239,11 +69,10 @@ class Autoencoder(pl.LightningModule):
         super().__init__()
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters()
+        encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
-        self.encoder = encoder_class(
-            num_input_channels, base_channel_size, latent_dim)
-        self.decoder = decoder_class(
-            num_input_channels, base_channel_size, latent_dim)
+        self.encoder = encoder_class(net=encoder_net)
+        self.decoder = decoder_class(linear=linear_net, net=decoder_net)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(
             10, num_input_channels, width, height, depth)
@@ -253,6 +82,7 @@ class Autoencoder(pl.LightningModule):
         The forward function takes in an tumor batch and returns the reconstructed image
         """
         z = self.encoder(x)
+        # print(z.shape)
         x_hat = self.decoder(z)
         return x_hat
 

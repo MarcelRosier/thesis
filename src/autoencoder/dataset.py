@@ -24,10 +24,6 @@ class TumorT1CDataset(Dataset):
             folders = folders[:TUMOR_SUBSET_200]
         self.n_samples = len(folders)
         self.tumor_ids = folders
-        # data = np.empty([self.n_samples, 128, 128, 128])
-        # for i, tumor_id in enumerate(folders):
-        #     data[i] = self.load_single_tumor(tumor_id=tumor_id)
-        # self.dataset = torch.from_numpy(data)
         self.transform = transform
 
     def __len__(self):
