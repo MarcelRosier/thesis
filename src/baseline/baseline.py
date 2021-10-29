@@ -5,8 +5,11 @@ from datetime import datetime
 
 import numpy as np
 from utils import calc_dice_coef, load_real_tumor, time_measure
-from constants import (REAL_TUMOR_PATH_SERVER, SYN_TUMOR_BASE_PATH_SERVER,
-                       SYN_TUMOR_PATH_TEMPLATE_SERVER, T1C_PATH_SERVER, FLAIR_PATH_SERVER, TUMOR_SUBSET_TESTING_200_SIZE)
+from constants import (ENV, REAL_TUMOR_PATH, SYN_TUMOR_BASE_PATH,
+                       SYN_TUMOR_PATH_TEMPLATE, TUMOR_SUBSET_200)
+REAL_TUMOR_PATH = REAL_TUMOR_PATH[ENV]
+SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
+SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
 
 @time_measure(log=True)
@@ -17,12 +20,12 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
     """
     (t1c, flair) = load_real_tumor(tumor_path)
 
-    folders = os.listdir(SYN_TUMOR_BASE_PATH_SERVER)
+    folders = os.listdir(SYN_TUMOR_BASE_PATH)
     folders.sort(key=lambda f: int(f))
 
     # only get a subset of the data if its a test
     if is_test:
-        folders = folders[:TUMOR_SUBSET_TESTING_200_SIZE]
+        folders = folders[:TUMOR_SUBSET_200]
 
     # init dicts
     scores = {}
@@ -35,7 +38,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
     # loop through synthetic tumors
     for f in folders:
         # load tumor data
-        tumor = np.load(SYN_TUMOR_PATH_TEMPLATE_SERVER.format(id=f))['data']
+        tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=f))['data']
 
         # crop 129^3 to 128^3 if needed
         if tumor.shape != (128, 128, 128):
@@ -73,7 +76,7 @@ def get_dice_scores_for_real_tumor(tumor_path, is_test=False):
 
 def run(real_tumor, is_test=False):
     (scores, maximum) = get_dice_scores_for_real_tumor(
-        tumor_path=REAL_TUMOR_PATH_SERVER.format(id=real_tumor), is_test=is_test)
+        tumor_path=REAL_TUMOR_PATH.format(id=real_tumor), is_test=is_test)
     logging.info("maximum dice score for tumor {}: {}".format(
         real_tumor, maximum))
     # now = datetime.now().strftime("%Y-%m-%d")

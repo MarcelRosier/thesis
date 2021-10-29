@@ -8,8 +8,11 @@ import numpy as np
 import utils
 from utils import (SimilarityMeasureType, calc_dice_coef, load_real_tumor,
                    time_measure)
-from constants import (REAL_TUMOR_PATH_SERVER, SYN_TUMOR_BASE_PATH_SERVER,
-                       SYN_TUMOR_PATH_TEMPLATE_SERVER, T1C_PATH_SERVER, FLAIR_PATH_SERVER)
+from constants import (ENV, REAL_TUMOR_PATH, SYN_TUMOR_BASE_PATH,
+                       SYN_TUMOR_PATH_TEMPLATE)
+REAL_TUMOR_PATH = REAL_TUMOR_PATH[ENV]
+SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
+SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
 
 def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
@@ -18,7 +21,7 @@ def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
     """
 
     # load tumor data
-    tumor = np.load(SYN_TUMOR_PATH_TEMPLATE_SERVER.format(
+    tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(
         id=tumor_folder))['data']
 
     # crop 129^3 to 128^3 if needed
@@ -62,7 +65,7 @@ def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path
     """
     (t1c, flair) = load_real_tumor(tumor_path)
 
-    folders = os.listdir(SYN_TUMOR_BASE_PATH_SERVER)
+    folders = os.listdir(SYN_TUMOR_BASE_PATH)
     folders.sort(key=lambda f: int(f))
     # only get a subset of the data if its a test
     if is_test:
@@ -99,7 +102,7 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=F
     scores, best_score = get_scores_for_real_tumor_parallel(
         similarity_measure=similarity_measure_type,
         processes=processes,
-        tumor_path=REAL_TUMOR_PATH_SERVER,
+        tumor_path=REAL_TUMOR_PATH,
         is_test=is_test)
     print(best_score)
     now_date = datetime.now().strftime("%Y-%m-%d")
