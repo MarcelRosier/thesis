@@ -1,29 +1,57 @@
 
-# datadump constants
-DICE_SCORE_DATADUMP_PATH_TEMPLATE_LOCAL = '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json'
-DICE_SCORE_DATADUMP_PATH_TEMPLATE_SERVER = '~/thesis/src/data/{id}_datadump.json'
+import socket
+# env var
+ENV = socket.getfqdn()
+# envs
+LOCAL = 'lx'
+IBBM = 'atnavab66.informatik.tu-muenchen.de'
+GIGA = 'ibbm-giga'
+
+DICE_SCORE_DATADUMP_PATH_TEMPLATE = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json',
+    IBBM: '~/thesis/src/data/{id}_datadump.json',
+    GIGA: None
+}
 
 # Baseline constants
-REAL_TUMOR_PATH_SERVER = '/home/rosierm/marcel_tgm/tgm001_preop'
-REAL_TUMOR_PATH_LOCAL = '/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop'
-SYN_TUMOR_BASE_PATH_SERVER = '/home/rosierm/samples_extended/Dataset'
-SYN_TUMOR_BASE_PATH_LOCAL = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset'
-SYN_TUMOR_PATH_TEMPLATE_SERVER = '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz'
-SYN_TUMOR_PATH_TEMPLATE_LOCAL = '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz'
+REAL_TUMOR_PATH = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop',
+    IBBM: '/home/rosierm/marcel_tgm/tgm001_preop',
+    GIGA: None
+}
 
-T1C_PATH_SERVER = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii'
-FLAIR_PATH_SERVER = '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii'
+SYN_TUMOR_BASE_PATH = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset',
+    IBBM: '/home/rosierm/samples_extended/Dataset',
+    GIGA: None
+}
+
+SYN_TUMOR_PATH_TEMPLATE = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz',
+    IBBM: '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz',
+    GIGA: None
+}
+
+T1C_PATH = {
+    LOCAL: None,
+    IBBM: '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii',
+    GIGA: None
+}
+FLAIR_PATH = {
+    LOCAL: None,
+    IBBM: '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii',
+    GIGA: None
+}
+
+# Autoencoder constants
+AE_CHECKPOINT_PATH = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints',
+    IBBM: '/home/rosierm/thesis/src/autoencoder/checkpoints',
+    GIGA: None
+}
 
 # Dataset size constants
 TUMOR_SUBSET_200 = 200
 TUMOR_SUBSET_1K = 1000
 TUMOR_SUBSET_10K = 10000
 TUMOR_SUBSET_50K = 50000
-
-# autoencoder constants
-AE_CHECKPOINT_PATH_LOCAL = "/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints"
-AE_CHECKPOINT_PATH_SERVER = "/home/rosierm/thesis/src/autoencoder/checkpoints"
-
-
-# env var
-IS_LOCAL = False

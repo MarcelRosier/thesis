@@ -13,9 +13,9 @@ from torch.utils.tensorboard import SummaryWriter
 from autoencoder.dataset import TumorT1CDataset
 from autoencoder import networks
 from autoencoder.modules import Autoencoder, GenerateCallback
-from constants import AE_CHECKPOINT_PATH_SERVER, AE_CHECKPOINT_PATH_LOCAL, IS_LOCAL
+from constants import AE_CHECKPOINT_PATH, ENV
 
-CHECKPOINT_PATH = AE_CHECKPOINT_PATH_LOCAL if IS_LOCAL else AE_CHECKPOINT_PATH_SERVER
+CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 
 matplotlib.rcParams['lines.linewidth'] = 2.0
 sns.reset_orig()
