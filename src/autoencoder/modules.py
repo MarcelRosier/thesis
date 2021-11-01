@@ -20,10 +20,7 @@ class Encoder(nn.Module):
     def __init__(self, net):
         """
         Inputs:
-            - num_input_channels : Number of input channels of the image. For CIFAR, this parameter is 3
-            - base_channel_size : Number of channels we use in the first convolutional layers. Deeper layers might use a duplicate of it.
-            - latent_dim : Dimensionality of latent representation z
-            - act_fn : Activation function used throughout the encoder network
+            - net: the neural net
         """
         super().__init__()
         self.net = net
@@ -36,22 +33,25 @@ class Decoder(nn.Module):
 
     def __init__(self,
                  linear: object,
-                 net: object):
+                 net: object,
+                 min_dim: int = 4,
+                 ):
         """
         Inputs:
-            - num_input_channels : Number of channels of the image to reconstruct. For CIFAR, this parameter is 3
-            - base_channel_size : Number of channels we use in the last convolutional layers. Early layers might use a duplicate of it.
-            - latent_dim : Dimensionality of latent representation z
-            - act_fn : Activation function used throughout the decoder network
+            - linear : linear layer
+            - net : the rest of the net ->  conv layers
+            - min_dim - the dimension of the the smallest 3d layer, needed to reshape form the 1d vector
         """
         super().__init__()
         self.linear = linear
         self.net = net
+        self.min_dim = min_dim
 
     def forward(self, x):
         x = self.linear(x)
         # reverse function for nn.Flatter()
-        x = x.reshape(x.shape[0], -1, 8, 8, 8)  # 4, 4, 4)  # TODO generalize?
+        x = x.reshape(x.shape[0], -1, self.min_dim_d,
+                      self.min_dim, self.min_dim)
         x = self.net(x)
         return x
 
@@ -62,6 +62,7 @@ class Autoencoder(pl.LightningModule):
                  nets: object,
                  encoder_class: object = Encoder,
                  decoder_class: object = Decoder,
+                 min_dim: int = 4,
                  num_input_channels: int = 1,
                  width: int = 128,
                  height: int = 128,
@@ -72,7 +73,8 @@ class Autoencoder(pl.LightningModule):
         encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
         self.encoder = encoder_class(net=encoder_net)
-        self.decoder = decoder_class(linear=linear_net, net=decoder_net)
+        self.decoder = decoder_class(
+            linear=linear_net, net=decoder_net, min_dim=min_dim)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(
             10, num_input_channels, width, height, depth)
