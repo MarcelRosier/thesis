@@ -1,0 +1,12 @@
+matplotlib                                         
+nibabel                                                
+numpy                                                
+pandas                                                                     
+pytorch-lightning                                    
+scipy                           
+seaborn                         
+tensorboard                     
+torch                           
+torchaudio                      
+torchmetrics                    
+torchvision                     
