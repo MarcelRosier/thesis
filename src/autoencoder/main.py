@@ -27,10 +27,12 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-BASE_CHANNELS = 16
+BASE_CHANNELS = 32
 MAX_EPOCHS = 20
-LATENT_DIM = 2048
-nets = networks.get_k3_m8_net()
+LATENT_DIM = 4096
+MIN_DIM = 4
+BATCH_SIZE = 16
+nets = networks.get_basic_net(c_hid=BASE_CHANNELS, latent_dim=LATENT_DIM)
 
 
 def run(cuda_id=0):
@@ -43,15 +45,15 @@ def run(cuda_id=0):
     test_dataset = TumorT1CDataset(subset=(3000, 3100))
 
     train_loader = DataLoader(dataset=train_dataset,
-                              batch_size=8,
+                              batch_size=BATCH_SIZE,
                               shuffle=False,
                               num_workers=4)
     val_loader = DataLoader(dataset=val_dataset,
-                            batch_size=8,
+                            batch_size=BATCH_SIZE,
                             shuffle=False,
                             num_workers=4)
     test_loader = DataLoader(dataset=test_dataset,
-                             batch_size=8,
+                             batch_size=BATCH_SIZE,
                              shuffle=False,
                              num_workers=4)
     print("Starting training")
@@ -76,7 +78,7 @@ def train_tumort1c(device, train_loader, val_loader, test_loader):
     # Optional logging argument that we don't need
     trainer.logger._default_hp_metric = None
 
-    model = Autoencoder(nets=nets)
+    model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     trainer.fit(model, train_loader, val_loader)
     # Test best model on validation and test set
     val_result = trainer.test(

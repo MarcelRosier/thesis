@@ -7,16 +7,16 @@ from datetime import date, datetime
 import numpy as np
 from numpy.lib.arraysetops import intersect1d
 from numpy.lib.utils import info
-# import cProfile
-# import pstats
-
 
 import utils
 from baseline import baseline, baseline_parallel
-from faiss_src import playground, index_builder
+from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV
+from faiss_src import index_builder, playground
 from utils import DSValueType, SimilarityMeasureType
 
-from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV
+# import cProfile
+# import pstats
+
 
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = DICE_SCORE_DATADUMP_PATH_TEMPLATE[ENV]
 

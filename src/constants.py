@@ -1,5 +1,6 @@
 
 import socket
+
 # env var
 ENV = socket.getfqdn()
 # envs
@@ -23,13 +24,13 @@ REAL_TUMOR_PATH = {
 SYN_TUMOR_BASE_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset',
     IBBM: '/home/rosierm/samples_extended/Dataset',
-    GIGA: None
+    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset'
 }
 
 SYN_TUMOR_PATH_TEMPLATE = {
     LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz',
     IBBM: '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz',
-    GIGA: None
+    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset/{id}/Data_0001.npz'
 }
 
 T1C_PATH = {
@@ -37,6 +38,7 @@ T1C_PATH = {
     IBBM: '/home/rosierm/kap_2021/dice_analysis/tumor_mask_t_to_atlas.nii',
     GIGA: None
 }
+
 FLAIR_PATH = {
     LOCAL: None,
     IBBM: '/home/rosierm/kap_2021/dice_analysis/tumor_mask_f_to_atlas.nii',
@@ -47,7 +49,7 @@ FLAIR_PATH = {
 AE_CHECKPOINT_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints',
     IBBM: '/home/rosierm/thesis/src/autoencoder/checkpoints',
-    GIGA: None
+    GIGA: '/mnt/Drive3/ivan_marcel/checkpoints'
 }
 
 # Dataset size constants

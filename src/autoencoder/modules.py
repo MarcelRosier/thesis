@@ -50,7 +50,7 @@ class Decoder(nn.Module):
     def forward(self, x):
         x = self.linear(x)
         # reverse function for nn.Flatter()
-        x = x.reshape(x.shape[0], -1, self.min_dim_d,
+        x = x.reshape(x.shape[0], -1, self.min_dim,
                       self.min_dim, self.min_dim)
         x = self.net(x)
         return x
@@ -94,8 +94,9 @@ class Autoencoder(pl.LightningModule):
         """
         x, _ = batch  # We do not need the labels
         x_hat = self.forward(x)
-        loss = F.mse_loss(x, x_hat, reduction="none")
-        loss = loss.sum(dim=[1, 2, 3, 4])  # TODO is this correct?
+        # loss = F.mse_loss(x, x_hat, reduction="none")
+        loss = F.binary_cross_entropy_with_logits(x, x_hat, reduction="none")
+        loss = loss.sum(dim=[1, 2, 3, 4])
         loss = loss.mean(dim=[0])
         return loss
 

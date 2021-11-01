@@ -12,7 +12,7 @@ SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
 
 class TumorT1CDataset(Dataset):
-    """Face Landmarks dataset."""
+    """Tumor T1C dataset."""
 
     def __init__(self, subset=None, transform=None):
         """TODO"""

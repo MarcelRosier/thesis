@@ -1,8 +1,9 @@
-from torch.utils.data import dataset
-from autoencoder.dataset import TumorT1CDataset
-from torch.utils.data import DataLoader
-from autoencoder import main
 import argparse
+
+from torch.utils.data import DataLoader, dataset
+
+from autoencoder import main
+from autoencoder.dataset import TumorT1CDataset
 
 # arg setup
 parser = argparse.ArgumentParser()

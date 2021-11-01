@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import json
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 DICE_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:47:08_comparison.json'

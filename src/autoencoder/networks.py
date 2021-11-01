@@ -16,7 +16,7 @@ import sys
 # basic network
 
 
-def get_basic_net(num_input_channels, c_hid, act_fn, latent_dim):
+def get_basic_net(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=2048):
     """So far the best scores, yet no improvement after first epoch? underfit?"""
     encoder_basic = nn.Sequential(
         nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
