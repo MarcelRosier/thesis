@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
@@ -53,6 +54,7 @@ class Autoencoder(nn.Module):
         super().__init__()
         encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
+        self.print = PrintLayer()
         self.encoder = encoder_class(net=encoder_net)
         self.decoder = decoder_class(
             linear=linear_net, net=decoder_net, min_dim=min_dim)
@@ -61,7 +63,24 @@ class Autoencoder(nn.Module):
         """
         The forward function takes in an tumor batch and returns the reconstructed volume
         """
+        # x = self.print(x)
         z = self.encoder(x)
         # print(z.shape)
         x_hat = self.decoder(z)
+        # x_hat = self.print(x_hat)
         return x_hat
+
+
+######################
+# Helper Modules
+######################
+
+class PrintLayer(nn.Module):
+    def __init__(self):
+        super(PrintLayer, self).__init__()
+
+    def forward(self, x):
+        # Do your print / debug stuff here
+        print("unique value:", torch.unique(x))
+        print(f"min={torch.min(x).item()}, max= {torch.max(x).item()}")
+        return x

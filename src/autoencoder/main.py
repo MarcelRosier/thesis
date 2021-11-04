@@ -75,7 +75,6 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     criterion = nn.MSELoss()
-
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
@@ -109,7 +108,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         loss = loss / len(train_loader)
 
         # display the epoch training loss
-        writer.add_scalar("Loss/train", loss, epoch)
+        writer.add_scalar(f"{criterion} Loss/train", loss, epoch + 1)
         writer.flush()
         print("epoch : {}/{}, loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         # TODO: save checkpoints
