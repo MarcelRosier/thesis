@@ -1,45 +1,45 @@
+from datetime import datetime
 import os
 
 import matplotlib
-import matplotlib.pyplot as plt
-import pytorch_lightning as pl
 import seaborn as sns
 import torch
 import torch.nn as nn
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from constants import AE_CHECKPOINT_PATH, ENV
+from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from autoencoder.dataset import TumorT1CDataset
 from autoencoder import networks
-from autoencoder.modules import Autoencoder, GenerateCallback
-from constants import AE_CHECKPOINT_PATH, ENV
+from autoencoder.dataset import TumorT1CDataset
+from autoencoder.modules import Autoencoder
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 
 matplotlib.rcParams['lines.linewidth'] = 2.0
 sns.reset_orig()
 sns.set()
-pl.seed_everything(42)
 # Ensure that all operations are deterministic on GPU (if used) for reproducibility
+torch.manual_seed(42)
 torch.backends.cudnn.determinstic = True
 torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-BASE_CHANNELS = 32
-MAX_EPOCHS = 20
-LATENT_DIM = 4096
+BASE_CHANNELS = 16
+MAX_EPOCHS = 4
+LATENT_DIM = 2048
 MIN_DIM = 4
-BATCH_SIZE = 16
+BATCH_SIZE = 8
+
+timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{timestamp}")
+
+
 nets = networks.get_basic_net(c_hid=BASE_CHANNELS, latent_dim=LATENT_DIM)
 
 
 def run(cuda_id=0):
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
-    device = torch.device(
-        f"cuda:{cuda_id}") if torch.cuda.is_available() else torch.device("cpu")
-    print("Device:", device)
     train_dataset = TumorT1CDataset(subset=(35000, 36000))
     val_dataset = TumorT1CDataset(subset=(2000, 2100))
     test_dataset = TumorT1CDataset(subset=(3000, 3100))
@@ -56,34 +56,64 @@ def run(cuda_id=0):
                              batch_size=BATCH_SIZE,
                              shuffle=False,
                              num_workers=4)
-    print("Starting training")
-    model, result = train_tumort1c(device=device, train_loader=train_loader,
+
+    model, result = train_tumort1c(cuda_id=cuda_id, train_loader=train_loader,
                                    val_loader=val_loader, test_loader=test_loader)
-    print("Finished Training")
+    # save model?
     print(result)
 
 
-def train_tumort1c(device, train_loader, val_loader, test_loader):
-    # Create a PyTorch Lightning trainer with the generation callback
-    trainer = pl.Trainer(default_root_dir=os.path.join(CHECKPOINT_PATH, f"tumor_autoencoder"),
-                         gpus=1 if str(device).startswith("cuda") else 0,
-                         max_epochs=MAX_EPOCHS,  # 500,
-                         log_every_n_steps=10,
-                         callbacks=[ModelCheckpoint(save_weights_only=True),
-                                    # GenerateCallback(
-                                    #     get_train_images(8), every_n_epochs=1),
-                                    LearningRateMonitor("epoch")])
-    # If True, we plot the computation graph in tensorboard
-    trainer.logger._log_graph = True
-    # Optional logging argument that we don't need
-    trainer.logger._default_hp_metric = None
-
+def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
+    # set device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    print(f"CUDA_VISIBLE_DEVICES = {os.environ['CUDA_VISIBLE_DEVICES']}")
+    print("Device:", device)
+    # Setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
-    trainer.fit(model, train_loader, val_loader)
-    # Test best model on validation and test set
-    val_result = trainer.test(
-        model, dataloaders=val_loader, verbose=False)
-    test_result = trainer.test(
-        model, dataloaders=test_loader, verbose=False)
-    result = {"test": test_result, "val": val_result}
-    return model, result
+    model.to(device)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    criterion = nn.MSELoss()
+
+    print("Starting training")
+    for epoch in range(MAX_EPOCHS):
+        loss = 0
+        for batch_features, _ in train_loader:
+            # load it to the active device
+            batch_features = batch_features.to(device)
+
+            # reset the gradients back to zero
+            # PyTorch accumulates gradients on subsequent backward passes
+            optimizer.zero_grad()
+
+            # compute reconstructions = x_hat
+            outputs = model(batch_features)
+
+            # compute training reconstruction loss (MSELoss = MeanSquaredErrorLoss)
+            # compare x_hat with x
+            train_loss = criterion(outputs, batch_features)
+
+            # compute accumulated gradients
+            # perform backpropagation of errors
+            train_loss.backward()
+
+            # perform parameter update based on current gradients
+            # optimize weights
+            optimizer.step()
+
+            # add the mini-batch training loss to epoch loss
+            loss += train_loss.item()
+
+        # compute the epoch training loss
+        loss = loss / len(train_loader)
+
+        # display the epoch training loss
+        writer.add_scalar("Loss/train", loss, epoch)
+        writer.flush()
+        print("epoch : {}/{}, loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        # TODO: save checkpoints
+
+    writer.close()
+    print("Finished Training")
+    return model, "result?"

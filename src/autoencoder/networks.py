@@ -1,17 +1,6 @@
 # PyTorch
 # PyTorch Lightning
-import pytorch_lightning as pl
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torch.utils.data as data
-# Torchvision
-import torchvision
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from torch.utils.tensorboard import SummaryWriter
-from torchvision import transforms
-import sys
 
 # basic network
 

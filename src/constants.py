@@ -49,7 +49,7 @@ FLAIR_PATH = {
 AE_CHECKPOINT_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints',
     IBBM: '/home/rosierm/thesis/src/autoencoder/checkpoints',
-    GIGA: '/mnt/Drive3/ivan_marcel/checkpoints'
+    GIGA: '/mnt/Drive3/ivan_marcel/checkpoints/tumor_autoencoder/torch_logs'
 }
 
 # Dataset size constants
