@@ -9,6 +9,7 @@ from constants import AE_CHECKPOINT_PATH, ENV
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from monai.losses.dice import DiceLoss
 
 from autoencoder import networks
 from autoencoder.dataset import TumorT1CDataset
@@ -27,7 +28,7 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 16
-MAX_EPOCHS = 4
+MAX_EPOCHS = 2
 LATENT_DIM = 2048
 MIN_DIM = 4
 BATCH_SIZE = 8
@@ -59,6 +60,17 @@ def run(cuda_id=0):
 
     model, result = train_tumort1c(cuda_id=cuda_id, train_loader=train_loader,
                                    val_loader=val_loader, test_loader=test_loader)
+    model.to(torch.device("cpu"))
+    # test output
+    dataiter = iter(train_loader)
+    tumor, _ = dataiter.next()
+    print(f"pre nonzero= {torch.count_nonzero(tumor)}")
+    output = model(tumor)
+    print(f"post nonzero= {torch.count_nonzero(output)}")
+    print(torch.unique(output))
+    print(torch.min(output))
+    print(torch.max(output))
+    writer.add_graph(model, input_to_model=tumor)
     # save model?
     print(result)
 
@@ -72,9 +84,12 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     print("Device:", device)
     # Setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
-    model.to(device)
+    model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    criterion = nn.MSELoss()
+    # criterion = nn.MSELoss()
+    criterion = DiceLoss(smooth_nr=0, smooth_dr=1e-5,
+                         squared_pred=True, to_onehot_y=False, sigmoid=False)
+
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
@@ -113,6 +128,10 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         print("epoch : {}/{}, loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         # TODO: save checkpoints
 
+    # add network graph
+    # dataiter = iter(train_loader)
+    # tumor, _ = dataiter.next()
+    # writer.add_graph(model, input_to_model=tumor)
     writer.close()
     print("Finished Training")
     return model, "result?"
