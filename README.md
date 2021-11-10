@@ -9,25 +9,20 @@ python autoencoder_main.py --cuda_id {id}
 ```
 ### Structure
 ```
-autoencoder
-│   dataset.py - TumorT1C dataset
-│   losses.py - Custom Losses, e.g. CustomDiceLoss 
-│   main.py - Main class, with training loop
-│   modules.py - Autoencoder, Encoder, Decoder and Helper modules
-│   networks.py - Different networks for the Autoencoder
-│
-└───legacy_lightning
-│   │   ...
-│   │   file012.txt
-│   │
-│   └───subfolder1
-│
-│
-│
-│   
-└───folder2
-    │   file021.txt
-    │   file022.txt
+📦autoencoder
+ ┃ 
+ ┣ 📂legacy_lightning - original lightning code before transform to default torch
+ ┃ ┣ 📜lightning_main.py
+ ┃ ┗ 📜lightning_modules.py
+ ┣ 📂tutorials - basis upon which most networks are constructed
+ ┃ ┣ 📜tutorial_1.py
+ ┃ ┣ 📜tutorial_2.py
+ ┃ ┗ 📜tutorial_2_modules.py
+ ┣ 📜dataset.py - TumorT1C dataset
+ ┣ 📜losses.py - Custom Losses, e.g. CustomDiceLoss 
+ ┣ 📜main.py - Main class, with training loop
+ ┣ 📜modules.py - Autoencoder, Encoder, Decoder and Helper modules
+ ┗ 📜networks.py - Different networks for the Autoencoder
 ```
 
 ---
