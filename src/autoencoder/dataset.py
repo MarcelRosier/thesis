@@ -17,6 +17,7 @@ class TumorT1CDataset(Dataset):
     def __init__(self, subset=None, transform=None):
         """TODO"""
         folders = os.listdir(SYN_TUMOR_BASE_PATH)
+        folders = [f for f in folders if f.isnumeric()]
         folders.sort(key=lambda f: int(f))
         if subset:
             folders = folders[subset[0]: subset[1]]
@@ -55,4 +56,4 @@ class TumorT1CDataset(Dataset):
         # threshold
         tumor[tumor < 0.6] = 0
         tumor[tumor >= 0.6] = 1
-        return tumor
+        return tumor  # ! * 1420

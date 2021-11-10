@@ -9,11 +9,13 @@ from constants import AE_CHECKPOINT_PATH, ENV
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from monai.losses.dice import DiceLoss
+from monai.losses.dice import DiceLoss, GeneralizedDiceLoss
+from monai.losses.tversky import TverskyLoss
 
 from autoencoder import networks
 from autoencoder.dataset import TumorT1CDataset
-from autoencoder.modules import Autoencoder
+from autoencoder.modules import Autoencoder, STEThreshold
+from autoencoder.losses import CustomGeneralizedDiceLoss
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 
@@ -27,21 +29,23 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-BASE_CHANNELS = 16
-MAX_EPOCHS = 2
-LATENT_DIM = 2048
-MIN_DIM = 4
-BATCH_SIZE = 8
+BASE_CHANNELS = 24
+MAX_EPOCHS = 4
+LATENT_DIM = 4096
+MIN_DIM = 16
+BATCH_SIZE = 2
+TRAIN_SIZE = 10
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{timestamp}")
 
 
-nets = networks.get_basic_net(c_hid=BASE_CHANNELS, latent_dim=LATENT_DIM)
+nets = networks.get_basic_net_16_16_16(
+    c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
 
 
 def run(cuda_id=0):
-    train_dataset = TumorT1CDataset(subset=(35000, 36000))
+    train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
     val_dataset = TumorT1CDataset(subset=(2000, 2100))
     test_dataset = TumorT1CDataset(subset=(3000, 3100))
 
@@ -70,6 +74,11 @@ def run(cuda_id=0):
     print(torch.unique(output))
     print(torch.min(output))
     print(torch.max(output))
+    Z = torch.zeros_like(output)
+    rounded = torch.where(output > 1e-10, output, Z)
+    print(torch.unique(rounded))
+    print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
+
     writer.add_graph(model, input_to_model=tumor)
     # save model?
     print(result)
@@ -80,19 +89,24 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
     device = torch.device(
         f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    print(f"CUDA_VISIBLE_DEVICES = {os.environ['CUDA_VISIBLE_DEVICES']}")
+    print(f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
     print("Device:", device)
     # Setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     # criterion = nn.MSELoss()
-    criterion = DiceLoss(smooth_nr=0, smooth_dr=1e-5,
-                         squared_pred=True, to_onehot_y=False, sigmoid=False)
+    # criterion = DiceLoss(smooth_nr=0, smooth_dr=1e-5,
+    #                                 squared_pred=True, to_onehot_y=False, sigmoid=False)
+    criterion = CustomGeneralizedDiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
 
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
+        max_xhat = 0
+        total_inter = 0
+        total_den = 0
         for batch_features, _ in train_loader:
             # load it to the active device
             batch_features = batch_features.to(device)
@@ -103,10 +117,21 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
 
             # compute reconstructions = x_hat
             outputs = model(batch_features)
+            with torch.no_grad():
+                cur_max = torch.max(outputs).item()
+                if cur_max > max_xhat:
+                    max_xhat = cur_max
 
-            # compute training reconstruction loss (MSELoss = MeanSquaredErrorLoss)
-            # compare x_hat with x
-            train_loss = criterion(outputs, batch_features)
+                # compute training reconstruction loss (MSELoss = MeanSquaredErrorLoss)
+                # compare x_hat with x
+            # train_loss = criterion(outputs, batch_features)
+            outputs =
+            train_loss, intersection_tensor, den_tensor = criterion(
+                outputs, batch_features)
+            # TODO remove later
+            total_inter += intersection_tensor.mean(dim=[0]).item()
+            total_den += den_tensor.mean(dim=[0]).item()
+            # TODO ende
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -122,16 +147,23 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         # compute the epoch training loss
         loss = loss / len(train_loader)
 
-        # display the epoch training loss
-        writer.add_scalar(f"{criterion} Loss/train", loss, epoch + 1)
-        writer.flush()
         print("epoch : {}/{}, loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
+        # TODO adapt/ generalize when changing batch/ training size
+        intersection = total_inter / (TRAIN_SIZE / BATCH_SIZE)
+        denominator = total_den / (TRAIN_SIZE / BATCH_SIZE)
+        print(f'{intersection=}')
+        print(f'{denominator=}')
+
+        # add scalars to tensorboardF
+        writer.add_scalar(f"{criterion} Loss/train", loss, epoch + 1)
+        writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
+        writer.add_scalar(f"{criterion} intersection", intersection, epoch + 1)
+        writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
+
+        writer.flush()
         # TODO: save checkpoints
 
-    # add network graph
-    # dataiter = iter(train_loader)
-    # tumor, _ = dataiter.next()
-    # writer.add_graph(model, input_to_model=tumor)
     writer.close()
     print("Finished Training")
-    return model, "result?"
+    return model, "END"

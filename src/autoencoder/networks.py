@@ -1,12 +1,12 @@
 # PyTorch
 # PyTorch Lightning
 import torch.nn as nn
-
+from autoencoder.modules import STEThreshold
 # basic network
 
 
 def get_basic_net(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=2048):
-    """So far the best scores, yet no improvement after first epoch? underfit?"""
+    """So far the best scores, yet no improvement after first epoch? predicts nearly all 0 -> penalize that?"""
     encoder_basic = nn.Sequential(
         nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
                   padding=1, stride=2),  # 128^3 => 64^3
@@ -65,6 +65,53 @@ def get_basic_net(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=204
         nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
                            output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
         nn.Sigmoid()  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
+    )
+    return encoder_basic, linear_basic, decoder_basic
+
+
+def get_basic_net_16_16_16(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=4096):
+    """So far the best scores, yet no improvement after first epoch? predicts nearly all 0 -> penalize that?"""
+    linear_layer_size = 3 * 16*16*16 * c_hid
+    encoder_basic = nn.Sequential(
+        nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
+                  padding=1, stride=2),  # 128^3 => 64^3
+        act_fn(),
+        nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
+                  padding=1, stride=2),  # 64^3 => 32^3
+        act_fn(),
+        nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
+                  padding=1, stride=2),  # 32^3 => 16^3
+        act_fn(),
+        # keeps the size, purpose ??
+        nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.Flatten(),  # Image grid to single feature vector
+        nn.Linear(linear_layer_size, latent_dim)  # 3 * 16^3 * c_hid
+    )
+    linear_basic = nn.Sequential(
+        nn.Linear(latent_dim, linear_layer_size),
+        act_fn()
+    )
+    decoder_basic = nn.Sequential(
+        nn.ConvTranspose3d(3 * c_hid, 2 * c_hid, kernel_size=3,
+                           output_padding=1, padding=1, stride=2),  # 16^3 => 32^3
+        act_fn(),
+        nn.Conv3d(2*c_hid, 2*c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.ConvTranspose3d(2*c_hid, c_hid, kernel_size=3,
+                           output_padding=1, padding=1, stride=2),  # 32^3 => 64^3
+        act_fn(),
+        nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
+        act_fn(),
+        nn.ConvTranspose3d(c_hid, num_input_channels, kernel_size=3,
+                           output_padding=1, padding=1, stride=2),  # 64^3 => 128^3
+        nn.Sigmoid(),  # The input images is scaled between 0 and 1, hence the output has to be bounded as well
     )
     return encoder_basic, linear_basic, decoder_basic
 
