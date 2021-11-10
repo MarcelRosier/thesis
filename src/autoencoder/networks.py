@@ -1,7 +1,6 @@
 # PyTorch
 # PyTorch Lightning
 import torch.nn as nn
-from autoencoder.modules import STEThreshold
 # basic network
 
 

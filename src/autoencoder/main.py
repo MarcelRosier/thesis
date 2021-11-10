@@ -34,8 +34,10 @@ MAX_EPOCHS = 4
 LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 10
-
+TRAIN_SIZE = 100
+# set THRESHOLD=None if you dont want to use it
+THRESHOLD = None
+print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}")
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{timestamp}")
 
@@ -74,8 +76,8 @@ def run(cuda_id=0):
     print(torch.unique(output))
     print(torch.min(output))
     print(torch.max(output))
-    Z = torch.zeros_like(output)
-    rounded = torch.where(output > 1e-10, output, Z)
+    # Z = torch.zeros_like(output)
+    rounded = STEThreshold().apply(output)
     print(torch.unique(rounded))
     print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
 
@@ -92,9 +94,9 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     print(f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
     print("Device:", device)
     # Setup
-    model = Autoencoder(nets=nets, min_dim=MIN_DIM)
+    model = Autoencoder(nets=nets, min_dim=MIN_DIM, threshold=THRESHOLD)
     model.to(device)  # move to gpu
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=3e-4)
     # criterion = nn.MSELoss()
     # criterion = DiceLoss(smooth_nr=0, smooth_dr=1e-5,
     #                                 squared_pred=True, to_onehot_y=False, sigmoid=False)
@@ -125,7 +127,8 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
                 # compute training reconstruction loss (MSELoss = MeanSquaredErrorLoss)
                 # compare x_hat with x
             # train_loss = criterion(outputs, batch_features)
-            outputs =
+            # outputs = STEThreshold.apply(outputs)
+            # print(torch.unique(outputs))
             train_loss, intersection_tensor, den_tensor = criterion(
                 outputs, batch_features)
             # TODO remove later

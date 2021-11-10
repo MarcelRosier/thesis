@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn.functional import threshold
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -50,7 +51,9 @@ class Autoencoder(nn.Module):
                  nets: object,
                  encoder_class: object = Encoder,
                  decoder_class: object = Decoder,
-                 min_dim: int = 4):
+                 min_dim: int = 4,
+                 threshold=None
+                 ):
         super().__init__()
         encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
@@ -58,6 +61,7 @@ class Autoencoder(nn.Module):
         self.encoder = encoder_class(net=encoder_net)
         self.decoder = decoder_class(
             linear=linear_net, net=decoder_net, min_dim=min_dim)
+        self.threshold = threshold
 
     def forward(self, x):
         """
@@ -68,6 +72,9 @@ class Autoencoder(nn.Module):
         # print(z.shape)
         x_hat = self.decoder(z)
         # x_hat = self.print(x_hat)
+        if self.threshold:
+            x_hat = STEThreshold().apply(x_hat)
+
         return x_hat
 
 
@@ -85,7 +92,14 @@ class PrintLayer(nn.Module):
         print(f"min={torch.min(x).item()}, max= {torch.max(x).item()}")
         return x
 
-# not a module!
+
+# class ThresholdLayer(nn.Module):
+#     def __init__(self):
+#         super(ThresholdLayer, self).__init__()
+
+#     def forward(self, input, threshold=0.5):
+#         output = (input > threshold).type(input.dtype)
+#         return output
 
 
 class STEThreshold(torch.autograd.Function):
