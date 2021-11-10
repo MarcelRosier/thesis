@@ -1,4 +1,36 @@
 # thesis
+## Autoencoder
+The goal is to develop an autoencoder that compresses the data to a scale at which other search techniques are applicable.  
+If the compression preserves similarity is not clear and has to be tested/ is a part of the research project.
+
+### Usage
+```shell
+python autoencoder_main.py --cuda_id {id}
+```
+### Structure
+```
+autoencoder
+│   dataset.py - TumorT1C dataset
+│   losses.py - Custom Losses, e.g. CustomDiceLoss 
+│   main.py - Main class, with training loop
+│   modules.py - Autoencoder, Encoder, Decoder and Helper modules
+│   networks.py - Different networks for the Autoencoder
+│
+└───legacy_lightning
+│   │   ...
+│   │   file012.txt
+│   │
+│   └───subfolder1
+│
+│
+│
+│   
+└───folder2
+    │   file021.txt
+    │   file022.txt
+```
+
+---
 
 ## FAISS
 
