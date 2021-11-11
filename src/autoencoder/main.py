@@ -15,7 +15,7 @@ from monai.losses.tversky import TverskyLoss
 from autoencoder import networks
 from autoencoder.dataset import TumorT1CDataset
 from autoencoder.modules import Autoencoder, STEThreshold
-from autoencoder.losses import CustomGeneralizedDiceLoss
+from autoencoder.losses import CustomDiceLoss, CustomGeneralizedDiceLoss
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 
@@ -30,14 +30,16 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 4
+MAX_EPOCHS = 8
 LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 100
-# set THRESHOLD=None if you dont want to use it
-THRESHOLD = None
-print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}")
+TRAIN_SIZE = 400
+VAL_SIZE = 100
+LEARNING_RATE = 1e-6
+
+# print params
+print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}")
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{timestamp}")
 
@@ -77,9 +79,8 @@ def run(cuda_id=0):
     print(torch.min(output))
     print(torch.max(output))
     # Z = torch.zeros_like(output)
-    rounded = STEThreshold().apply(output)
-    print(torch.unique(rounded))
-    print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
+    # print(torch.unique(rounded))
+    # print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
 
     writer.add_graph(model, input_to_model=tumor)
     # save model?
@@ -94,13 +95,10 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     print(f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
     print("Device:", device)
     # Setup
-    model = Autoencoder(nets=nets, min_dim=MIN_DIM, threshold=THRESHOLD)
+    model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
-    optimizer = optim.Adam(model.parameters(), lr=3e-4)
-    # criterion = nn.MSELoss()
-    # criterion = DiceLoss(smooth_nr=0, smooth_dr=1e-5,
-    #                                 squared_pred=True, to_onehot_y=False, sigmoid=False)
-    criterion = CustomGeneralizedDiceLoss(
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    criterion = CustomDiceLoss(
         smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
 
     print("Starting training")
@@ -109,6 +107,8 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         max_xhat = 0
         total_inter = 0
         total_den = 0
+        # set to training mode
+        model.train()
         for batch_features, _ in train_loader:
             # load it to the active device
             batch_features = batch_features.to(device)
@@ -124,17 +124,11 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
                 if cur_max > max_xhat:
                     max_xhat = cur_max
 
-                # compute training reconstruction loss (MSELoss = MeanSquaredErrorLoss)
-                # compare x_hat with x
-            # train_loss = criterion(outputs, batch_features)
-            # outputs = STEThreshold.apply(outputs)
-            # print(torch.unique(outputs))
+            # compute loss
             train_loss, intersection_tensor, den_tensor = criterion(
                 outputs, batch_features)
-            # TODO remove later
             total_inter += intersection_tensor.mean(dim=[0]).item()
             total_den += den_tensor.mean(dim=[0]).item()
-            # TODO ende
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -150,16 +144,31 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         # compute the epoch training loss
         loss = loss / len(train_loader)
 
-        print("epoch : {}/{}, loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
-        print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
         # TODO adapt/ generalize when changing batch/ training size
         intersection = total_inter / (TRAIN_SIZE / BATCH_SIZE)
         denominator = total_den / (TRAIN_SIZE / BATCH_SIZE)
+
+        # compute validation_loss
+        val_loss = 0
+        with torch.no_grad():
+            model.eval()  # set to eval mode
+            for batch, _ in val_loader:
+                batch = batch.to(device)
+                outputs = model(batch)
+                cur_loss, _, _ = criterion(outputs, batch)
+                val_loss += cur_loss.item()
+        val_loss = val_loss / len(val_loader)
+
+        # prints
+        print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
         print(f'{intersection=}')
         print(f'{denominator=}')
 
         # add scalars to tensorboardF
-        writer.add_scalar(f"{criterion} Loss/train", loss, epoch + 1)
+        writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
+        writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
         writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
         writer.add_scalar(f"{criterion} intersection", intersection, epoch + 1)
         writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)

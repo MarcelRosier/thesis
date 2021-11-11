@@ -184,7 +184,7 @@ class CustomDiceLoss(_Loss):
             raise ValueError(
                 f'Unsupported reduction: {self.reduction}, available options are ["mean", "sum", "none"].')
 
-        return f
+        return f, intersection, denominator
 
 
 class CustomGeneralizedDiceLoss(_Loss):
