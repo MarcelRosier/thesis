@@ -85,7 +85,6 @@ def get_basic_net_16_16_16(num_input_channels=1, c_hid=16, act_fn=nn.GELU, laten
         nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
                   padding=1, stride=2),  # 32^3 => 16^3
         act_fn(),
-        # keeps the size, purpose ??
         nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
         act_fn(),
         nn.Flatten(),  # Image grid to single feature vector

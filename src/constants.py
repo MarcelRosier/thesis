@@ -52,6 +52,12 @@ AE_CHECKPOINT_PATH = {
     GIGA: '/mnt/Drive3/ivan_marcel/checkpoints/tumor_autoencoder/torch_logs'
 }
 
+AE_MODEL_SAVE_PATH = {
+    LOCAL: None,
+    IBBM: None,
+    GIGA: '/mnt/Drive3/ivan_marcel/models'
+}
+
 # Dataset size constants
 TUMOR_SUBSET_200 = 200
 TUMOR_SUBSET_1K = 1000

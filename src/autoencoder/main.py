@@ -5,7 +5,7 @@ import matplotlib
 import seaborn as sns
 import torch
 import torch.nn as nn
-from constants import AE_CHECKPOINT_PATH, ENV
+from constants import AE_CHECKPOINT_PATH, AE_MODEL_SAVE_PATH, ENV
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -18,6 +18,7 @@ from autoencoder.modules import Autoencoder, STEThreshold
 from autoencoder.losses import CustomDiceLoss, CustomGeneralizedDiceLoss
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
+MODEL_SAVE_PATH = AE_MODEL_SAVE_PATH[ENV]
 
 matplotlib.rcParams['lines.linewidth'] = 2.0
 sns.reset_orig()
@@ -30,18 +31,20 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 8
+MAX_EPOCHS = 100
 LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 400
+TRAIN_SIZE = 1000
 VAL_SIZE = 100
-LEARNING_RATE = 1e-6
+LEARNING_RATE = 1e-5
 
 # print params
 print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}")
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{timestamp}")
+run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_{datetime.timestamp(datetime.now())}"
+run_name = run_name.split('.')[0]
+writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{run_name}")
 
 
 nets = networks.get_basic_net_16_16_16(
@@ -50,7 +53,7 @@ nets = networks.get_basic_net_16_16_16(
 
 def run(cuda_id=0):
     train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
-    val_dataset = TumorT1CDataset(subset=(2000, 2100))
+    val_dataset = TumorT1CDataset(subset=(2000, 2000 + VAL_SIZE))
     test_dataset = TumorT1CDataset(subset=(3000, 3100))
 
     train_loader = DataLoader(dataset=train_dataset,
@@ -83,7 +86,6 @@ def run(cuda_id=0):
     # print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
 
     writer.add_graph(model, input_to_model=tumor)
-    # save model?
     print(result)
 
 
@@ -161,12 +163,12 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
 
         # prints
         print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
-        print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
         print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
         print(f'{intersection=}')
         print(f'{denominator=}')
 
-        # add scalars to tensorboardF
+        # add scalars to tensorboard
         writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
         writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
         writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
@@ -178,4 +180,12 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
 
     writer.close()
     print("Finished Training")
+
+    # save model
+    torch.save({
+        'epoch': MAX_EPOCHS,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }, os.path.join(MODEL_SAVE_PATH, run_name))
     return model, "END"
