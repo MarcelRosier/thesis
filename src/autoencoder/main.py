@@ -1,21 +1,22 @@
-from datetime import datetime
 import os
+from datetime import datetime
+from pathlib import Path
 
 import matplotlib
 import seaborn as sns
 import torch
 import torch.nn as nn
 from constants import AE_CHECKPOINT_PATH, AE_MODEL_SAVE_PATH, ENV
+# from monai.losses.dice import DiceLoss, GeneralizedDiceLoss
+# from monai.losses.tversky import TverskyLoss
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from monai.losses.dice import DiceLoss, GeneralizedDiceLoss
-from monai.losses.tversky import TverskyLoss
 
 from autoencoder import networks
 from autoencoder.dataset import TumorT1CDataset
-from autoencoder.modules import Autoencoder, STEThreshold
-from autoencoder.losses import CustomDiceLoss, CustomGeneralizedDiceLoss
+from autoencoder.losses import CustomDiceLoss
+from autoencoder.modules import Autoencoder
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 MODEL_SAVE_PATH = AE_MODEL_SAVE_PATH[ENV]
@@ -95,7 +96,11 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     device = torch.device(
         f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
+    # gpu info
     print("Device:", device)
+    print('Active CUDA Device: GPU', torch.cuda.get_device_name())
+
+    #
     # Setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
@@ -176,16 +181,16 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
 
         writer.flush()
-        # TODO: save checkpoints
 
     writer.close()
     print("Finished Training")
 
-    # save model
+    # save model, ensure models folder exists
+    Path(MODEL_SAVE_PATH).mkdir(parents=True, exist_ok=True)
     torch.save({
         'epoch': MAX_EPOCHS,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
-    }, os.path.join(MODEL_SAVE_PATH, run_name))
+    }, os.path.join(MODEL_SAVE_PATH, run_name + ".pt"))
     return model, "END"
