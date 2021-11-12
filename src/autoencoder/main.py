@@ -32,16 +32,17 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 100
+MAX_EPOCHS = 120
 LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1000
 VAL_SIZE = 100
 LEARNING_RATE = 1e-5
+CHECKPOINT_FREQUENCY = 30
 
 # print params
-print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}")
+print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_{datetime.timestamp(datetime.now())}"
 run_name = run_name.split('.')[0]
@@ -181,16 +182,24 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
 
         writer.flush()
+        if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
+            save_checkpoint(epoch=epoch + 1, model=model,
+                            loss=loss, optimizer=optimizer)
 
     writer.close()
     print("Finished Training")
+    save_checkpoint(epoch="final", model=model,
+                    loss=loss, optimizer=optimizer)
+    return model, "END"
 
+
+def save_checkpoint(epoch, model, loss, optimizer):
     # save model, ensure models folder exists
-    Path(MODEL_SAVE_PATH).mkdir(parents=True, exist_ok=True)
+    save_folder = os.path.join(MODEL_SAVE_PATH, run_name)
+    Path(save_folder).mkdir(parents=True, exist_ok=True)
     torch.save({
         'epoch': MAX_EPOCHS,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
-    }, os.path.join(MODEL_SAVE_PATH, run_name + ".pt"))
-    return model, "END"
+    }, os.path.join(save_folder, run_name + f"_ep_{epoch}.pt"))
