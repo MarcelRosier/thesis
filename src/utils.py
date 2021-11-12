@@ -3,13 +3,18 @@ import logging
 import os
 import time
 from datetime import datetime
+from enum import Enum
 
+import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
 import torch
 import torch.nn.functional as F
 from scipy.ndimage import zoom
-from enum import Enum
+
+from constants import ENV, SYN_TUMOR_PATH_TEMPLATE
+
+SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
 LOG_LEVEL = logging.INFO
 
@@ -105,3 +110,43 @@ def find_n_best_score_ids(path, value_type, order_func, n_best=1):
             best_keys.append(best_key)
             del data[best_key]
     return best_keys
+
+
+def plot_tumor(tumor, zoom_factor: float = 1.):
+    """
+    Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234), zoom_factor=0.5)
+    """
+    tumor = load_single_tumor(tumor_id=42)
+    print(np.unique(tumor))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    print(zoom_factor)
+    # downsample
+    tumor = norm_and_threshold_tumor(zoom(tumor, zoom_factor))
+    pos = np.where(tumor == 1)
+    ax.scatter(pos[0], pos[1], pos[2], s=1.5)
+    # ax.plot_wireframe(pos[0], pos[1], pos[2])
+    plt.show()
+
+
+def load_single_tumor(tumor_id):
+    tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[
+        'data']
+
+    # crop 129^3 to 128^3 if needed
+    if tumor.shape != (128, 128, 128):
+        tumor = np.delete(np.delete(
+            np.delete(tumor, 128, 0), 128, 1), 128, 2)
+    return norm_and_threshold_tumor(tumor)
+
+
+def norm_and_threshold_tumor(tumor):
+    # normalize
+    max_val = tumor.max()
+    if max_val != 0:
+        tumor *= 1.0/max_val
+
+    # threshold
+    tumor[tumor < 0.6] = 0
+    tumor[tumor >= 0.6] = 1
+    return tumor

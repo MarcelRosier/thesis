@@ -56,4 +56,4 @@ class TumorT1CDataset(Dataset):
         # threshold
         tumor[tumor < 0.6] = 0
         tumor[tumor >= 0.6] = 1
-        return tumor  # ! * 1420
+        return tumor
