@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from autoencoder.dataset import TumorT1CDataset
+from autoencoder.datasets import TumorT1CDataset
 from autoencoder import networks
 from autoencoder.modules import Autoencoder, GenerateCallback
 from constants import AE_CHECKPOINT_PATH, ENV

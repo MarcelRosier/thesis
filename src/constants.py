@@ -18,7 +18,13 @@ DICE_SCORE_DATADUMP_PATH_TEMPLATE = {
 REAL_TUMOR_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop',
     IBBM: '/home/rosierm/marcel_tgm/tgm001_preop',
-    GIGA: None
+    GIGA: '/mnt/Drive3/ivan_marcel/real_tumors/tgm001_preop'
+}
+
+REAL_TUMOR_BASE_PATH = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/real_tumors',
+    IBBM: '/home/rosierm/marcel_tgm',
+    GIGA: '/mnt/Drive3/ivan_marcel/real_tumors'
 }
 
 SYN_TUMOR_BASE_PATH = {

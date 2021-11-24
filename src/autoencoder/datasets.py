@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import utils
 import torch
 from torch._C import dtype
 from constants import (ENV, SYN_TUMOR_BASE_PATH,
@@ -14,18 +15,24 @@ SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 class TumorT1CDataset(Dataset):
     """Tumor T1C dataset."""
 
-    def __init__(self, subset=None, transform=None):
+    def __init__(self, subset=None, transform=None, syntethic=True):
         """TODO"""
-        folders = os.listdir(SYN_TUMOR_BASE_PATH)
-        folders = [f for f in folders if f.isnumeric()]
-        folders.sort(key=lambda f: int(f))
-        if subset:
-            folders = folders[subset[0]: subset[1]]
+        if syntethic:
+            # synthetic
+            folders = os.listdir(SYN_TUMOR_BASE_PATH)
+            folders = [f for f in folders if f.isnumeric()]
+            folders.sort(key=lambda f: int(f))
+            if subset:
+                folders = folders[subset[0]: subset[1]]
+            else:
+                folders = folders[:TUMOR_SUBSET_200]
         else:
-            folders = folders[:TUMOR_SUBSET_200]
+            pass
+            # real tumor
         self.n_samples = len(folders)
         self.tumor_ids = folders
         self.transform = transform
+        self.syntethic = syntethic
 
     def __len__(self):
         return self.n_samples
@@ -40,8 +47,12 @@ class TumorT1CDataset(Dataset):
         return tensor, torch.tensor(idx)
 
     def load_single_tumor(self, tumor_id):
-        tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[
-            'data']
+        if self.syntethic:
+            tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[
+                'data']
+        else:
+            # return t1c, flair
+            tumor, _ = utils.load_real_tumor()
 
         # crop 129^3 to 128^3 if needed
         if tumor.shape != (128, 128, 128):
