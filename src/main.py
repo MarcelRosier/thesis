@@ -10,8 +10,8 @@ from numpy.lib.utils import info
 
 import utils
 from baseline import baseline, baseline_parallel
-from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV
-from faiss_src import index_builder, playground
+from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV, REAL_TUMOR_BASE_PATH
+# from faiss_src import index_builder, playground
 from utils import DSValueType, SimilarityMeasureType
 
 # import cProfile
@@ -19,6 +19,7 @@ from utils import DSValueType, SimilarityMeasureType
 
 
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = DICE_SCORE_DATADUMP_PATH_TEMPLATE[ENV]
+REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 
 def run_parallel_comparison(similarity_measure_type, is_test=False):
@@ -92,13 +93,40 @@ def run_top_10_l2_dice_comp():
     print("intersection: ", list(set(best_dice) & set(best_l2)))
 
 
+def run_parallel_base(real_tumor="tgm001_preop"):
+    real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
+    baseline_parallel.run(
+        processes=4,
+        similarity_measure_type=SimilarityMeasureType.L2,
+        tumor_path=real_tumor_path,
+        subset=(3000, 3200))
+
+
 logging.basicConfig(level=utils.LOG_LEVEL)
 
 ###
 # Exec
 ###
 
-run_faiss_test(real_tumor='test')
+# run_parallel_base()
+gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
+new_path = "/home/ivan_marcel/thesis/src/autoencoder/data/2021-11-24/2021-11-24 15:35:18_dump_l2.json"
+gt_res = utils.find_n_best_score_ids(
+    path=gt_path,
+    n_best=15,
+    value_type=utils.DSValueType.T1C,
+    order_func=min
+)
+new_res = utils.find_n_best_score_ids(
+    path=new_path,
+    n_best=15,
+    value_type=utils.DSValueType.T1C,
+    order_func=min
+)
+print(gt_res)
+print(new_res)
+
+# run_faiss_test(real_tumor='test')
 
 # run_parallel_comparison(
 #     similarity_measure_type=SimilarityMeasureType.L2,

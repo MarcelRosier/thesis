@@ -20,4 +20,7 @@ elif args.mode == 2:
     test.run(cuda_id=args.cuda_id)
     pass
 elif args.mode == 3:
+    from autoencoder import encoded_similarity_check
+    encoded_similarity_check.run(
+        real_tumor="tgm001_preop", syn_subset=(3000, 3200))
     pass

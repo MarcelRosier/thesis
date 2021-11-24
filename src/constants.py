@@ -64,6 +64,12 @@ AE_MODEL_SAVE_PATH = {
     GIGA: '/mnt/Drive3/ivan_marcel/models'
 }
 
+ENCODED_4096_BASE_PATH = {
+    LOCAL: None,
+    IBBM: None,
+    GIGA: '/mnt/Drive3/ivan_marcel/encoded_4096'
+}
+
 # Dataset size constants
 TUMOR_SUBSET_200 = 200
 TUMOR_SUBSET_1K = 1000

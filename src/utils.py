@@ -4,6 +4,7 @@ import os
 import time
 from datetime import datetime
 from enum import Enum
+from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -12,9 +13,11 @@ import torch
 import torch.nn.functional as F
 from scipy.ndimage import zoom
 
-from constants import ENV, SYN_TUMOR_PATH_TEMPLATE
+from constants import ENV, SYN_TUMOR_PATH_TEMPLATE, SYN_TUMOR_BASE_PATH
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
+SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
+
 
 LOG_LEVEL = logging.INFO
 
@@ -32,7 +35,7 @@ class SimilarityMeasureType(Enum):
     L2 = 'l2'
 
 
-def time_measure(log=False):
+def time_measure(log: bool = False):
     def timing_base(f):
         def wrap(*args, **kwargs):
             start = time.time()
@@ -67,7 +70,7 @@ def calc_l2_norm(syn_data, real_data):
     return np.linalg.norm(combined)
 
 
-def get_number_of_entries(path):
+def get_number_of_entries(path: str):
     data = {}
     with open(path) as json_file:
         data = json.load(json_file)
@@ -75,8 +78,11 @@ def get_number_of_entries(path):
     return len(data)
 
 
-def load_real_tumor(base_path):
-    """Return pair (t1c,flair) of a real tumor"""
+def load_real_tumor(base_path: str):
+    """
+    @base_path: path to the real tumor folder, e.g. /tgm001_preop/ \n
+    Return pair (t1c,flair) of a real tumor
+    """
     t1c = nib.load(os.path.join(
         base_path, 'tumor_mask_t_to_atlas229.nii')).get_fdata()
     flair = nib.load(os.path.join(
@@ -91,7 +97,7 @@ def load_real_tumor(base_path):
     return (t1c, flair)
 
 
-def find_n_best_score_ids(path, value_type, order_func, n_best=1):
+def find_n_best_score_ids(path: str, value_type: DSValueType, order_func, n_best=1):
     """
     Finds the n (@n_max) maximum values of given type stored in the given json file
     @path - path to json file
@@ -129,7 +135,12 @@ def plot_tumor(tumor, zoom_factor: float = 1.):
     plt.show()
 
 
-def load_single_tumor(tumor_id):
+def load_single_tumor(tumor_id, threshold=0.6):
+    """
+    Loads a single syntethic, thresholded, normalized tumor with dim 128^3 \n
+    @tumor_id = folder_id of the syn tumor\n
+    @threshold = threshold value (typically 0.6 (t1c) / 0.2 (flair)) 
+    """
     tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[
         'data']
 
@@ -137,19 +148,34 @@ def load_single_tumor(tumor_id):
     if tumor.shape != (128, 128, 128):
         tumor = np.delete(np.delete(
             np.delete(tumor, 128, 0), 128, 1), 128, 2)
-    return norm_and_threshold_tumor(tumor)
+    return norm_and_threshold_tumor(tumor, threshold)
 
 
-def norm_and_threshold_tumor(tumor):
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+        return v
+    return v / norm
+
+
+def norm_and_threshold_tumor(tumor, threshold=0.6):
     # normalize
     max_val = tumor.max()
     if max_val != 0:
         tumor *= 1.0/max_val
 
     # threshold
-    tumor[tumor < 0.6] = 0
-    tumor[tumor >= 0.6] = 1
+    tumor[tumor < threshold] = 0
+    tumor[tumor >= threshold] = 1
     return tumor
+
+
+def get_sorted_syn_tumor_list() -> List[str]:
+    """ Return a list of all syntethic tumors sorted by id"""
+    folders = os.listdir(SYN_TUMOR_BASE_PATH)
+    folders = [f for f in folders if f.isnumeric()]
+    folders.sort(key=lambda f: int(f))
+    return folders
 
 
 def pretty_print_params(BASE_CHANNELS=None,

@@ -56,7 +56,7 @@ def get_scores_for_pair(measure_func, t1c, flair, tumor_folder):
 
 
 @time_measure(log=True)
-def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path, is_test=False):
+def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path, is_test=False, subset=None):
     """
     Calculate the best similarity measure score of the given tumor based on the given dataset and return tuple (scores, best_score)
     @similarity_measure determines the used comparison function 
@@ -66,12 +66,16 @@ def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path
     (t1c, flair) = load_real_tumor(tumor_path)
 
     folders = os.listdir(SYN_TUMOR_BASE_PATH)
+    folders = [f for f in folders if f.isnumeric()]
     folders.sort(key=lambda f: int(f))
-    # only get a subset of the data if its a test
-    if is_test:
-        folders = folders[:20]
     # cap test set to 50k
     folders = folders[:50000]
+    # only get a subset of the data if its a test
+    # if is_test:
+    #     folders = folders[:20]
+    if subset is not None:
+        folders = folders[subset[0]: subset[1]]
+    print(f"{len(folders)=}")
     scores = {}
 
     print("Starting parallel loop for {} folders with {} processes".format(
@@ -98,12 +102,13 @@ def get_scores_for_real_tumor_parallel(similarity_measure, processes, tumor_path
     return scores, best_score
 
 
-def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, is_test=False):
+def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_path=REAL_TUMOR_PATH, is_test=False, subset=None):
     scores, best_score = get_scores_for_real_tumor_parallel(
         similarity_measure=similarity_measure_type,
         processes=processes,
-        tumor_path=REAL_TUMOR_PATH,
-        is_test=is_test)
+        tumor_path=tumor_path,
+        is_test=is_test,
+        subset=subset)
     print(best_score)
     now_date = datetime.now().strftime("%Y-%m-%d")
     now_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
