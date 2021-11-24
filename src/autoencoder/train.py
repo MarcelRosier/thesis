@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from autoencoder import networks
-from autoencoder.dataset import TumorT1CDataset
+from autoencoder.datasets import TumorT1CDataset
 from autoencoder.losses import CustomDiceLoss
 from autoencoder.modules import Autoencoder
 
