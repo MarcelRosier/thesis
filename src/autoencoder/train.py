@@ -43,7 +43,38 @@ LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
 
 # print params
-print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
+try:
+    import rich
+    utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS,
+                              MAX_EPOCHS=120,
+                              LATENT_DIM=LATENT_DIM,
+                              MIN_DIM=MIN_DIM,
+                              BATCH_SIZE=BATCH_SIZE,
+                              TRAIN_SIZE=TRAIN_SIZE,
+                              VAL_SIZE=VAL_SIZE,
+                              LEARNING_RATE=LEARNING_RATE,
+                              CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY,
+                              )
+except ImportError:
+    print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
+
+
+def print_gpu_info(device):
+    try:
+        import rich
+        utils.pretty_print_gpu_info([
+            ("CUDA_VISIBLE_DEVICES",
+             f"[{os.environ['CUDA_VISIBLE_DEVICES']}]"),
+            ("Device:", str(device)),
+            ("Active CUDA Device: GPU", torch.cuda.get_device_name())
+        ])
+    except ImportError:
+        print(
+            f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
+        print("Device:", device)
+        print('Active CUDA Device: GPU', torch.cuda.get_device_name())
+
+
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_{datetime.timestamp(datetime.now())}"
 run_name = run_name.split('.')[0]
@@ -97,10 +128,9 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
     device = torch.device(
         f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    print(f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
-    # gpu info
-    print("Device:", device)
-    print('Active CUDA Device: GPU', torch.cuda.get_device_name())
+
+    # print gpu info
+    print_gpu_info(device=device)
 
     #
     # Setup
