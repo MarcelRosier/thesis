@@ -51,7 +51,8 @@ class Autoencoder(nn.Module):
                  nets: object,
                  encoder_class: object = Encoder,
                  decoder_class: object = Decoder,
-                 min_dim: int = 4):
+                 min_dim: int = 4,
+                 only_encode=False):
         super().__init__()
         encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
@@ -59,12 +60,15 @@ class Autoencoder(nn.Module):
         self.encoder = encoder_class(net=encoder_net)
         self.decoder = decoder_class(
             linear=linear_net, net=decoder_net, min_dim=min_dim)
+        self.only_encode = only_encode
 
     def forward(self, x):
         """
         The forward function takes in an tumor batch and returns the reconstructed volume
         """
         z = self.encoder(x)
+        if self.only_encode:
+            return z
         x_hat = self.decoder(z)
         return x_hat
 

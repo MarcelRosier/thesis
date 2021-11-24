@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib
+import utils
 import seaborn as sns
 import torch
 import torch.nn as nn
@@ -36,8 +37,8 @@ MAX_EPOCHS = 120
 LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 1000
-VAL_SIZE = 100
+TRAIN_SIZE = 1500
+VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
 
