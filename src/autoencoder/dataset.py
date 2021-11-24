@@ -37,7 +37,7 @@ class TumorT1CDataset(Dataset):
         tensor = tensor.float()
         # add channel dim
         tensor.unsqueeze_(0)
-        return tensor, torch.empty(0)
+        return tensor, torch.tensor(idx)
 
     def load_single_tumor(self, tumor_id):
         tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[

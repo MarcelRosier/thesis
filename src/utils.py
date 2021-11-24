@@ -150,3 +150,61 @@ def norm_and_threshold_tumor(tumor):
     tumor[tumor < 0.6] = 0
     tumor[tumor >= 0.6] = 1
     return tumor
+
+
+def pretty_print_params(BASE_CHANNELS=None,
+                        MAX_EPOCHS=None,
+                        LATENT_DIM=None,
+                        MIN_DIM=None,
+                        BATCH_SIZE=None,
+                        TRAIN_SIZE=None,
+                        VAL_SIZE=None,
+                        LEARNING_RATE=None,
+                        CHECKPOINT_FREQUENCY=None,
+                        TEST_SIZE=None):
+    from rich.console import Console
+    from rich.table import Column, Table
+
+    params_table = Table(
+        show_header=True, header_style="bold #1DB954")
+    params_table.add_column("Param")
+    params_table.add_column("Value", style="#ffffff")
+    if BASE_CHANNELS:
+        params_table.add_row("BASE_CHANNELS", str(BASE_CHANNELS))
+    if MAX_EPOCHS:
+        params_table.add_row("MAX_EPOCHS", str(MAX_EPOCHS))
+    if LATENT_DIM:
+        params_table.add_row("LATENT_DIM", str(LATENT_DIM))
+    if MIN_DIM:
+        params_table.add_row("MIN_DIM", str(MIN_DIM))
+    if BATCH_SIZE:
+        params_table.add_row("BATCH_SIZE", str(BATCH_SIZE))
+    if TRAIN_SIZE:
+        params_table.add_row("TRAIN_SIZE", str(TRAIN_SIZE))
+    if VAL_SIZE:
+        params_table.add_row("VAL_SIZE", str(VAL_SIZE))
+    if TEST_SIZE:
+        params_table.add_row("TEST_SIZE", str(TEST_SIZE))
+    if LEARNING_RATE:
+        params_table.add_row("LEARNING_RATE", str(LEARNING_RATE))
+    if CHECKPOINT_FREQUENCY:
+        params_table.add_row("CHECKPOINT_FREQUENCY", str(CHECKPOINT_FREQUENCY))
+
+    console = Console()
+    console.print(params_table)
+
+
+def pretty_print_gpu_info(info_list):
+    from rich.console import Console
+    from rich.table import Column, Table
+
+    info_table = Table(
+        show_header=True, header_style="bold #1DB954")
+    info_table.add_column("GPU INFO")
+    info_table.add_column("Value", style="#ffffff")
+
+    for attr, val in info_list:
+        info_table.add_row(attr, val)
+
+    console = Console()
+    console.print(info_table)
