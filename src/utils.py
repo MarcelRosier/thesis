@@ -118,21 +118,24 @@ def find_n_best_score_ids(path: str, value_type: DSValueType, order_func, n_best
     return best_keys
 
 
-def plot_tumor(tumor, zoom_factor: float = 1.):
+def plot_tumor(tumor, cmp_tumor=None, title="title", c_base='b', zoom_factor: float = 0.5):
     """
     Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234), zoom_factor=0.5)
     """
-    tumor = load_single_tumor(tumor_id=42)
+    # tumor = load_single_tumor(tumor_id=42)
     print(np.unique(tumor))
     fig = plt.figure()
+    plt.suptitle(title)
     ax = fig.add_subplot(111, projection='3d')
     print(zoom_factor)
     # downsample
-    tumor = norm_and_threshold_tumor(zoom(tumor, zoom_factor))
     pos = np.where(tumor == 1)
-    ax.scatter(pos[0], pos[1], pos[2], s=1.5)
+    ax.scatter(pos[0], pos[1], pos[2], s=1.5, c=c_base)
+    if cmp_tumor is not None:
+        cmp_pos = np.where(cmp_tumor == 1)
+        ax.scatter(cmp_pos[0], cmp_pos[1], cmp_pos[2], s=1.5, c='m')
     # ax.plot_wireframe(pos[0], pos[1], pos[2])
-    plt.show()
+    # plt.show()
 
 
 def load_single_tumor(tumor_id, threshold=0.6):
@@ -152,10 +155,21 @@ def load_single_tumor(tumor_id, threshold=0.6):
 
 
 def normalize(v):
+    """ Return a list of all syntethic tumors sorted by id"""
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
     return v / norm
+
+
+def load_external_tumor(path):
+    tumor = np.load(path)[0][0]
+    print(tumor.shape)
+    # crop 129^3 to 128^3 if needed
+    if tumor.shape != (128, 128, 128):
+        tumor = np.delete(np.delete(
+            np.delete(tumor, 128, 0), 128, 1), 128, 2)
+    return norm_and_threshold_tumor(tumor)
 
 
 def norm_and_threshold_tumor(tumor, threshold=0.6):
@@ -234,3 +248,32 @@ def pretty_print_gpu_info(info_list):
 
     console = Console()
     console.print(info_table)
+
+
+def plot_tumor_overview():
+    base = load_single_tumor(tumor_id=3000)
+    output = load_external_tumor(
+        path="/home/marcel/Projects/uni/thesis/test_3000.npy")
+    intersection = (base != output)
+
+    plot_tumor(base, title="input")
+    plot_tumor(output, title="output", c_base='m')
+    plot_tumor(tumor=intersection, title="input != output")
+    plot_tumor(base, cmp_tumor=output, title="input and output")
+
+    plt.show()
+
+
+def plot_tumor_list(tumor_list: List[int]):
+    tumors = [load_single_tumor(tumor_id=tumor_id) for tumor_id in tumor_list]
+    for i, tumor in enumerate(tumors):
+        plot_tumor(tumor, title=tumor_list[i])
+    # dice
+    dice = calc_dice_coef(tumors[0], tumors[0])
+    print(f"{dice=}")
+
+    # plot
+    # plt.show()
+
+
+# plot_tumor_list(tumor_list=[3048, 3144])
