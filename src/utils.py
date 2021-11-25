@@ -120,14 +120,20 @@ def find_n_best_score_ids(path: str, value_type: DSValueType, order_func, n_best
 
 def plot_tumor(tumor, cmp_tumor=None, title="title", c_base='b', zoom_factor: float = 0.5):
     """
-    Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234), zoom_factor=0.5)
+    Plot a tumor in a 3D view.\n
+    If cmp_tumor is passed this tumor will be plotted in the same view in the color magenta.\n
+    The base tumor has color blue or c_base if used.\n
+    @tumor - tumor that will be plotted
+    @cmp_tumor - [optional] a second tumor for comparsion
+    @title - title of the plot
+    @c_base - color of the scatterplot dots, default is blue\n
+    Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234))
     """
     # tumor = load_single_tumor(tumor_id=42)
-    print(np.unique(tumor))
+    # print(np.unique(tumor))
     fig = plt.figure()
     plt.suptitle(title)
     ax = fig.add_subplot(111, projection='3d')
-    print(zoom_factor)
     # downsample
     pos = np.where(tumor == 1)
     ax.scatter(pos[0], pos[1], pos[2], s=1.5, c=c_base)
@@ -142,7 +148,7 @@ def load_single_tumor(tumor_id, threshold=0.6):
     """
     Loads a single syntethic, thresholded, normalized tumor with dim 128^3 \n
     @tumor_id = folder_id of the syn tumor\n
-    @threshold = threshold value (typically 0.6 (t1c) / 0.2 (flair)) 
+    @threshold = threshold value (typically 0.6 (t1c) / 0.2 (flair))
     """
     tumor = np.load(SYN_TUMOR_PATH_TEMPLATE.format(id=tumor_id))[
         'data']
@@ -155,16 +161,19 @@ def load_single_tumor(tumor_id, threshold=0.6):
 
 
 def normalize(v):
-    """ Return a list of all syntethic tumors sorted by id"""
+    """ Return a unit vector of @v"""
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
     return v / norm
 
 
-def load_external_tumor(path):
+def load_reconstructed_tumor(path):
+    """
+    Load a reconstructed syntethic tumor\n
+    This differs from the usual tumor loading in the format of the saved tumor
+    """
     tumor = np.load(path)[0][0]
-    print(tumor.shape)
     # crop 129^3 to 128^3 if needed
     if tumor.shape != (128, 128, 128):
         tumor = np.delete(np.delete(
@@ -202,57 +211,81 @@ def pretty_print_params(BASE_CHANNELS=None,
                         LEARNING_RATE=None,
                         CHECKPOINT_FREQUENCY=None,
                         TEST_SIZE=None):
-    from rich.console import Console
-    from rich.table import Column, Table
+    """Print a table with all passed Parameters\n If the rich module is not installed the info will be printed to the console"""
 
-    params_table = Table(
-        show_header=True, header_style="bold #1DB954")
-    params_table.add_column("Param")
-    params_table.add_column("Value", style="#ffffff")
-    if BASE_CHANNELS:
-        params_table.add_row("BASE_CHANNELS", str(BASE_CHANNELS))
-    if MAX_EPOCHS:
-        params_table.add_row("MAX_EPOCHS", str(MAX_EPOCHS))
-    if LATENT_DIM:
-        params_table.add_row("LATENT_DIM", str(LATENT_DIM))
-    if MIN_DIM:
-        params_table.add_row("MIN_DIM", str(MIN_DIM))
-    if BATCH_SIZE:
-        params_table.add_row("BATCH_SIZE", str(BATCH_SIZE))
-    if TRAIN_SIZE:
-        params_table.add_row("TRAIN_SIZE", str(TRAIN_SIZE))
-    if VAL_SIZE:
-        params_table.add_row("VAL_SIZE", str(VAL_SIZE))
-    if TEST_SIZE:
-        params_table.add_row("TEST_SIZE", str(TEST_SIZE))
-    if LEARNING_RATE:
-        params_table.add_row("LEARNING_RATE", str(LEARNING_RATE))
-    if CHECKPOINT_FREQUENCY:
-        params_table.add_row("CHECKPOINT_FREQUENCY", str(CHECKPOINT_FREQUENCY))
+    try:
+        from rich.console import Console
+        from rich.table import Column, Table
+        params_table = Table(
+            show_header=True, header_style="bold #1DB954")
+        params_table.add_column("Param")
+        params_table.add_column("Value", style="#ffffff")
+        if BASE_CHANNELS:
+            params_table.add_row("BASE_CHANNELS", str(BASE_CHANNELS))
+        if MAX_EPOCHS:
+            params_table.add_row("MAX_EPOCHS", str(MAX_EPOCHS))
+        if LATENT_DIM:
+            params_table.add_row("LATENT_DIM", str(LATENT_DIM))
+        if MIN_DIM:
+            params_table.add_row("MIN_DIM", str(MIN_DIM))
+        if BATCH_SIZE:
+            params_table.add_row("BATCH_SIZE", str(BATCH_SIZE))
+        if TRAIN_SIZE:
+            params_table.add_row("TRAIN_SIZE", str(TRAIN_SIZE))
+        if VAL_SIZE:
+            params_table.add_row("VAL_SIZE", str(VAL_SIZE))
+        if TEST_SIZE:
+            params_table.add_row("TEST_SIZE", str(TEST_SIZE))
+        if LEARNING_RATE:
+            params_table.add_row("LEARNING_RATE", str(LEARNING_RATE))
+        if CHECKPOINT_FREQUENCY:
+            params_table.add_row("CHECKPOINT_FREQUENCY",
+                                 str(CHECKPOINT_FREQUENCY))
 
-    console = Console()
-    console.print(params_table)
+        console = Console()
+        console.print(params_table)
+
+    except ImportError:
+        print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
 
 
-def pretty_print_gpu_info(info_list):
-    from rich.console import Console
-    from rich.table import Column, Table
+def pretty_print_gpu_info(device):
+    """Print a table with the passed GPU info\n If the rich module is not installed the info will be printed to the console"""
 
-    info_table = Table(
-        show_header=True, header_style="bold #1DB954")
-    info_table.add_column("GPU INFO")
-    info_table.add_column("Value", style="#ffffff")
+    info_list = [("CUDA_VISIBLE_DEVICES",
+                  f"[{os.environ['CUDA_VISIBLE_DEVICES']}]"),
+                 ("Device:", str(device)),
+                 ("Active CUDA Device: GPU", torch.cuda.get_device_name())]
+    try:
+        from rich.console import Console
+        from rich.table import Column, Table
 
-    for attr, val in info_list:
-        info_table.add_row(attr, val)
+        info_table = Table(
+            show_header=True, header_style="bold #1DB954")
+        info_table.add_column("GPU INFO")
+        info_table.add_column("Value", style="#ffffff")
 
-    console = Console()
-    console.print(info_table)
+        for attr, val in info_list:
+            info_table.add_row(attr, val)
+
+        console = Console()
+        console.print(info_table)
+
+    except ImportError:
+        for attr, val in info_list:
+            print(f"{attr}={val}")
 
 
 def plot_tumor_overview():
+    """
+    Plot an overview for tumor encoding:\n
+    - input tumor
+    - reconstructed (output) tumor
+    - differences between input and output
+    - both tumors in the same plot, blue= input, magenta= output
+    """
     base = load_single_tumor(tumor_id=3000)
-    output = load_external_tumor(
+    output = load_reconstructed_tumor(
         path="/home/marcel/Projects/uni/thesis/test_3000.npy")
     intersection = (base != output)
 
@@ -265,6 +298,7 @@ def plot_tumor_overview():
 
 
 def plot_tumor_list(tumor_list: List[int]):
+    """ Plot each of the given tumors in a separate view """
     tumors = [load_single_tumor(tumor_id=tumor_id) for tumor_id in tumor_list]
     for i, tumor in enumerate(tumors):
         plot_tumor(tumor, title=tumor_list[i])
@@ -273,7 +307,7 @@ def plot_tumor_list(tumor_list: List[int]):
     print(f"{dice=}")
 
     # plot
-    # plt.show()
+    plt.show()
 
 
 # plot_tumor_list(tumor_list=[3048, 3144])
