@@ -5,12 +5,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.modules.loss import _Loss
-
 from monai.losses.focal_loss import FocalLoss
 from monai.losses.spatial_mask import MaskedLoss
 from monai.networks import one_hot
 from monai.utils import LossReduction, Weight, look_up_option
+from torch.nn.modules.loss import _Loss
 
 
 class CustomDiceLoss(_Loss):

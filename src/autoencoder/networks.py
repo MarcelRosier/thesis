@@ -1,6 +1,5 @@
-# PyTorch
-# PyTorch Lightning
 import torch.nn as nn
+
 # basic network
 
 

@@ -13,7 +13,7 @@ import torch
 import torch.nn.functional as F
 from scipy.ndimage import zoom
 
-from constants import ENV, SYN_TUMOR_PATH_TEMPLATE, SYN_TUMOR_BASE_PATH
+from constants import ENV, SYN_TUMOR_BASE_PATH, SYN_TUMOR_PATH_TEMPLATE
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]

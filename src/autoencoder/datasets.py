@@ -2,11 +2,12 @@ import os
 from typing import Tuple
 
 import numpy as np
-import utils
 import torch
-from torch._C import dtype
+import utils
 from constants import (ENV, REAL_TUMOR_BASE_PATH, SYN_TUMOR_BASE_PATH,
-                       SYN_TUMOR_PATH_TEMPLATE, TUMOR_SUBSET_1K, TUMOR_SUBSET_200,)
+                       SYN_TUMOR_PATH_TEMPLATE, TUMOR_SUBSET_1K,
+                       TUMOR_SUBSET_200)
+from torch._C import dtype
 from torch.utils.data import Dataset
 
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
