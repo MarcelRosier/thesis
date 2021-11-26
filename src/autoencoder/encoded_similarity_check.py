@@ -1,11 +1,12 @@
-from functools import partial
 import json
 import multiprocessing
 import os
 from datetime import datetime
+from functools import partial
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
 import utils
 from constants import (ENCODED_4096_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
                        SYN_TUMOR_BASE_PATH)
@@ -80,7 +81,49 @@ def calc_encoded_similarities(real_tumor: str, syn_subset: Tuple = (TEST_START, 
         json.dump(results, file)
 
 
+def run_top_15_comp():
+    base_path = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2000"
+    real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
+    real_tumors.sort(key=lambda name: int(name[3:6]))
+
+    df = pd.DataFrame(columns=["tumor", "gt_top",
+                      "encoded_top", "intersection"])
+
+    for tumor in real_tumors:
+        # get gt top
+        gt_best = utils.find_n_best_score_ids(
+            path=f"{base_path}/{tumor}_gt.json",
+            n_best=15,
+            value_type=utils.DSValueType.T1C,
+            order_func=min
+        )
+        # print("gt l2 top 15: ", gt_best)
+
+        # get encoded top
+        encoded_best = utils.find_n_best_score_ids(
+            path=f"{base_path}/{tumor}_encoded.json",
+            n_best=15,
+            value_type=utils.DSValueType.T1C,
+            order_func=min
+        )
+        # print("encoded l2 top 15: ", encoded_best)
+
+        # intersection
+        # print("intersection: ", intersect1d(gt_best, encoded_best))
+        df = df.append({
+            "tumor": tumor,
+            "gt_top": gt_best,
+            "encoded_top": encoded_best,
+            "intersection": intersect1d(gt_best, encoded_best)
+        }, ignore_index=True)
+
+    return df
+
+
 def run(real_tumor):
+    df = run_top_15_comp()
+    df.to_csv("/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_2k.csv",
+              encoding='utf-8', index=False)
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
     # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
@@ -91,14 +134,14 @@ def run(real_tumor):
     #     order_func=min
     # )
     # print("groundtruth l2 top 15: ", gt_best)
-    real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
-    real_tumors.sort(key=lambda name: int(name[3:6]))
+    # real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
+    # real_tumors.sort(key=lambda name: int(name[3:6]))
 
-    func = partial(calc_groundtruth)
-    print(func)
-    with multiprocessing.Pool(8) as pool:
-        results = pool.map_async(func, real_tumors)
-        t = results.get()
+    # func = partial(calc_groundtruth)
+    # print(func)
+    # with multiprocessing.Pool(8) as pool:
+    #     results = pool.map_async(func, real_tumors)
+    #     t = results.get()
 
     # for i, tumor in enumerate(real_tumors):
     #     print(f"{i + 1}/71")
