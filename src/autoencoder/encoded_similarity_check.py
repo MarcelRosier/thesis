@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import Tuple
 
 import numpy as np
-from numpy.lib.arraysetops import intersect1d
 import utils
 from constants import (ENCODED_4096_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
                        SYN_TUMOR_BASE_PATH)
+from numpy.lib.arraysetops import intersect1d
 
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]

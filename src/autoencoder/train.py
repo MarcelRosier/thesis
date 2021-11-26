@@ -3,13 +3,11 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib
-import utils
 import seaborn as sns
 import torch
 import torch.nn as nn
+import utils
 from constants import AE_CHECKPOINT_PATH, AE_MODEL_SAVE_PATH, ENV
-# from monai.losses.dice import DiceLoss, GeneralizedDiceLoss
-# from monai.losses.tversky import TverskyLoss
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -42,38 +40,6 @@ VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
 
-# print params
-try:
-    import rich
-    utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS,
-                              MAX_EPOCHS=120,
-                              LATENT_DIM=LATENT_DIM,
-                              MIN_DIM=MIN_DIM,
-                              BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE,
-                              VAL_SIZE=VAL_SIZE,
-                              LEARNING_RATE=LEARNING_RATE,
-                              CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY,
-                              )
-except ImportError:
-    print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
-
-
-def print_gpu_info(device):
-    try:
-        import rich
-        utils.pretty_print_gpu_info([
-            ("CUDA_VISIBLE_DEVICES",
-             f"[{os.environ['CUDA_VISIBLE_DEVICES']}]"),
-            ("Device:", str(device)),
-            ("Active CUDA Device: GPU", torch.cuda.get_device_name())
-        ])
-    except ImportError:
-        print(
-            f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
-        print("Device:", device)
-        print('Active CUDA Device: GPU', torch.cuda.get_device_name())
-
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_{datetime.timestamp(datetime.now())}"
@@ -86,6 +52,11 @@ nets = networks.get_basic_net_16_16_16(
 
 
 def run(cuda_id=0):
+    # print params
+    utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY)
+
+    # datasets
     train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
     val_dataset = TumorT1CDataset(subset=(2000, 2000 + VAL_SIZE))
     test_dataset = TumorT1CDataset(subset=(3000, 3100))
@@ -103,24 +74,15 @@ def run(cuda_id=0):
                              shuffle=False,
                              num_workers=4)
 
-    model, result = train_tumort1c(cuda_id=cuda_id, train_loader=train_loader,
-                                   val_loader=val_loader, test_loader=test_loader)
+    # train
+    model = train_tumort1c(cuda_id=cuda_id, train_loader=train_loader,
+                           val_loader=val_loader, test_loader=test_loader)
+
+    # add graph to tensorboard
     model.to(torch.device("cpu"))
-    # test output
     dataiter = iter(train_loader)
     tumor, _ = dataiter.next()
-    print(f"pre nonzero= {torch.count_nonzero(tumor)}")
-    output = model(tumor)
-    print(f"post nonzero= {torch.count_nonzero(output)}")
-    print(torch.unique(output))
-    print(torch.min(output))
-    print(torch.max(output))
-    # Z = torch.zeros_like(output)
-    # print(torch.unique(rounded))
-    # print(f"post nonzero(rounded)= {torch.count_nonzero(rounded)}")
-
     writer.add_graph(model, input_to_model=tumor)
-    print(result)
 
 
 def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
@@ -128,18 +90,17 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
     device = torch.device(
         f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-
     # print gpu info
-    print_gpu_info(device=device)
+    utils.pretty_print_gpu_info(device=device)
 
-    #
-    # Setup
+    # Model setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = CustomDiceLoss(
         smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
 
+    # training loop
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
@@ -213,6 +174,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
         writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
 
         writer.flush()
+        # save checkpoints with frequency CHECKPOINT_FREQUENCY
         if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
             save_checkpoint(epoch=epoch + 1, model=model,
                             loss=loss, optimizer=optimizer)
@@ -221,7 +183,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
     print("Finished Training")
     save_checkpoint(epoch="final", model=model,
                     loss=loss, optimizer=optimizer)
-    return model, "END"
+    return model
 
 
 def save_checkpoint(epoch, model, loss, optimizer):
