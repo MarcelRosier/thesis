@@ -40,62 +40,33 @@ TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
-TEST_SIZE = 200
-
-# print params
-try:
-    import rich
-    utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS,
-                              MAX_EPOCHS=120,
-                              LATENT_DIM=LATENT_DIM,
-                              MIN_DIM=MIN_DIM,
-                              BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE,
-                              VAL_SIZE=VAL_SIZE,
-                              LEARNING_RATE=LEARNING_RATE,
-                              CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY,
-                              TEST_SIZE=TEST_SIZE,
-                              )
-except ImportError:
-    print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}\n{TEST_SIZE=}")
-
-
-def print_gpu_info(device):
-    try:
-        import rich
-        utils.pretty_print_gpu_info([
-            ("CUDA_VISIBLE_DEVICES",
-             f"[{os.environ['CUDA_VISIBLE_DEVICES']}]"),
-            ("Device:", str(device)),
-            ("Active CUDA Device: GPU", torch.cuda.get_device_name())
-        ])
-    except ImportError:
-        print(
-            f"CUDA_VISIBLE_DEVICES = [{os.environ['CUDA_VISIBLE_DEVICES']}]")
-        print("Device:", device)
-        print('Active CUDA Device: GPU', torch.cuda.get_device_name())
+TEST_START = 4000
+TEST_SIZE = 2000
 
 
 def run(cuda_id=0):
+    # print params
+    utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, TEST_SIZE=TEST_SIZE)
     nets = networks.get_basic_net_16_16_16(
         c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
 
-    # test_dataset = TumorT1CDataset(subset=(3000, 3000 + TEST_SIZE))
-    # test_loader = DataLoader(dataset=test_dataset,
-    #                          batch_size=BATCH_SIZE,
-    #                          shuffle=False,
-    #                          num_workers=4)
-    test_dataset = TumorT1CDataset(syntethic=False, subset=(0, 1))
+    test_dataset = TumorT1CDataset(subset=(TEST_START, TEST_START + TEST_SIZE))
     test_loader = DataLoader(dataset=test_dataset,
-                             batch_size=1,
+                             batch_size=BATCH_SIZE,
                              shuffle=False,
-                             num_workers=1)
+                             num_workers=4)
+    # test_dataset = TumorT1CDataset(syntethic=False)
+    # test_loader = DataLoader(dataset=test_dataset,
+    #                          batch_size=1,
+    #                          shuffle=False,
+    #                          num_workers=1)
 
     # print gpu info
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
     device = torch.device(
         f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    print_gpu_info(device)
+    utils.pretty_print_gpu_info(device)
 
     # Load model
     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907_ep_final.pt"
@@ -113,7 +84,7 @@ def run(cuda_id=0):
         encoded = model(tumor)
         # save
         np_encoded = encoded.cpu().detach().numpy()
-        with open(f"/mnt/Drive3/ivan_marcel/encoded_4096/{folder_id}.npy", 'wb') as file:
+        with open(f"/mnt/Drive3/ivan_marcel/encoded_4096/syn_2k/{folder_id}.npy", 'wb') as file:
             np.save(file=file, arr=np_encoded)
 
     # generate encoding for real tumor
