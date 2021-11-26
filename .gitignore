@@ -4,6 +4,7 @@ tumor_data/
 *.index
 *.nii
 test.py
+Atlas
 src/autoencoder/tutorials/outputs
 src/autoencoder/tutorials/dataset
 src/autoencoder/tutorials/checkpoints
