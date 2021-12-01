@@ -52,7 +52,7 @@ optional arguments:
     ```
 - Troubleshooting:
     - MKL Errors:  
-    A few to try when running into *Intel MKL FATAL ERROR: Cannot load libmkl_avx2.so or libmkl_def.so.* or similar:  
+    A few things to try when running into *Intel MKL FATAL ERROR: Cannot load libmkl_avx2.so or libmkl_def.so.* or similar:  
     ```shell
     # Add nomkl
     conda install nomkl numpy scipy scikit-learn numexpr
