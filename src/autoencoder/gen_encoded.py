@@ -40,8 +40,8 @@ TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
-TEST_START = 4000
-TEST_SIZE = 2000
+TEST_START = 8000
+TEST_SIZE = 28000
 
 
 def run(cuda_id=0):
@@ -84,7 +84,5 @@ def run(cuda_id=0):
         encoded = model(tumor)
         # save
         np_encoded = encoded.cpu().detach().numpy()
-        with open(f"/mnt/Drive3/ivan_marcel/encoded_4096/syn_2k/{folder_id}.npy", 'wb') as file:
+        with open(f"/mnt/Drive3/ivan_marcel/encoded_4096/syn_20k/{folder_id}.npy", 'wb') as file:
             np.save(file=file, arr=np_encoded)
-
-    # generate encoding for real tumor
