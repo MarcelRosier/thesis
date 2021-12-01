@@ -32,13 +32,13 @@ torch.backends.cudnn.benchmark = False
 # Hyper parameters
 BASE_CHANNELS = 24
 MAX_EPOCHS = 120
-LATENT_DIM = 4096
+LATENT_DIM = 2048
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
-CHECKPOINT_FREQUENCY = 30
+CHECKPOINT_FREQUENCY = 60
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -59,7 +59,6 @@ def run(cuda_id=0):
     # datasets
     train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
     val_dataset = TumorT1CDataset(subset=(2000, 2000 + VAL_SIZE))
-    test_dataset = TumorT1CDataset(subset=(3000, 3100))
 
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=BATCH_SIZE,
@@ -69,14 +68,10 @@ def run(cuda_id=0):
                             batch_size=BATCH_SIZE,
                             shuffle=False,
                             num_workers=4)
-    test_loader = DataLoader(dataset=test_dataset,
-                             batch_size=BATCH_SIZE,
-                             shuffle=False,
-                             num_workers=4)
 
     # train
-    model = train_tumort1c(cuda_id=cuda_id, train_loader=train_loader,
-                           val_loader=val_loader, test_loader=test_loader)
+    model = train_tumort1c(
+        cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
 
     # add graph to tensorboard
     model.to(torch.device("cpu"))
@@ -85,7 +80,7 @@ def run(cuda_id=0):
     writer.add_graph(model, input_to_model=tumor)
 
 
-def train_tumort1c(cuda_id, train_loader, val_loader, test_loader):
+def train_tumort1c(cuda_id, train_loader, val_loader):
     # set device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
     device = torch.device(

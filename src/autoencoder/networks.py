@@ -68,7 +68,7 @@ def get_basic_net(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=204
 
 
 def get_basic_net_16_16_16(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=4096):
-    """So far the best scores, yet no improvement after first epoch? predicts nearly all 0 -> penalize that?"""
+    """ current SOTA """
     linear_layer_size = 3 * 16*16*16 * c_hid
     encoder_basic = nn.Sequential(
         nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
