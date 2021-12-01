@@ -5,7 +5,13 @@ If the compression preserves similarity is not clear and has to be tested/ is a 
 
 ### Usage
 ```shell
-python autoencoder_main.py --cuda_id {id}
+python autoencoder_main.py --cuda_id {id} --mode {mode_id}
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --cuda_id CUDA_ID, -c CUDA_ID
+                        specify the id of the to be used cuda device
+  --mode MODE, -m MODE  select mode: 1= train, 2=create test data set, 3= run encoded similarity check
 ```
 ### Structure
 ```
