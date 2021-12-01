@@ -70,6 +70,26 @@ ENCODED_4096_BASE_PATH = {
     GIGA: '/mnt/Drive3/ivan_marcel/encoded_4096'
 }
 
+default = {
+    '200': {
+        'START': 3000,
+        'END': 3200
+    },
+    '2k': {
+        'START': 4000,
+        'END': 6000
+    },
+    '20k': {
+        'START': 8000,
+        'END': 28000
+    },
+}
+TEST_SET_RANGES = {
+    LOCAL: default,
+    IBBM: default,
+    GIGA: default,
+}
+
 # Dataset size constants
 TUMOR_SUBSET_200 = 200
 TUMOR_SUBSET_1K = 1000
