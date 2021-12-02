@@ -2,6 +2,11 @@ import json
 
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.core.fromnumeric import mean
+import pandas as pd
+import seaborn as sns
+
+sns.set_style()
 
 DICE_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:47:08_comparison.json'
 L2_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-10-06 22:33:30_comparison_l2.json'
@@ -68,7 +73,62 @@ def plot_runtime_vs_threads_dual_input(data_1, data_2):
     plt.show()
 
 
-dice_data = load_json_data(DICE_DATA_PATH)
-l2_data = load_json_data(L2_DATA_PATH)
-# plot_runtime_vs_threads_single_input(data=dice_data)
-plot_runtime_vs_threads_dual_input(data_1=dice_data, data_2=l2_data)
+def plot_gt_enc_comp():
+    table = pd.read_csv(
+        "/home/marcel/Projects/uni/thesis/media/gt_enc_comp_2k.csv").to_numpy()
+    # transform list strings to length
+    for row in table:
+        row[0] = int(row[0][3:6])
+        row[1] = len(row[1].split(','))
+        row[2] = len(row[2].split(','))
+        row[3] = len(row[3].split(' '))
+    df_table = pd.DataFrame(
+        {'tumor': table[:, 0], 'intersection': table[:, 3]})
+    df_table.astype({'tumor': 'int32'})
+    df_table.sort_values(by='tumor')
+    print(df_table)
+    ax = sns.barplot(x='tumor', y='intersection', data=df_table)
+    ax.set(xlabel='real tumor (tgmXXX_preop)',
+           ylabel='#intersection in top 15', title='#Intersection between top 15 groundtruth and encoded L2 comparison for a test dataset_size= 2K')
+    plt.show()
+
+
+def plot_gt_enc_rbo_scores():
+    json_data = {}
+    with open("/home/marcel/Projects/uni/thesis/media/rbo_comp_200_top_1.json") as file:
+        json_data = json.load(file)
+    lists = zip(json_data.keys(), json_data.values())
+    df = pd.DataFrame(data=lists, columns=['tumor', 'rbo'])
+    df['tumor'] = df['tumor'].apply(lambda c: int(c[3:6]))
+
+    avg = mean(df['rbo'].to_list())
+    print(avg)
+    print(sum(df['rbo'].to_list()))
+
+    ax = sns.barplot(x='tumor', y='rbo', data=df)
+    ax.axhline(avg)
+    ax.set(xlabel='real tumor (tgmXXX_preop)',
+           ylabel='RBO of top 1', title='RBO score for top 1 groundtruth and encoded L2 comparison for a test dataset_size= 200')
+    # plt.show()
+
+
+def plot_enc4096_gt_best_matches(test_set_size: str):
+    json_data = {}
+    with open(f"/home/marcel/Projects/uni/thesis/media/enc_4096_gt_match_pairs/testset_size_{test_set_size}.json") as file:
+        json_data = json.load(file)
+    tumors = []
+    gt_indices = []
+    for key in json_data.keys():
+        tumors.append(key)
+        gt_indices.append(json_data[key]['unencoded_rank'])
+    print(f"{max(gt_indices)=}")
+    df = pd.DataFrame(columns=['tumor', 'gt_index'],
+                      data=zip(tumors, gt_indices))
+    df['tumor'] = df['tumor'].apply(lambda c: int(c[3:6]))
+    ax = sns.barplot(x='tumor', y='gt_index', data=df)
+    ax.set(
+        title=f"Index in the groundtruth ranking of the best encoded match (#syntethic tumors={test_set_size})\n y=0 -> same best match",)
+    plt.show()
+
+
+plot_enc4096_gt_best_matches(test_set_size="2k")
