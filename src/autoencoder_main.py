@@ -15,11 +15,12 @@ if args.mode == 1:
     from autoencoder import train
     train.run(cuda_id=args.cuda_id)
 elif args.mode == 2:
-    print(f"Run testing main on {args.cuda_id=}")
+    print(f"Run enc gen main on {args.cuda_id=}")
     from autoencoder import gen_encoded
     gen_encoded.run(cuda_id=args.cuda_id)
     pass
 elif args.mode == 3:
+    print(f"Run similarity gen main on {args.cuda_id=}")
     from autoencoder import encoded_similarity_check
     encoded_similarity_check.run(
         real_tumor="tgm001_preop")
