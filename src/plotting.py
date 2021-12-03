@@ -6,7 +6,7 @@ from numpy.core.fromnumeric import mean
 import pandas as pd
 import seaborn as sns
 
-sns.set_style()
+sns.set_style("whitegrid")
 
 DICE_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:47:08_comparison.json'
 L2_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-10-06 22:33:30_comparison_l2.json'
@@ -131,4 +131,37 @@ def plot_enc4096_gt_best_matches(test_set_size: str):
     plt.show()
 
 
-plot_enc4096_gt_best_matches(test_set_size="2k")
+def plot_best_match_presence(test_set_size: str, top_n: int, ax):
+    from autoencoder.encoded_similarity_check import load_top_15_lists
+    tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
+        csv_path=f"/home/marcel/Projects/uni/thesis/media/gt_enc_comp_{test_set_size}.csv")
+    # transform list strings to length
+    is_present = []
+    for tumor, gt_list, enc_list in zip(tumor_ids, gt_lists, encoded_lists):
+        gt_best = gt_list[0]
+        gt_best_in_top_n_enc = gt_best in enc_list[:top_n]
+        is_present.append(float(gt_best_in_top_n_enc))
+
+    tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
+    avg = sum(is_present) / len(is_present)
+    sns.barplot(ax=ax, x=tumor_ids, y=is_present, color="#2a9c2c")
+    ax.axhline(avg)
+    ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
+    ax.set_title(f"gt best match in top {top_n} encoded matches")
+    # plt.show()
+
+
+def plot_best_mach_presence_overview(test_set_size):
+    fig, axes = plt.subplots(3, 1, figsize=(15, 5), sharey=True)
+    fig.suptitle(
+        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size} ')
+
+    # Bulbasaur
+    plot_best_match_presence(test_set_size, top_n=15, ax=axes[0])
+    plot_best_match_presence(test_set_size, top_n=5, ax=axes[1])
+    plot_best_match_presence(test_set_size, top_n=1, ax=axes[2])
+
+    plt.show()
+
+
+plot_best_mach_presence_overview(test_set_size="2k")

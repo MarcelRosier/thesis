@@ -118,32 +118,6 @@ def find_n_best_score_ids(path: str, value_type: DSValueType, order_func, n_best
     return best_keys
 
 
-def plot_tumor(tumor, cmp_tumor=None, title="title", c_base='b', zoom_factor: float = 0.5):
-    """
-    Plot a tumor in a 3D view.\n
-    If cmp_tumor is passed this tumor will be plotted in the same view in the color magenta.\n
-    The base tumor has color blue or c_base if used.\n
-    @tumor - tumor that will be plotted
-    @cmp_tumor - [optional] a second tumor for comparsion
-    @title - title of the plot
-    @c_base - color of the scatterplot dots, default is blue\n
-    Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234))
-    """
-    # tumor = load_single_tumor(tumor_id=42)
-    # print(np.unique(tumor))
-    fig = plt.figure()
-    plt.suptitle(title)
-    ax = fig.add_subplot(111, projection='3d')
-    # downsample
-    pos = np.where(tumor == 1)
-    ax.scatter(pos[0], pos[1], pos[2], s=1.5, c=c_base)
-    if cmp_tumor is not None:
-        cmp_pos = np.where(cmp_tumor == 1)
-        ax.scatter(cmp_pos[0], cmp_pos[1], cmp_pos[2], s=1.5, c='m')
-    # ax.plot_wireframe(pos[0], pos[1], pos[2])
-    # plt.show()
-
-
 def load_single_tumor(tumor_id, threshold=0.6):
     """
     Loads a single syntethic, thresholded, normalized tumor with dim 128^3 \n
@@ -199,6 +173,11 @@ def get_sorted_syn_tumor_list() -> List[str]:
     folders = [f for f in folders if f.isnumeric()]
     folders.sort(key=lambda f: int(f))
     return folders
+
+
+##################################
+# Pretty printing
+##################################
 
 
 def pretty_print_params(BASE_CHANNELS=None,
@@ -276,7 +255,37 @@ def pretty_print_gpu_info(device):
             print(f"{attr}={val}")
 
 
-def plot_tumor_overview():
+##################################
+# Plotting
+##################################
+
+def plot_tumor(tumor, cmp_tumor=None, title="title", c_base='b', zoom_factor: float = 0.5):
+    """
+    Plot a tumor in a 3D view.\n
+    If cmp_tumor is passed this tumor will be plotted in the same view in the color magenta.\n
+    The base tumor has color blue or c_base if used.\n
+    @tumor - tumor that will be plotted
+    @cmp_tumor - [optional] a second tumor for comparsion
+    @title - title of the plot
+    @c_base - color of the scatterplot dots, default is blue\n
+    Usage: plot_tumor(tumor=load_single_tumor(tumor_id=1234))
+    """
+    # tumor = load_single_tumor(tumor_id=42)
+    # print(np.unique(tumor))
+    fig = plt.figure()
+    plt.suptitle(title)
+    ax = fig.add_subplot(111, projection='3d')
+    # downsample
+    pos = np.where(tumor == 1)
+    ax.scatter(pos[0], pos[1], pos[2], s=1.5, c=c_base)
+    if cmp_tumor is not None:
+        cmp_pos = np.where(cmp_tumor == 1)
+        ax.scatter(cmp_pos[0], cmp_pos[1], cmp_pos[2], s=1.5, c='m')
+    # ax.plot_wireframe(pos[0], pos[1], pos[2])
+    # plt.show()
+
+
+def plot_tumor_overview(latend_dim):
     """
     Plot an overview for tumor encoding:\n
     - input tumor
@@ -284,17 +293,18 @@ def plot_tumor_overview():
     - differences between input and output
     - both tumors in the same plot, blue= input, magenta= output
     """
+    rec_path = "/home/marcel/Projects/uni/thesis/src/data/test_3000.npy" if latend_dim == 4096 else "/home/marcel/Projects/uni/thesis/media/3000_reconstructed_2048.npy"
     base = load_single_tumor(tumor_id=3000)
     output = load_reconstructed_tumor(
-        path="/home/marcel/Projects/uni/thesis/test_3000.npy")
+        path=rec_path)
     intersection = (base != output)
 
-    plot_tumor(base, title="input")
-    plot_tumor(output, title="output", c_base='m')
-    plot_tumor(tumor=intersection, title="input != output")
-    plot_tumor(base, cmp_tumor=output, title="input and output")
+    plot_tumor(base, title=f"input, {latend_dim}")
+    plot_tumor(output, title=f"output, {latend_dim}", c_base='m')
+    plot_tumor(tumor=intersection, title=f"input != output, {latend_dim}")
+    plot_tumor(base, cmp_tumor=output, title=f"input and output, {latend_dim}")
 
-    plt.show()
+    # plt.show()
 
 
 def plot_tumor_list(tumor_list: List[int]):
@@ -311,3 +321,14 @@ def plot_tumor_list(tumor_list: List[int]):
 
 
 # plot_tumor_list(tumor_list=[3048, 3144])
+
+def test():
+    tumor, _ = load_real_tumor(
+        base_path="/home/marcel/Projects/uni/thesis/real_tumors/tgm001_preop")
+    print(tumor.shape)
+
+
+# test()
+# plot_tumor_overview(latend_dim=4096)
+# plot_tumor_overview(latend_dim=2048)
+# plt.show()
