@@ -1,7 +1,7 @@
 # thesis
 ## Autoencoder
 The goal is to develop an autoencoder that compresses the data to a scale at which other search techniques are applicable.  
-If the compression preserves similarity is not clear and has to be tested/ is a part of the research project.
+Whether the compression preserves similarity is not clear and has to be tested/ is a part of the research project.
 
 ### Usage
 ```shell
