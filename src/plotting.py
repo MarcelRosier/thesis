@@ -112,9 +112,9 @@ def plot_gt_enc_rbo_scores():
     # plt.show()
 
 
-def plot_enc4096_gt_best_matches(test_set_size: str):
+def plot_enc4096_gt_best_matches(test_set_size: str, enc: str):
     json_data = {}
-    with open(f"/home/marcel/Projects/uni/thesis/media/enc_4096_gt_match_pairs/testset_size_{test_set_size}.json") as file:
+    with open(f"/home/marcel/Projects/uni/thesis/media/{enc}/{enc}_gt_match_pairs/testset_size_{test_set_size}.json") as file:
         json_data = json.load(file)
     tumors = []
     gt_indices = []
@@ -122,12 +122,16 @@ def plot_enc4096_gt_best_matches(test_set_size: str):
         tumors.append(key)
         gt_indices.append(json_data[key]['unencoded_rank'])
     print(f"{max(gt_indices)=}")
+    print(f"{np.sum(np.array(gt_indices) == 0)=}")
     df = pd.DataFrame(columns=['tumor', 'gt_index'],
                       data=zip(tumors, gt_indices))
     df['tumor'] = df['tumor'].apply(lambda c: int(c[3:6]))
     ax = sns.barplot(x='tumor', y='gt_index', data=df)
+    avg = (sum(gt_indices)/len(gt_indices))
+    ax.axhline(avg)
+    ax.text(0, avg + 0.05, str(avg)[:4])
     ax.set(
-        title=f"Index in the groundtruth ranking of the best encoded match (#syntethic tumors={test_set_size})\n y=0 -> same best match",)
+        title=f"Index in the groundtruth ranking of the best encoded match (#syntethic tumors={test_set_size}) , {enc}",)
     plt.show()
 
 
@@ -148,13 +152,13 @@ def plot_best_match_presence(enc: str, test_set_size: str, top_n: int, ax):
     ax.axhline(avg)
     ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
     ax.set_title(f"gt best match in top {top_n} encoded matches")
-    # plt.show()
+    plt.show()
 
 
 def plot_best_match_presence_overview(enc, test_set_size):
     fig, axes = plt.subplots(3, 1, figsize=(15, 5), sharey=True)
     fig.suptitle(
-        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size} ')
+        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size}, {enc} ')
 
     plot_best_match_presence(enc, test_set_size, top_n=15, ax=axes[0])
     plot_best_match_presence(enc, test_set_size, top_n=5, ax=axes[1])
@@ -163,5 +167,6 @@ def plot_best_match_presence_overview(enc, test_set_size):
     plt.show()
 
 
-# plot_best_match_presence_overview(enc="enc_4096_3000", test_set_size="200")
-plot_gt_enc_comp(enc="enc_4096_3000", test_set_size="2k")
+# plot_best_match_presence_overview(enc="enc_2048_1500", test_set_size="2k")
+# plot_gt_enc_comp(enc="enc_2048_1500", test_set_size="2k")
+plot_enc4096_gt_best_matches(test_set_size="2k", enc="enc_2048_1500")
