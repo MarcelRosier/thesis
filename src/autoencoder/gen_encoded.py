@@ -37,14 +37,14 @@ torch.backends.cudnn.benchmark = False
 # Hyper parameters
 BASE_CHANNELS = 24
 MAX_EPOCHS = 120
-LATENT_DIM = 2048
+LATENT_DIM = 4096
 MIN_DIM = 16
 BATCH_SIZE = 1
-TRAIN_SIZE = 1500
+TRAIN_SIZE = 3000
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
-TEST_SET_SIZE = "200"
+TEST_SET_SIZE = "2k"
 TEST_START = TEST_SET_RANGES[TEST_SET_SIZE]['START']
 TEST_SIZE = TEST_SET_RANGES[TEST_SET_SIZE]['END'] - TEST_START
 SYNTHETIC = True
@@ -53,7 +53,7 @@ SYNTHETIC = True
 def run(cuda_id=0):
     # print params
     utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, TEST_SIZE=TEST_SIZE)
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, TEST_SIZE=TEST_SIZE, SYNTHETIC=SYNTHETIC)
     nets = networks.get_basic_net_16_16_16(
         c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
 
@@ -108,7 +108,7 @@ def run(cuda_id=0):
             save_path = f"/mnt/Drive3/ivan_marcel/encoded_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
         else:
             save_path = f"/mnt/Drive3/ivan_marcel/encoded_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"
-
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'wb') as file:
             np.save(file=file, arr=np_encoded)
         bar.next()
