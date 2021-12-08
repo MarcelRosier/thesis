@@ -9,14 +9,14 @@ import numpy as np
 from numpy.lib.type_check import real
 import pandas as pd
 import utils
-from constants import (ENCODED_4096_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
+from constants import (ENCODED_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
                        SYN_TUMOR_BASE_PATH, TEST_SET_RANGES)
 from numpy.lib.arraysetops import intersect1d
 from rbo import rbo
 
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
-ENCODED_4096_BASE_PATH = ENCODED_4096_BASE_PATH[ENV]
+ENCODED_BASE_PATH = ENCODED_BASE_PATH[ENV]
 TEST_SET_RANGES = TEST_SET_RANGES[ENV]
 
 data_path = "/home/ivan_marcel/thesis/src/autoencoder/data"
@@ -66,7 +66,7 @@ def calc_groundtruth(real_tumor: str, test_set_size: str):
         json.dump(results, file)
 
 
-def calc_encoded_similarities(real_tumor: str, test_set_size: str):
+def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: int, train_size: int):
     """
     Calculate the L2 similarity between the input tumor and all encoded synthetic tumors and store the result in:\n
     autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_encoded.json"
@@ -74,17 +74,18 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str):
     @test_set_size - string specifying the test set size
     """
     # load real tumor
+    encoded_folder_path = f"{ENCODED_BASE_PATH}_{latent_dim}_{train_size}"
     real_tumor_t1c = np.load(os.path.join(
-        ENCODED_4096_BASE_PATH, f"real/{real_tumor}.npy"))[0]
+        encoded_folder_path, f"real/{real_tumor}.npy"))[0]
     real_tumor_t1c = utils.normalize(real_tumor_t1c)
 
     files = os.listdir(os.path.join(
-        ENCODED_4096_BASE_PATH, f"syn_{test_set_size}"))
+        encoded_folder_path, f"syn_{test_set_size}"))
     files.sort(key=lambda f: int(f.split('.')[0]))
     results = {}
     for file in files:
         syn_tumor = np.load(os.path.join(
-            ENCODED_4096_BASE_PATH, f"syn_{test_set_size}/{file}"))
+            encoded_folder_path, f"syn_{test_set_size}/{file}"))
         syn_tumor = utils.normalize(syn_tumor)
         distance = utils.calc_l2_norm(
             syn_data=syn_tumor, real_data=real_tumor_t1c)
@@ -95,15 +96,14 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str):
         }
 
     # save data
-    # filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_encoded.json"
-    filename_dump = f"{data_path}/parallel_test/testset_size_{test_set_size}/{real_tumor}_encoded.json"
+    filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/enc_{latent_dim}_{train_size}/{real_tumor}_encoded.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
         json.dump(results, file)
 
 
-def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k") -> pd.DataFrame:
+def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", latent_dim: int = 4096, train_size: int = 1500) -> pd.DataFrame:
     """
     Generate a DataFrame=[tumor, gt_top, encoded_top, intersection] containing the top 15 ranks and intersection of those for each real tumor
     @folder_path - path to the folder containing the json data (gt and encoded) for each real tumor
@@ -120,14 +120,14 @@ def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder
     for tumor in real_tumors:
         # get gt top
         gt_best = utils.find_n_best_score_ids(
-            path=f"{folder_path}/{tumor}_gt.json",
+            path=f"{folder_path}/gt/{tumor}_gt.json",
             n_best=15,
             value_type=utils.DSValueType.T1C,
             order_func=min
         )
         # get encoded top
         encoded_best = utils.find_n_best_score_ids(
-            path=f"{folder_path}/{tumor}_encoded.json",
+            path=f"{folder_path}/enc_{latent_dim}_{train_size}/{tumor}_encoded.json",
             n_best=15,
             value_type=utils.DSValueType.T1C,
             order_func=min
@@ -241,7 +241,7 @@ def calc_best_match_pairs(test_set_size: str, save=False) -> Dict:
     return res
 
 
-def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200"):
+def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", latent_dim: int = 4096, train_size: int = 1500):
     """
     Run the encoded similarity calculation for all real tumors, comparing each tumor with all syn tumors in the dataset specified by test_set_size\n
     All results will be stored in the encoded l2 sim folder\n
@@ -253,7 +253,8 @@ def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str =
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
 
-    func = partial(calc_encoded_similarities, test_set_size=test_set_size)
+    func = partial(calc_encoded_similarities, test_set_size=test_set_size,
+                   latent_dim=latent_dim, train_size=train_size)
     print(func)
     with multiprocessing.Pool(processes) as pool:
         results = pool.map_async(func, real_tumors)
@@ -271,7 +272,7 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     """
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-
+    # real_tumors = real_tumors[11:]
     func = partial(calc_groundtruth, test_set_size=test_set_size)
     print(func)
     print(multiprocessing.cpu_count())
@@ -285,13 +286,16 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 
 def run(real_tumor):
-    calc_best_match_pairs(test_set_size="2k", save=True)
+    # run_calc_encoded_sim_for_all_tumors(
+    #     test_set_size="2k", latent_dim=4096, train_size=3000)
+    # calc_best_match_pairs(test_set_size="2k", save=True)
     # run_calc_groundtruth_sim_for_all_tumors(processes=1, test_set_size="20k")
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    # df = run_top_15_comp()
-    # df.to_csv("/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_2k.csv",
+    # df = run_top_15_comp(
+    #     folder_path="/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_200", latent_dim=4096, train_size=3000)
+    # df.to_csv("/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_4096_3000_comp_200.csv",
     #           encoding='utf-8', index=False)
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
