@@ -9,10 +9,12 @@ import numpy as np
 from numpy.lib.type_check import real
 import pandas as pd
 import utils
+from utils import SimilarityMeasureType
 from constants import (ENCODED_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
                        SYN_TUMOR_BASE_PATH, TEST_SET_RANGES)
 from numpy.lib.arraysetops import intersect1d
 from rbo import rbo
+from progress.bar import Bar
 
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
@@ -24,7 +26,7 @@ TEST_START = 4000
 TEST_SIZE = 2000
 
 
-def calc_groundtruth(real_tumor: str, test_set_size: str):
+def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasureType.L2):
     """
     Calculate the L2 similarity between the input tumor and all (not encoded!) synthetic tumors and store the result in:\n
     autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_gt.json"
@@ -52,14 +54,19 @@ def calc_groundtruth(real_tumor: str, test_set_size: str):
     results = {}
     for folder in folders:
         syn_tumor_t1c = utils.load_single_tumor(tumor_id=folder, threshold=0.6)
-        distance = utils.calc_l2_norm(
+        norm = utils.calc_l2_norm if metric == SimilarityMeasureType.L2 else utils.calc_dice_coef
+        distance = norm(
             syn_data=syn_tumor_t1c, real_data=real_tumor_t1c)
         results[folder] = {
             't1c': distance,
         }
 
     # save data
-    filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_gt.json"
+    filename_dump = None
+    if metric == SimilarityMeasureType.L2:
+        filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_gt.json"
+    else:
+        filename_dump = f"{data_path}/groundtruth_dice_sim/testset_size_{test_set_size}/{real_tumor}_gt.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -261,7 +268,7 @@ def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str =
         t = results.get()
 
 
-def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200"):
+def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", metric: SimilarityMeasureType = SimilarityMeasureType.L2):
     """
     Run the encoded similarity calculation for all real tumors, comparing each tumor with all syn tumors in the dataset specified by test_set_size\n
     All results will be stored in the encoded l2 sim folder\n
@@ -273,23 +280,30 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
     # real_tumors = real_tumors[11:]
-    func = partial(calc_groundtruth, test_set_size=test_set_size)
-    print(func)
-    print(multiprocessing.cpu_count())
+    # func = partial(calc_groundtruth,
+    #                test_set_size=test_set_size, metric=metric)
+    # print(func)
+    # print(multiprocessing.cpu_count())
     # with multiprocessing.Pool(processes=processes) as pool:
     #     results = pool.map_async(func, real_tumors)
     #     t = results.get()
+
+    bar = Bar('Processing', max=len(real_tumors))
     for real_tumor in real_tumors:
         print(
             f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        calc_groundtruth(real_tumor=real_tumor, test_set_size=test_set_size)
+        calc_groundtruth(real_tumor=real_tumor,
+                         test_set_size=test_set_size, metric=metric)
+        bar.next()
+    bar.finish()
 
 
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
     #     test_set_size="2k", latent_dim=4096, train_size=3000)
     # calc_best_match_pairs(test_set_size="2k", save=True)
-    # run_calc_groundtruth_sim_for_all_tumors(processes=1, test_set_size="20k")
+    run_calc_groundtruth_sim_for_all_tumors(
+        processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
