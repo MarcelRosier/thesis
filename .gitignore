@@ -1,11 +1,14 @@
 __pycache__/
-data/
+src/data/
 tumor_data/
 *.index
 *.nii
+*.out
+*.log
 test.py
 Atlas
 src/autoencoder/tutorials/outputs
 src/autoencoder/tutorials/dataset
 src/autoencoder/tutorials/checkpoints
 src/autoencoder/checkpoints
+src/tests.py
