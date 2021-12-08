@@ -73,9 +73,9 @@ def plot_runtime_vs_threads_dual_input(data_1, data_2):
     plt.show()
 
 
-def plot_gt_enc_comp():
+def plot_gt_enc_comp(enc: str, test_set_size: str):
     table = pd.read_csv(
-        "/home/marcel/Projects/uni/thesis/media/gt_enc_comp_2k.csv").to_numpy()
+        f"/home/marcel/Projects/uni/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv").to_numpy()
     # transform list strings to length
     for row in table:
         row[0] = int(row[0][3:6])
@@ -89,7 +89,7 @@ def plot_gt_enc_comp():
     print(df_table)
     ax = sns.barplot(x='tumor', y='intersection', data=df_table)
     ax.set(xlabel='real tumor (tgmXXX_preop)',
-           ylabel='#intersection in top 15', title='#Intersection between top 15 groundtruth and encoded L2 comparison for a test dataset_size= 2K')
+           ylabel='#intersection in top 15', title=f'#Intersection between top 15 groundtruth and encoded L2 comparison for a test dataset_size= {test_set_size}, {enc}')
     plt.show()
 
 
@@ -131,10 +131,10 @@ def plot_enc4096_gt_best_matches(test_set_size: str):
     plt.show()
 
 
-def plot_best_match_presence(test_set_size: str, top_n: int, ax):
+def plot_best_match_presence(enc: str, test_set_size: str, top_n: int, ax):
     from autoencoder.encoded_similarity_check import load_top_15_lists
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
-        csv_path=f"/home/marcel/Projects/uni/thesis/media/gt_enc_comp_{test_set_size}.csv")
+        csv_path=f"/home/marcel/Projects/uni/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv")
     # transform list strings to length
     is_present = []
     for tumor, gt_list, enc_list in zip(tumor_ids, gt_lists, encoded_lists):
@@ -151,17 +151,17 @@ def plot_best_match_presence(test_set_size: str, top_n: int, ax):
     # plt.show()
 
 
-def plot_best_mach_presence_overview(test_set_size):
+def plot_best_match_presence_overview(enc, test_set_size):
     fig, axes = plt.subplots(3, 1, figsize=(15, 5), sharey=True)
     fig.suptitle(
         f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size} ')
 
-    # Bulbasaur
-    plot_best_match_presence(test_set_size, top_n=15, ax=axes[0])
-    plot_best_match_presence(test_set_size, top_n=5, ax=axes[1])
-    plot_best_match_presence(test_set_size, top_n=1, ax=axes[2])
+    plot_best_match_presence(enc, test_set_size, top_n=15, ax=axes[0])
+    plot_best_match_presence(enc, test_set_size, top_n=5, ax=axes[1])
+    plot_best_match_presence(enc, test_set_size, top_n=1, ax=axes[2])
 
     plt.show()
 
 
-plot_best_mach_presence_overview(test_set_size="2k")
+# plot_best_match_presence_overview(enc="enc_4096_3000", test_set_size="200")
+plot_gt_enc_comp(enc="enc_4096_3000", test_set_size="2k")
