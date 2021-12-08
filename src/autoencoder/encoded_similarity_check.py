@@ -208,7 +208,7 @@ def calc_similarity_of_top_lists(csv_path: str, top_n: int = 15, dataset_size: s
     return sims
 
 
-def calc_best_match_pairs(test_set_size: str, save=False) -> Dict:
+def calc_best_match_pairs(test_set_size: str, enc: str,  save=False) -> Dict:
     """
     Get the best match for all encoded tumors and find the same tumor in the ranked list of the unencoded comparison
     @test_set_size - testset size string [200, 2k, 20k] 
@@ -217,7 +217,7 @@ def calc_best_match_pairs(test_set_size: str, save=False) -> Dict:
     }
     """
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
-        csv_path=f"/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_{test_set_size}.csv")
+        csv_path=f"/home/ivan_marcel/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv")
     folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}"
     res = {}
     for real_tumor, gt_top, enc_top in zip(tumor_ids, gt_lists, encoded_lists):
@@ -226,7 +226,7 @@ def calc_best_match_pairs(test_set_size: str, save=False) -> Dict:
             index_in_gt = gt_top.index(best_enc_match)
         except ValueError:
             gt_best_extended = utils.find_n_best_score_ids(
-                path=f"{folder_path}/{real_tumor}_gt.json",
+                path=f"{folder_path}/gt/{real_tumor}_gt.json",
                 n_best=200 if test_set_size == "200" else 1024,
                 value_type=utils.DSValueType.T1C,
                 order_func=min
@@ -242,7 +242,8 @@ def calc_best_match_pairs(test_set_size: str, save=False) -> Dict:
         }
 
     if save:
-        path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/enc_4096_gt_match_pairs/testset_size_{test_set_size}.json"
+        path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/{enc}_gt_match_pairs/testset_size_{test_set_size}.json"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as file:
             json.dump(res, file)
     return res
@@ -279,7 +280,6 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     """
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-    # real_tumors = real_tumors[11:]
     # func = partial(calc_groundtruth,
     #                test_set_size=test_set_size, metric=metric)
     # print(func)
@@ -301,9 +301,9 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
     #     test_set_size="2k", latent_dim=4096, train_size=3000)
-    # calc_best_match_pairs(test_set_size="2k", save=True)
-    run_calc_groundtruth_sim_for_all_tumors(
-        processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
+    calc_best_match_pairs(test_set_size="200", enc="enc_4096_3000", save=True)
+    # run_calc_groundtruth_sim_for_all_tumors(
+    #     processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
