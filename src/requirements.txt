@@ -11,3 +11,5 @@ torchaudio
 torchmetrics                    
 torchvision                     
 monai
+rich
+progress
