@@ -216,7 +216,7 @@ def calc_similarity_of_top_lists(csv_path: str, top_n: int = 15, dataset_size: s
     return sims
 
 
-def calc_best_match_pairs(test_set_size: str, enc: str,  save=False) -> Dict:
+def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str,  save=False) -> Dict:
     """
     Get the best match for all encoded tumors and find the same tumor in the ranked list of the unencoded comparison
     @test_set_size - testset size string [200, 2k, 20k] 
@@ -225,17 +225,19 @@ def calc_best_match_pairs(test_set_size: str, enc: str,  save=False) -> Dict:
     }
     """
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
-        csv_path=f"/home/ivan_marcel/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv")
-    folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}"
+        csv_path=f"/home/ivan_marcel/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{testset_size}.csv")
+    folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{testset_size}"
     res = {}
+    is_l2 = gt_metric == 'l2'
     for real_tumor, gt_top, enc_top in zip(tumor_ids, gt_lists, encoded_lists):
         best_enc_match = enc_top[0]
         try:
             index_in_gt = gt_top.index(best_enc_match)
         except ValueError:
+            gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{real_tumor}_gt.json"
             gt_best_extended = utils.find_n_best_score_ids(
                 path=f"{folder_path}/gt/{real_tumor}_gt.json",
-                n_best=200 if test_set_size == "200" else 1024,
+                n_best=200 if testset_size == "200" else 1024,
                 value_type=utils.DSValueType.T1C,
                 order_func=min
             )
@@ -250,7 +252,7 @@ def calc_best_match_pairs(test_set_size: str, enc: str,  save=False) -> Dict:
         }
 
     if save:
-        path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/{enc}_gt_match_pairs/testset_size_{test_set_size}.json"
+        path = f"/home/ivan_marcel/thesis/media/{enc}/{gt_metric}/{enc}_gt_match_pairs/testset_size_{testset_size}.json"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as file:
             json.dump(res, file)
@@ -309,14 +311,15 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
     #     test_set_size="2k", latent_dim=2048, train_size=1500)
-    # calc_best_match_pairs(test_set_size="2k", enc="enc_2048_1500", save=True)
+    calc_best_match_pairs(
+        testset_size="200", enc="enc_4096_3000", gt_metric='dice', save=True)
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    run_top_15_comp(enc="enc_4096_3000", testset_size="2k",
-                    gt_metric=SimilarityMeasureType.DICE, save=True)
+    # run_top_15_comp(enc="enc_4096_3000", testset_size="2k",
+    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
 
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
