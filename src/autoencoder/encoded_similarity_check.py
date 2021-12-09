@@ -110,7 +110,7 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: i
         json.dump(results, file)
 
 
-def run_top_15_comp(enc: str, test_set_size: str, gt_metric: SimilarityMeasureType = SimilarityMeasureType.L2, save: bool = False, folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", ) -> pd.DataFrame:
+def run_top_15_comp(enc: str, testset_size: str, gt_metric: SimilarityMeasureType = SimilarityMeasureType.L2, save: bool = False) -> pd.DataFrame:
     """
     Generate a DataFrame=[tumor, gt_top, encoded_top, intersection] containing the top 15 ranks and intersection of those for each real tumor
     @folder_path - path to the folder containing the json data (gt and encoded) for each real tumor
@@ -127,7 +127,7 @@ def run_top_15_comp(enc: str, test_set_size: str, gt_metric: SimilarityMeasureTy
     # loop over tumors and add the tumor, the top_15 ranks of the gt and encoded and the intersection the dataframe @df
     for tumor in real_tumors:
         # get gt top
-        gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/{test_set_size}{'/gt' if is_l2 else ''}/{tumor}_gt.json"
+        gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{tumor}_gt.json"
         gt_best_order_func = min if is_l2 else max
         gt_best = utils.find_n_best_score_ids(
             path=gt_best_path,
@@ -138,7 +138,7 @@ def run_top_15_comp(enc: str, test_set_size: str, gt_metric: SimilarityMeasureTy
         )
         # get encoded top
         encoded_best = utils.find_n_best_score_ids(
-            path=f"{data_path}/encoded_l2_sim/{test_set_size}/{enc}/{tumor}_encoded.json",
+            path=f"{data_path}/encoded_l2_sim/testset_size_{testset_size}/{enc}/{tumor}_encoded.json",
             n_best=15,
             value_type=utils.DSValueType.T1C,
             # encoded ranking always uses l2 -> min
@@ -154,7 +154,7 @@ def run_top_15_comp(enc: str, test_set_size: str, gt_metric: SimilarityMeasureTy
         }, ignore_index=True)
 
     if save:
-        df.to_csv(f"/home/ivan_marcel/thesis/src/autoencoder/data/{'l2' if  is_l2 else 'dice'}_gt_{enc}_comp_{test_set_size}.csv",
+        df.to_csv(f"/home/ivan_marcel/thesis/media/{enc}/{'l2' if  is_l2 else 'dice'}/{'l2' if  is_l2 else 'dice'}_gt_{enc}_comp_{testset_size}.csv",
                   encoding='utf-8', index=False)
     return df
 
@@ -315,8 +315,8 @@ def run(real_tumor):
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    df = run_top_15_comp(
-        folder_path="/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", latent_dim=2048, train_size=1500)
+    run_top_15_comp(enc="enc_4096_3000", testset_size="2k",
+                    gt_metric=SimilarityMeasureType.DICE, save=True)
 
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
