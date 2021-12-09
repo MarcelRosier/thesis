@@ -110,7 +110,7 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: i
         json.dump(results, file)
 
 
-def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", latent_dim: int = 4096, train_size: int = 1500) -> pd.DataFrame:
+def run_top_15_comp(enc: str, test_set_size: str, gt_metric: SimilarityMeasureType = SimilarityMeasureType.L2, save: bool = False, folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", ) -> pd.DataFrame:
     """
     Generate a DataFrame=[tumor, gt_top, encoded_top, intersection] containing the top 15 ranks and intersection of those for each real tumor
     @folder_path - path to the folder containing the json data (gt and encoded) for each real tumor
@@ -123,20 +123,25 @@ def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder
     df = pd.DataFrame(columns=["tumor", "gt_top",
                       "encoded_top", "intersection"])
 
+    is_l2 = gt_metric == SimilarityMeasureType.L2
     # loop over tumors and add the tumor, the top_15 ranks of the gt and encoded and the intersection the dataframe @df
     for tumor in real_tumors:
         # get gt top
+        gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/{test_set_size}{'/gt' if is_l2 else ''}/{tumor}_gt.json"
+        gt_best_order_func = min if is_l2 else max
         gt_best = utils.find_n_best_score_ids(
-            path=f"{folder_path}/gt/{tumor}_gt.json",
+            path=gt_best_path,
             n_best=15,
             value_type=utils.DSValueType.T1C,
-            order_func=min
+            # for l2 the minimal distance is the best, for dice the max score
+            order_func=gt_best_order_func
         )
         # get encoded top
         encoded_best = utils.find_n_best_score_ids(
-            path=f"{folder_path}/enc_{latent_dim}_{train_size}/{tumor}_encoded.json",
+            path=f"{data_path}/encoded_l2_sim/{test_set_size}/{enc}/{tumor}_encoded.json",
             n_best=15,
             value_type=utils.DSValueType.T1C,
+            # encoded ranking always uses l2 -> min
             order_func=min
         )
 
@@ -148,6 +153,9 @@ def run_top_15_comp(folder_path: str = "/home/ivan_marcel/thesis/src/autoencoder
             "intersection": intersect1d(gt_best, encoded_best)
         }, ignore_index=True)
 
+    if save:
+        df.to_csv(f"/home/ivan_marcel/thesis/src/autoencoder/data/{'l2' if  is_l2 else 'dice'}_gt_{enc}_comp_{test_set_size}.csv",
+                  encoding='utf-8', index=False)
     return df
 
 
@@ -300,17 +308,16 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
-    #     test_set_size="2k", latent_dim=4096, train_size=3000)
-    calc_best_match_pairs(test_set_size="200", enc="enc_4096_3000", save=True)
+    #     test_set_size="2k", latent_dim=2048, train_size=1500)
+    # calc_best_match_pairs(test_set_size="2k", enc="enc_2048_1500", save=True)
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    # df = run_top_15_comp(
-    #     folder_path="/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_200", latent_dim=4096, train_size=3000)
-    # df.to_csv("/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_4096_3000_comp_200.csv",
-    #           encoding='utf-8', index=False)
+    df = run_top_15_comp(
+        folder_path="/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_2k", latent_dim=2048, train_size=1500)
+
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
     # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
