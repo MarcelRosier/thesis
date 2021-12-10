@@ -35,19 +35,20 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
+LATENT_DIM = 1024
+TEST_SET_SIZE = "20k"
+TRAIN_SIZE = 1500
+SYNTHETIC = True
+#
 BASE_CHANNELS = 24
 MAX_EPOCHS = 120
-LATENT_DIM = 2048
 MIN_DIM = 16
 BATCH_SIZE = 1
-TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
-TEST_SET_SIZE = "2k"
 TEST_START = TEST_SET_RANGES[TEST_SET_SIZE]['START']
 TEST_SIZE = TEST_SET_RANGES[TEST_SET_SIZE]['END'] - TEST_START
-SYNTHETIC = False
 
 
 def run(cuda_id=0):
@@ -85,6 +86,8 @@ def run(cuda_id=0):
         checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_4096_MD_16_BS_2_TS_3000_LR_1e-05_ME_100_1638535363/BC_24_LD_4096_MD_16_BS_2_TS_3000_LR_1e-05_ME_100_1638535363_ep_final.pt"
     elif LATENT_DIM == 2048:
         checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499/BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499_ep_final.pt"
+    elif LATENT_DIM == 1024:
+        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629_ep_final.pt"
 
     print(f"Loading: {checkpoint_path=}")
     #! only_encode=True

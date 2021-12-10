@@ -311,10 +311,10 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
     #     test_set_size="2k", latent_dim=2048, train_size=1500)
-    calc_best_match_pairs(
-        testset_size="200", enc="enc_4096_3000", gt_metric='dice', save=True)
-    # run_calc_groundtruth_sim_for_all_tumors(
-    #     processes=1, test_set_size="2k", metric=SimilarityMeasureType.DICE)
+    # calc_best_match_pairs(
+    #     testset_size="200", enc="enc_4096_3000", gt_metric='dice', save=True)
+    run_calc_groundtruth_sim_for_all_tumors(
+        processes=1, test_set_size="20k", metric=SimilarityMeasureType.DICE)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
