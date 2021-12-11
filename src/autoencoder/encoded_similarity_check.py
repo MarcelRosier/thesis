@@ -154,8 +154,9 @@ def run_top_15_comp(enc: str, testset_size: str, gt_metric: SimilarityMeasureTyp
         }, ignore_index=True)
 
     if save:
-        df.to_csv(f"/home/ivan_marcel/thesis/media/{enc}/{'l2' if  is_l2 else 'dice'}/{'l2' if  is_l2 else 'dice'}_gt_{enc}_comp_{testset_size}.csv",
-                  encoding='utf-8', index=False)
+        csv_path = f"/home/ivan_marcel/thesis/media/{enc}/{'l2' if  is_l2 else 'dice'}/{'l2' if  is_l2 else 'dice'}_gt_{enc}_comp_{testset_size}.csv"
+        os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+        df.to_csv(csv_path, encoding='utf-8', index=False)
     return df
 
 
@@ -311,18 +312,27 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(
     #     test_set_size="2k", latent_dim=2048, train_size=1500)
-    # calc_best_match_pairs(
-    #     testset_size="200", enc="enc_4096_3000", gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="200", enc="enc_1024_1500", gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="200", enc="enc_1024_1500", gt_metric='l2', save=True)
+    calc_best_match_pairs(
+        testset_size="2k", enc="enc_1024_1500", gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="2k", enc="enc_1024_1500", gt_metric='l2', save=True)
+    calc_best_match_pairs(
+        testset_size="20k", enc="enc_1024_1500", gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="20k", enc="enc_1024_1500", gt_metric='l2', save=True)
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=1, test_set_size="20k", metric=SimilarityMeasureType.DICE)
-    run_calc_encoded_sim_for_all_tumors(
-        processes=32, test_set_size="20k", latent_dim=4096, train_size=3000)
+    # run_calc_encoded_sim_for_all_tumors(
+    #     processes=32, test_set_size="20k", latent_dim=4096, train_size=3000)
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    # run_top_15_comp(enc="enc_4096_3000", testset_size="2k",
-    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
-
+    # run_top_15_comp(enc="enc_2048_1500", testset_size="20k",
+    #                 gt_metric=SimilarityMeasureType.L2, save=True)
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
     # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
