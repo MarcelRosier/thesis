@@ -73,9 +73,9 @@ def plot_runtime_vs_threads_dual_input(data_1, data_2):
     plt.show()
 
 
-def plot_gt_enc_comp(enc: str, test_set_size: str):
+def plot_gt_enc_comp(enc: str, test_set_size: str, gt_metric: str):
     table = pd.read_csv(
-        f"/home/marcel/Projects/uni/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv").to_numpy()
+        f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv").to_numpy()
     # transform list strings to length
     for row in table:
         row[0] = int(row[0][3:6])
@@ -89,7 +89,7 @@ def plot_gt_enc_comp(enc: str, test_set_size: str):
     print(df_table)
     ax = sns.barplot(x='tumor', y='intersection', data=df_table)
     ax.set(xlabel='real tumor (tgmXXX_preop)',
-           ylabel='#intersection in top 15', title=f'#Intersection between top 15 groundtruth and encoded L2 comparison for a test dataset_size= {test_set_size}, {enc}')
+           ylabel='#intersection in top 15', title=f'#Intersection between top 15 groundtruth and encoded \n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2')
     plt.show()
 
 
@@ -108,13 +108,13 @@ def plot_gt_enc_rbo_scores():
     ax = sns.barplot(x='tumor', y='rbo', data=df)
     ax.axhline(avg)
     ax.set(xlabel='real tumor (tgmXXX_preop)',
-           ylabel='RBO of top 1', title='RBO score for top 1 groundtruth and encoded L2 comparison for a test dataset_size= 200')
+           ylabel='RBO of top 1', title='RBO score for top 1 groundtruth and encoded l2 comparison for a test dataset_size= 200')
     # plt.show()
 
 
-def plot_enc4096_gt_best_matches(test_set_size: str, enc: str):
+def plot_enc4096_gt_best_matches(test_set_size: str, enc: str, gt_metric: str):
     json_data = {}
-    with open(f"/home/marcel/Projects/uni/thesis/media/{enc}/{enc}_gt_match_pairs/testset_size_{test_set_size}.json") as file:
+    with open(f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{enc}_gt_match_pairs/testset_size_{test_set_size}.json") as file:
         json_data = json.load(file)
     tumors = []
     gt_indices = []
@@ -128,17 +128,18 @@ def plot_enc4096_gt_best_matches(test_set_size: str, enc: str):
     df['tumor'] = df['tumor'].apply(lambda c: int(c[3:6]))
     ax = sns.barplot(x='tumor', y='gt_index', data=df)
     avg = (sum(gt_indices)/len(gt_indices))
+    print(f"{avg=}")
     ax.axhline(avg)
     ax.text(0, avg + 0.05, str(avg)[:4])
     ax.set(
-        title=f"Index in the groundtruth ranking of the best encoded match (#syntethic tumors={test_set_size}) , {enc}",)
+        title=f"Index in the groundtruth ranking of the best encoded match \n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2",)
     plt.show()
 
 
-def plot_best_match_presence(enc: str, test_set_size: str, top_n: int, ax):
+def plot_best_match_presence(enc: str, test_set_size: str, gt_metric: str, top_n: int, ax):
     from autoencoder.encoded_similarity_check import load_top_15_lists
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
-        csv_path=f"/home/marcel/Projects/uni/thesis/media/{enc}/gt_{enc}_comp_{test_set_size}.csv")
+        csv_path=f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv")
     # transform list strings to length
     is_present = []
     for tumor, gt_list, enc_list in zip(tumor_ids, gt_lists, encoded_lists):
@@ -151,22 +152,56 @@ def plot_best_match_presence(enc: str, test_set_size: str, top_n: int, ax):
     sns.barplot(ax=ax, x=tumor_ids, y=is_present, color="#2a9c2c")
     ax.axhline(avg)
     ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
-    ax.set_title(f"gt best match in top {top_n} encoded matches")
-    plt.show()
+    ax.set_title(
+        f"gt best match in top {top_n} encoded matches")
+    # plt.show()
 
 
-def plot_best_match_presence_overview(enc, test_set_size):
+def plot_best_match_presence_overview(enc: str, test_set_size: str, gt_metric: str):
     fig, axes = plt.subplots(3, 1, figsize=(15, 5), sharey=True)
     fig.suptitle(
-        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size}, {enc} ')
+        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2')
 
-    plot_best_match_presence(enc, test_set_size, top_n=15, ax=axes[0])
-    plot_best_match_presence(enc, test_set_size, top_n=5, ax=axes[1])
-    plot_best_match_presence(enc, test_set_size, top_n=1, ax=axes[2])
+    plot_best_match_presence(
+        enc, test_set_size, gt_metric, top_n=15, ax=axes[0])
+    plot_best_match_presence(
+        enc, test_set_size, gt_metric, top_n=5, ax=axes[1])
+    plot_best_match_presence(
+        enc, test_set_size, gt_metric, top_n=1, ax=axes[2])
 
     plt.show()
 
 
-# plot_best_match_presence_overview(enc="enc_2048_1500", test_set_size="2k")
-# plot_gt_enc_comp(enc="enc_2048_1500", test_set_size="2k")
-plot_enc4096_gt_best_matches(test_set_size="2k", enc="enc_2048_1500")
+enc = "enc_4096_3000"
+gt_metric = 'dice'
+plot_best_match_presence_overview(
+    enc=enc, test_set_size="200", gt_metric=gt_metric)
+plot_best_match_presence_overview(
+    enc=enc, test_set_size="2k", gt_metric=gt_metric)
+plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
+plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+
+# 4096_1500
+# max(gt_indices)=6
+# np.sum(np.array(gt_indices) == 0)=44
+# avg=0.5238095238095238
+# max(gt_indices)=73
+# np.sum(np.array(gt_indices) == 0)=33
+# avg=5.015873015873016
+# -----
+
+# 4096_3000
+# max(gt_indices)=6
+# np.sum(np.array(gt_indices) == 0)=44
+# avg=0.6825396825396826
+# max(gt_indices)=24
+# np.sum(np.array(gt_indices) == 0)=37
+# avg=2.1904761904761907
+
+
+# names:
+# best_match_comp_2k
+# gt_vs_enc_2k
+# best_match_comp_2k
