@@ -132,7 +132,7 @@ def plot_enc4096_gt_best_matches(test_set_size: str, enc: str, gt_metric: str):
     ax.axhline(avg)
     ax.text(0, avg + 0.05, str(avg)[:4])
     ax.set(
-        title=f"Index in the groundtruth ranking of the best encoded match \n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2",)
+        title=f"Index in the groundtruth ranking of the best encoded match \n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2\n #perfect matches:{np.sum(np.array(gt_indices) == 0)}, worst match index: {max(gt_indices)}",)
     plt.show()
 
 
@@ -172,33 +172,34 @@ def plot_best_match_presence_overview(enc: str, test_set_size: str, gt_metric: s
     plt.show()
 
 
-enc = "enc_4096_3000"
-gt_metric = 'dice'
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+# enc = "enc_1024_1500"
+# gt_metric = 'l2'
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="2k", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
+# gt_metric = 'dice'
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
 
 # 4096_1500
-# max(gt_indices)=6
-# np.sum(np.array(gt_indices) == 0)=44
-# avg=0.5238095238095238
-# max(gt_indices)=73
-# np.sum(np.array(gt_indices) == 0)=33
-# avg=5.015873015873016
-# -----
+
 
 # 4096_3000
-# max(gt_indices)=6
-# np.sum(np.array(gt_indices) == 0)=44
-# avg=0.6825396825396826
-# max(gt_indices)=24
-# np.sum(np.array(gt_indices) == 0)=37
-# avg=2.1904761904761907
 
 
 # names:
