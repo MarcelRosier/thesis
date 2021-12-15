@@ -213,7 +213,6 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             outputs, mu, logvar = model(batch_features)
 
             # compute loss
-            # TODO
             train_loss = vae_loss_function(
                 recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
 
@@ -237,9 +236,9 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             model.eval()  # set to eval mode
             for batch, _ in val_loader:
                 batch = batch.to(device)
-                outputs = model(batch)
-                # TODO
-                cur_loss, _, _ = criterion(outputs, batch)
+                outputs, mu, logvar = model(batch_features)
+                cur_loss = vae_loss_function(
+                    recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
                 val_loss += cur_loss.item()
         val_loss = val_loss / len(val_loader)
 
@@ -248,8 +247,9 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
         print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
 
         # add scalars to tensorboard
-        writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
-        writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
+        writer.add_scalar(f"{vae_loss_function} /train", loss, epoch + 1)
+        writer.add_scalar(
+            f"{vae_loss_function} /validation", val_loss, epoch + 1)
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY
