@@ -1,5 +1,4 @@
 import torch.nn as nn
-
 # basic network
 
 
@@ -68,7 +67,7 @@ def get_basic_net(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=204
 
 
 def get_basic_net_16_16_16(num_input_channels=1, c_hid=16, act_fn=nn.GELU, latent_dim=4096):
-    """ current SOTA """
+    """Best appraoch (so far)"""
     linear_layer_size = 3 * 16*16*16 * c_hid
     encoder_basic = nn.Sequential(
         nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
@@ -114,7 +113,6 @@ def get_basic_net_16_16_16(num_input_channels=1, c_hid=16, act_fn=nn.GELU, laten
 
 
 def get_k3_m8_net(latent_dim=4096, num_input_channels=1, c_hid=12, act_fn=nn.GELU):
-    """TODO"""
     encoder = nn.Sequential(
         nn.Conv3d(num_input_channels, c_hid, kernel_size=3,
                   padding=1, stride=2),  # 128^3 => 64^3

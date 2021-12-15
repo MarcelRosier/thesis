@@ -100,9 +100,9 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
-        max_xhat = 0
-        total_inter = 0
-        total_den = 0
+        # max_xhat = 0
+        # total_inter = 0
+        # total_den = 0
         # set to training mode
         model.train()
         for batch_features, _ in train_loader:
@@ -115,16 +115,16 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
 
             # compute reconstructions = x_hat
             outputs = model(batch_features)
-            with torch.no_grad():
-                cur_max = torch.max(outputs).item()
-                if cur_max > max_xhat:
-                    max_xhat = cur_max
+            # with torch.no_grad():
+            #     cur_max = torch.max(outputs).item()
+            #     if cur_max > max_xhat:
+            #         max_xhat = cur_max
 
             # compute loss
             train_loss, intersection_tensor, den_tensor = criterion(
                 outputs, batch_features)
-            total_inter += intersection_tensor.mean(dim=[0]).item()
-            total_den += den_tensor.mean(dim=[0]).item()
+            # total_inter += intersection_tensor.mean(dim=[0]).item()
+            # total_den += den_tensor.mean(dim=[0]).item()
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -140,9 +140,8 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
         # compute the epoch training loss
         loss = loss / len(train_loader)
 
-        # TODO adapt/ generalize when changing batch/ training size
-        intersection = total_inter / (TRAIN_SIZE / BATCH_SIZE)
-        denominator = total_den / (TRAIN_SIZE / BATCH_SIZE)
+        # intersection = total_inter / (TRAIN_SIZE / BATCH_SIZE)
+        # denominator = total_den / (TRAIN_SIZE / BATCH_SIZE)
 
         # compute validation_loss
         val_loss = 0
@@ -158,16 +157,16 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
         # prints
         print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
-        print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
-        print(f'{intersection=}')
-        print(f'{denominator=}')
+        # print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
+        # print(f'{intersection=}')
+        # print(f'{denominator=}')
 
         # add scalars to tensorboard
         writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
         writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
-        writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
-        writer.add_scalar(f"{criterion} intersection", intersection, epoch + 1)
-        writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
+        # writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
+        # writer.add_scalar(f"{criterion} intersection", intersection, epoch + 1)
+        # writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY
