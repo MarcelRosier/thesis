@@ -30,19 +30,20 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-BASE_CHANNELS = 24
+BASE_CHANNELS = 32
 MAX_EPOCHS = 120
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 1500
-VAL_SIZE = 150
+TRAIN_SIZE = 4500
+VAL_SIZE = 200
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 60
+VAE = False
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_{datetime.timestamp(datetime.now())}"
+run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_VAE_{VAE}{datetime.timestamp(datetime.now())}"
 run_name = run_name.split('.')[0]
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{run_name}")
 
@@ -54,7 +55,7 @@ nets = networks.get_basic_net_16_16_16(
 def run(cuda_id=0):
     # print params
     utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY)
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, VAE=VAE)
 
     # datasets
     train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
