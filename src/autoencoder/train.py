@@ -36,11 +36,11 @@ MAX_EPOCHS = 120
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 10  # 1500
+TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 60
-VAE = False
+VAE = True
 BETA = 100  # KL beta weighting. increase for disentangled VAE
 
 
@@ -74,11 +74,9 @@ def run(cuda_id=0):
 
     # train
     if VAE:
-        print("VAE mode")
         model = train_VAE_tumort1c(
             cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
     else:
-        print("normal AE mode")
         model = train_tumort1c(
             cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
 
@@ -145,7 +143,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
             for batch, _ in val_loader:
                 batch = batch.to(device)
                 outputs = model(batch)
-                cur_loss, _, _ = criterion(outputs, batch)
+                cur_loss = criterion(outputs, batch)
                 val_loss += cur_loss.item()
         val_loss = val_loss / len(val_loader)
 
@@ -174,10 +172,10 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
 # VAE section
 ###
 
-def vae_loss_function(recon_x, x, mu, log_var, beta):
-    bce = DiceLoss(recon_x, x)
+def vae_loss_function(dice_criterion, recon_x, x, mu, log_var, beta):
+    dice_loss = dice_criterion(recon_x, x).item()
     kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-    return bce + kld
+    return dice_loss + kld
 
 
 def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
@@ -189,13 +187,15 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
     utils.pretty_print_gpu_info(device=device)
 
     # Model setup
-    model = VarAutoencoder(nets=networks.get_basic_net_16_16_16_without_last_linear(), min_dim=MIN_DIM,
+    nets = networks.get_basic_net_16_16_16_without_last_linear(
+        c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
+    model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
                            base_channels=BASE_CHANNELS, training=False,
                            latent_dim=LATENT_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # criterion = vae_loss_function
-    print(model)
+    dice_criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
     # training loop
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
@@ -215,7 +215,7 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
 
             # compute loss
             train_loss = vae_loss_function(
-                recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
+                dice_criterion=dice_criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -239,7 +239,7 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
                 batch = batch.to(device)
                 outputs, mu, logvar = model(batch_features)
                 cur_loss = vae_loss_function(
-                    recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
+                    dice_criterion=dice_criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
                 val_loss += cur_loss.item()
         val_loss = val_loss / len(val_loader)
 

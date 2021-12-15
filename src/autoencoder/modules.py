@@ -88,7 +88,6 @@ class VarAutoencoder(nn.Module):
         encoder_net, linear_net, decoder_net = nets
         # Creating encoder and decoder
         linear_size = 3 * 16*16*16 * base_channels
-
         self.encoder = encoder_class(net=encoder_net)
         self.decoder = decoder_class(
             linear=linear_net, net=decoder_net, min_dim=min_dim)
@@ -120,8 +119,7 @@ class VarAutoencoder(nn.Module):
         """
         The forward function takes in an tumor batch and returns the reconstructed volume
         """
-        print("forward")
-        mu, logvar = self.encode_forward()
+        mu, logvar = self.encode_forward(x)
         z = self.reparameterize(mu, logvar)
         if self.only_encode:
             return z
