@@ -36,7 +36,7 @@ MAX_EPOCHS = 120
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 1500
+TRAIN_SIZE = 10  # 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 60
@@ -45,7 +45,7 @@ BETA = 100  # KL beta weighting. increase for disentangled VAE
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_VAE_{VAE}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
+run_name = f"test_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_VAE_{VAE}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
 run_name = run_name.split('.')[0]
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{run_name}")
 
@@ -74,9 +74,11 @@ def run(cuda_id=0):
 
     # train
     if VAE:
+        print("VAE mode")
         model = train_VAE_tumort1c(
             cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
     else:
+        print("normal AE mode")
         model = train_tumort1c(
             cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
 
@@ -99,7 +101,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    criterion = CustomDiceLoss(
+    criterion = DiceLoss(
         smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
 
     # training loop
@@ -120,8 +122,7 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
             outputs = model(batch_features)
 
             # compute loss
-            train_loss, intersection_tensor, _ = criterion(
-                outputs, batch_features)
+            train_loss = criterion(outputs, batch_features)
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -188,13 +189,13 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
     utils.pretty_print_gpu_info(device=device)
 
     # Model setup
-    model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
+    model = VarAutoencoder(nets=networks.get_basic_net_16_16_16_without_last_linear(), min_dim=MIN_DIM,
                            base_channels=BASE_CHANNELS, training=False,
                            latent_dim=LATENT_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     # criterion = vae_loss_function
-
+    print(model)
     # training loop
     print("Starting training")
     for epoch in range(MAX_EPOCHS):

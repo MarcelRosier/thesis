@@ -120,6 +120,7 @@ class VarAutoencoder(nn.Module):
         """
         The forward function takes in an tumor batch and returns the reconstructed volume
         """
+        print("forward")
         mu, logvar = self.encode_forward()
         z = self.reparameterize(mu, logvar)
         if self.only_encode:
