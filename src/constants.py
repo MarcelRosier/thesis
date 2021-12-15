@@ -51,6 +51,12 @@ FLAIR_PATH = {
     GIGA: None
 }
 
+BASELINE_SIMILARITY_BASE_PATH = {
+    LOCAL: None,
+    IBBM: None,
+    GIGA: '/home/ivan_marcel/thesis/src/baseline/data'
+}
+
 # Autoencoder constants
 AE_CHECKPOINT_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/autoencoder/checkpoints',

@@ -78,7 +78,7 @@ def get_number_of_entries(path: str):
     return len(data)
 
 
-def load_real_tumor(base_path: str):
+def load_real_tumor(base_path: str, downsample_to: int = None):
     """
     @base_path: path to the real tumor folder, e.g. /tgm001_preop/ \n
     Return pair (t1c,flair) of a real tumor
@@ -93,6 +93,9 @@ def load_real_tumor(base_path: str):
 
     t1c = zoom(F.pad(t1c, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
     flair = zoom(F.pad(flair, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
+
+    if downsample_to:
+        pass  # TODO
 
     return (t1c, flair)
 

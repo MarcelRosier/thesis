@@ -38,10 +38,10 @@ MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 1e-6
 CHECKPOINT_FREQUENCY = 60
 VAE = True
-BETA = 100  # KL beta weighting. increase for disentangled VAE
+BETA = 200  # KL beta weighting. increase for disentangled VAE
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -173,6 +173,13 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
 ###
 
 def vae_loss_function(dice_criterion, recon_x, x, mu, log_var, beta):
+    """
+    For our loss we'll want to use a combination of a reconstruction loss (here, Dice) and KLD.
+    By increasing the importance of the KLD loss with beta,
+    we encourage the network to disentangle the latent generative factors.
+    (KLD = Kullback-Leibler-Divergenz, a statistical distance:
+    measures difference between two probability distributions)
+    """
     dice_loss = dice_criterion(recon_x, x).item()
     kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
     return dice_loss + kld
