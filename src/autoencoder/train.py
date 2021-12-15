@@ -7,6 +7,7 @@ import seaborn as sns
 import torch
 import torch.nn as nn
 import utils
+from monai.losses.dice import DiceLoss
 from constants import AE_CHECKPOINT_PATH, AE_MODEL_SAVE_PATH, ENV
 from torch import optim
 from torch.utils.data import DataLoader
@@ -15,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from autoencoder import networks
 from autoencoder.datasets import TumorT1CDataset
 from autoencoder.losses import CustomDiceLoss
-from autoencoder.modules import Autoencoder
+from autoencoder.modules import Autoencoder, VarAutoencoder
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 MODEL_SAVE_PATH = AE_MODEL_SAVE_PATH[ENV]
@@ -30,13 +31,13 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-BASE_CHANNELS = 32
+BASE_CHANNELS = 24
 MAX_EPOCHS = 120
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 4500
-VAL_SIZE = 200
+TRAIN_SIZE = 1500
+VAL_SIZE = 150
 LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 60
 VAE = False
@@ -167,6 +168,16 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
     return model
 
 
+###
+# VAE section
+###
+
+def vae_loss_function(recon_x, x, mu, log_var, beta):
+    bce = DiceLoss(recon_x, x)
+    kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+    return bce + kld
+
+
 def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
     # set device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
@@ -176,10 +187,12 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
     utils.pretty_print_gpu_info(device=device)
 
     # Model setup
-    # TODO model = (nets=nets, min_dim=MIN_DIM)
+    model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
+                           base_channels=BASE_CHANNELS, training=False,
+                           latent_dim=LATENT_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # TODO criterion =
+    # criterion = vae_loss_function
 
     # training loop
     print("Starting training")
@@ -196,12 +209,12 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             optimizer.zero_grad()
 
             # compute reconstructions = x_hat
-            outputs = model(batch_features)
+            outputs, mu, logvar = model(batch_features)
 
             # compute loss
             # TODO
-            train_loss, intersection_tensor, _ = criterion(
-                outputs, batch_features)
+            train_loss = vae_loss_function(
+                recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
 
             # compute accumulated gradients
             # perform backpropagation of errors
