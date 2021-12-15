@@ -71,8 +71,12 @@ def run(cuda_id=0):
                             num_workers=4)
 
     # train
-    model = train_tumort1c(
-        cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
+    if VAE:
+        model = train_VAE_tumort1c(
+            cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
+    else:
+        model = train_tumort1c(
+            cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
 
     # add graph to tensorboard
     model.to(torch.device("cpu"))
@@ -100,9 +104,6 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
-        # max_xhat = 0
-        # total_inter = 0
-        # total_den = 0
         # set to training mode
         model.train()
         for batch_features, _ in train_loader:
@@ -115,16 +116,10 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
 
             # compute reconstructions = x_hat
             outputs = model(batch_features)
-            # with torch.no_grad():
-            #     cur_max = torch.max(outputs).item()
-            #     if cur_max > max_xhat:
-            #         max_xhat = cur_max
 
             # compute loss
-            train_loss, intersection_tensor, den_tensor = criterion(
+            train_loss, intersection_tensor, _ = criterion(
                 outputs, batch_features)
-            # total_inter += intersection_tensor.mean(dim=[0]).item()
-            # total_den += den_tensor.mean(dim=[0]).item()
 
             # compute accumulated gradients
             # perform backpropagation of errors
@@ -140,9 +135,6 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
         # compute the epoch training loss
         loss = loss / len(train_loader)
 
-        # intersection = total_inter / (TRAIN_SIZE / BATCH_SIZE)
-        # denominator = total_den / (TRAIN_SIZE / BATCH_SIZE)
-
         # compute validation_loss
         val_loss = 0
         with torch.no_grad():
@@ -157,16 +149,93 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
         # prints
         print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
-        # print("epoch : {}/{}, max_xhat = {:.6f}".format(epoch + 1, MAX_EPOCHS, max_xhat))
-        # print(f'{intersection=}')
-        # print(f'{denominator=}')
 
         # add scalars to tensorboard
         writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
         writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
-        # writer.add_scalar(f"{criterion} max_xhat", max_xhat, epoch + 1)
-        # writer.add_scalar(f"{criterion} intersection", intersection, epoch + 1)
-        # writer.add_scalar(f"{criterion} denominator", denominator, epoch + 1)
+
+        writer.flush()
+        # save checkpoints with frequency CHECKPOINT_FREQUENCY
+        if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
+            save_checkpoint(epoch=epoch + 1, model=model,
+                            loss=loss, optimizer=optimizer)
+
+    writer.close()
+    print("Finished Training")
+    save_checkpoint(epoch="final", model=model,
+                    loss=loss, optimizer=optimizer)
+    return model
+
+
+def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
+    # set device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    # print gpu info
+    utils.pretty_print_gpu_info(device=device)
+
+    # Model setup
+    # TODO model = (nets=nets, min_dim=MIN_DIM)
+    model.to(device)  # move to gpu
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # TODO criterion =
+
+    # training loop
+    print("Starting training")
+    for epoch in range(MAX_EPOCHS):
+        loss = 0
+        # set to training mode
+        model.train()
+        for batch_features, _ in train_loader:
+            # load it to the active device
+            batch_features = batch_features.to(device)
+
+            # reset the gradients back to zero
+            # PyTorch accumulates gradients on subsequent backward passes
+            optimizer.zero_grad()
+
+            # compute reconstructions = x_hat
+            outputs = model(batch_features)
+
+            # compute loss
+            # TODO
+            train_loss, intersection_tensor, _ = criterion(
+                outputs, batch_features)
+
+            # compute accumulated gradients
+            # perform backpropagation of errors
+            train_loss.backward()
+
+            # perform parameter update based on current gradients
+            # optimize weights
+            optimizer.step()
+
+            # add the mini-batch training loss to epoch loss
+            loss += train_loss.item()
+
+        # compute the epoch training loss
+        loss = loss / len(train_loader)
+
+        # compute validation_loss
+        val_loss = 0
+        with torch.no_grad():
+            model.eval()  # set to eval mode
+            for batch, _ in val_loader:
+                batch = batch.to(device)
+                outputs = model(batch)
+                # TODO
+                cur_loss, _, _ = criterion(outputs, batch)
+                val_loss += cur_loss.item()
+        val_loss = val_loss / len(val_loader)
+
+        # prints
+        print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
+
+        # add scalars to tensorboard
+        writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
+        writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY
