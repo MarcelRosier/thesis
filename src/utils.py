@@ -191,7 +191,8 @@ def pretty_print_params(BASE_CHANNELS=None,
                         CHECKPOINT_FREQUENCY=None,
                         TEST_SIZE=None,
                         SYNTHETIC=None,
-                        VAE=None):
+                        VAE=None,
+                        BETA=None):
     """Print a table with all passed Parameters\n If the rich module is not installed the info will be printed to the console"""
 
     try:
@@ -226,6 +227,8 @@ def pretty_print_params(BASE_CHANNELS=None,
             params_table.add_row("SYNTHETIC", str(SYNTHETIC))
         if VAE is not None:
             params_table.add_row("VAE", str(VAE))
+        if BETA is not None:
+            params_table.add_row("BETA", str(BETA))
 
         console = Console()
         console.print(params_table)
