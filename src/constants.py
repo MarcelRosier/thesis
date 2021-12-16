@@ -52,7 +52,7 @@ FLAIR_PATH = {
 }
 
 BASELINE_SIMILARITY_BASE_PATH = {
-    LOCAL: None,
+    LOCAL: '/home/marcel/Projects/uni/thesis/src/baseline/data',
     IBBM: None,
     GIGA: '/home/ivan_marcel/thesis/src/baseline/data'
 }

@@ -2,9 +2,11 @@ import json
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.core.fromnumeric import mean
 import pandas as pd
 import seaborn as sns
+from numpy.core.fromnumeric import mean
+
+from utils import DSValueType, SimilarityMeasureType
 
 sns.set_style("whitegrid")
 
@@ -172,6 +174,61 @@ def plot_best_match_presence_overview(enc: str, test_set_size: str, gt_metric: s
     plt.show()
 
 
+def plot_downsampled_best_match_presence(tumor_ids, top_gt_list, top_downsampled_list, top_n: int, ax, value_type: DSValueType):
+
+    is_present = []
+    for gt, downsampled in zip(top_gt_list, top_downsampled_list):
+        gt_best = gt[0]
+        gt_best_in_top_n_downsampled = gt_best in downsampled[:top_n]
+        is_present.append(float(gt_best_in_top_n_downsampled))
+    tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
+    avg = sum(is_present) / len(is_present)
+    sns.barplot(ax=ax, x=tumor_ids, y=is_present, color="#2a9c2c")
+    ax.axhline(avg)
+    ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
+    ax.set(xticklabels=[])
+    ax.set_title(
+        f"gt best match in top {top_n} downsampled matches, value_type={value_type}")
+    # plt.show()
+
+
+def plot_downsampled_best_match_presence_overview(testset_size: str, metric: SimilarityMeasureType):
+    fig, axes = plt.subplots(2, 3, sharex=True, sharey=True)
+    fig.suptitle(
+        f'GT best match present in downsampled top n ranking\n Datasetsize={testset_size}\n metric={metric}')
+    from baseline import analysis
+
+    value_type = DSValueType.T1C
+    # T1C
+    tumor_ids, top_gt_list, top_downsampled_list = analysis.compare_best_match_for_downsampling(
+        downsample_to=64, value_type=value_type, n_best=5)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=3, ax=axes[0][0], value_type=value_type)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=1, ax=axes[1][0], value_type=value_type)
+
+    # FLAIR
+    value_type = DSValueType.FLAIR
+    tumor_ids, top_gt_list, top_downsampled_list = analysis.compare_best_match_for_downsampling(
+        downsample_to=64, value_type=value_type, n_best=5)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=3, ax=axes[0][1], value_type=value_type)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=1, ax=axes[1][1], value_type=value_type)
+    # Combined
+    value_type = DSValueType.COMBINED
+    tumor_ids, top_gt_list, top_downsampled_list = analysis.compare_best_match_for_downsampling(
+        downsample_to=64, value_type=value_type, n_best=5)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=3, ax=axes[0][2], value_type=value_type)
+    plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
+                                         top_downsampled_list, top_n=1, ax=axes[1][2], value_type=value_type)
+
+    plt.show()
+
+
+plot_downsampled_best_match_presence_overview(
+    testset_size="2k", metric=SimilarityMeasureType.DICE)
 # enc = "enc_1024_1500"
 # gt_metric = 'l2'
 # plot_best_match_presence_overview(

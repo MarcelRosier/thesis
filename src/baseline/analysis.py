@@ -11,8 +11,9 @@ def compare_best_match_for_downsampling(downsample_to=64, value_type=DSValueType
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
-    base_path = "/home/ivan_marcel/thesis/src/baseline/data/testset_size_2000"
-    table = []
+    base_path = "/home/marcel/Projects/uni/thesis/src/baseline/data/testset_size_2000"
+    top_gt_list = []
+    top_downsampled_list = []
     for tumor_id in tumor_ids:
         path_downsampled = f"{base_path}/dim_{downsample_to}/dice/{tumor_id}.json"
         top_downsampled = find_n_best_score_ids(
@@ -29,8 +30,7 @@ def compare_best_match_for_downsampling(downsample_to=64, value_type=DSValueType
             max,
             n_best
         )
-        same_best_match = top_gt[0] == top_downsampled[0]
-        table.append([same_best_match, top_gt, top_downsampled])
-    df = pd.DataFrame(
-        table, columns=['Same best match', 'top 3 128^3', f'top 3 {downsample_to}^3'])
-    print(df)
+        # same_best_match = top_gt[0] == top_downsampled[0]
+        top_gt_list.append(top_gt)
+        top_downsampled_list.append(top_downsampled)
+    return tumor_ids, top_gt_list, top_downsampled_list
