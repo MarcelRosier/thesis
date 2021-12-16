@@ -7,10 +7,12 @@ from typing import Tuple
 
 import numpy as np
 import utils
-from utils import (SimilarityMeasureType, calc_dice_coef, load_real_tumor,
+from constants import (BASELINE_SIMILARITY_BASE_PATH, ENV, REAL_TUMOR_PATH,
+                       SYN_TUMOR_BASE_PATH, SYN_TUMOR_PATH_TEMPLATE)
+from scipy.ndimage import zoom
+from utils import (SimilarityMeasureType, load_real_tumor,
                    time_measure)
-from constants import (ENV, REAL_TUMOR_PATH, SYN_TUMOR_BASE_PATH,
-                       SYN_TUMOR_PATH_TEMPLATE, BASELINE_SIMILARITY_BASE_PATH)
+
 REAL_TUMOR_PATH = REAL_TUMOR_PATH[ENV]
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
@@ -32,8 +34,7 @@ def get_scores_for_pair(measure_func, t1c, flair, downsample_to, tumor_folder):
             np.delete(tumor, 128, 0), 128, 1), 128, 2)
 
     if downsample_to:
-        pass
-
+        tumor = zoom(tumor, zoom=downsample_to/128, order=0)
     # normalize
     max_val = tumor.max()
     if max_val != 0:
@@ -122,7 +123,7 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_pat
         testset_size = str(subset[1] - subset[0])
 
     tumor_id = tumor_path.split('/')[-1]
-    sub_path = f"testset_size_{testset_size}/dim_{downsample_to if downsample_to else 128}/{tumor_id}.json"
+    sub_path = f"testset_size_{testset_size}/dim_{downsample_to if downsample_to else 128}/{'dice' if similarity_measure_type==SimilarityMeasureType.DICE else 'l2'}/{tumor_id}.json"
     save_path = os.path.join(BASELINE_SIMILARITY_BASE_PATH, sub_path)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     with open(save_path, "w") as file:

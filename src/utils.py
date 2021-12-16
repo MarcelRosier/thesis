@@ -95,8 +95,8 @@ def load_real_tumor(base_path: str, downsample_to: int = None):
     flair = zoom(F.pad(flair, (32, 31, 14, 13, 32, 31)), zoom=0.5, order=0)
 
     if downsample_to:
-        pass  # TODO
-
+        t1c = zoom(t1c, zoom=downsample_to/128, order=0)
+        flair = zoom(flair, zoom=downsample_to/128, order=0)
     return (t1c, flair)
 
 

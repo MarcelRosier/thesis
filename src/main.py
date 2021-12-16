@@ -1,4 +1,5 @@
 
+from baseline import analysis
 import json
 import logging
 import os
@@ -10,7 +11,7 @@ from numpy.lib.utils import info
 
 import utils
 from baseline import baseline, baseline_parallel
-from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV, REAL_TUMOR_BASE_PATH
+from constants import DICE_SCORE_DATADUMP_PATH_TEMPLATE, ENV, REAL_TUMOR_BASE_PATH, TEST_SET_RANGES
 # from faiss_src import index_builder, playground
 from utils import DSValueType, SimilarityMeasureType
 
@@ -20,6 +21,7 @@ from utils import DSValueType, SimilarityMeasureType
 
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = DICE_SCORE_DATADUMP_PATH_TEMPLATE[ENV]
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
+TEST_SET_RANGES = TEST_SET_RANGES[ENV]
 
 
 def run_parallel_comparison(similarity_measure_type, is_test=False):
@@ -93,14 +95,24 @@ def run_top_10_l2_dice_comp():
     print("intersection: ", list(set(best_dice) & set(best_l2)))
 
 
-def run_parallel_base(real_tumor="tgm001_preop"):
-    real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
-    baseline_parallel.run(
-        processes=1,
-        similarity_measure_type=SimilarityMeasureType.L2,
-        tumor_path=real_tumor_path,
-        subset=(3000, 3200),
-    )
+def run_parallel_base():
+    tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
+    tumor_ids.sort(key=lambda f: int(f[3:6]))
+    tumor_ids = tumor_ids[10:]
+
+    for real_tumor in tumor_ids:
+        print(f"running for {real_tumor}")
+        real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
+        testset_size = "2k"
+        subset = (TEST_SET_RANGES[testset_size]['START'],
+                  TEST_SET_RANGES[testset_size]['END'])
+        baseline_parallel.run(
+            processes=1,
+            similarity_measure_type=SimilarityMeasureType.DICE,
+            tumor_path=real_tumor_path,
+            subset=subset,
+            downsample_to=None
+        )
 
 
 logging.basicConfig(level=utils.LOG_LEVEL)
@@ -109,7 +121,8 @@ logging.basicConfig(level=utils.LOG_LEVEL)
 # Exec
 ###
 
-run_parallel_base()
+analysis.compare_best_match_for_downsampling()
+# run_parallel_base()
 # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
 # new_path = "/home/ivan_marcel/thesis/src/autoencoder/data/2021-11-24/2021-11-24 15:35:18_dump_l2.json"
 # gt_res = utils.find_n_best_score_ids(
