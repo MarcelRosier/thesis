@@ -38,15 +38,17 @@ MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
-LEARNING_RATE = 1e-6
+LEARNING_RATE = 5e-5
 CHECKPOINT_FREQUENCY = 60
 VAE = True
-BETA = 1000  # KL beta weighting. increase for disentangled VAE
+BETA = 0.001  # KL beta weighting. increase for disentangled VAE
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"test_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_VAE_{VAE}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
-run_name = run_name.split('.')[0]
+run_name = f"{'VAE_'if VAE else ''}BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
+
+# remove trailing time details after dot
+run_name = ''.join(run_name.split('.')[:-1])
 writer = SummaryWriter(log_dir=CHECKPOINT_PATH + f"/{run_name}")
 
 
@@ -181,13 +183,10 @@ def vae_loss_function(criterion, recon_x, x, mu, log_var, beta):
     (KLD = Kullback-Leibler-Divergenz, a statistical distance:
     measures difference between two probability distributions)
     """
-    # dice_loss = dice_criterion(recon_x, x).item()
-    # kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-    # return dice_loss  # + kld
-    bce = criterion(recon_x, x)
+    reconstruction_loss = criterion(recon_x, x)
     kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-    print(f"{bce=} | {kld=}")
-    return bce + kld
+    # print(f"{reconstruction_loss=} | {kld=}")
+    return reconstruction_loss + kld, kld
 
 
 def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
@@ -206,14 +205,15 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
                            latent_dim=LATENT_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # criterion = DiceLoss(
-    #     smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
-    criterion = torch.nn.BCELoss(reduction='sum')
+    criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
+    # criterion = torch.nn.BCELoss(reduction='sum')
 
     # training loop
     print("Starting training")
     for epoch in range(MAX_EPOCHS):
         loss = 0
+        kld = 0
         # set to training mode
         model.train()
         for batch_features, _ in train_loader:
@@ -224,26 +224,23 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             # PyTorch accumulates gradients on subsequent backward passes
             optimizer.zero_grad()
 
-            # compute reconstructions = x_hat
+            # compute reconstructions = x_hat and latent parameters mu, logvar
             outputs, mu, logvar = model(batch_features)
 
             # compute loss
-            train_loss = vae_loss_function(
+            train_loss, cur_kld = vae_loss_function(
                 criterion=criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
 
-            # compute accumulated gradients
-            # perform backpropagation of errors
             train_loss.backward()
-
-            # perform parameter update based on current gradients
-            # optimize weights
             optimizer.step()
 
             # add the mini-batch training loss to epoch loss
             loss += train_loss
+            kld += cur_kld
 
         # compute the epoch training loss
         loss = loss / len(train_loader)
+        kld = kld / len(train_loader)
 
         # compute validation_loss
         val_loss = 0
@@ -252,19 +249,22 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             for batch, _ in val_loader:
                 batch = batch.to(device)
                 outputs, mu, logvar = model(batch_features)
-                cur_loss = vae_loss_function(
-                    dice_criterion=dice_criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
+                cur_loss, _ = vae_loss_function(
+                    criterion=criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
                 val_loss += cur_loss.item()
         val_loss = val_loss / len(val_loader)
 
         # prints
         print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
+        print("epoch : {}/{}, kld = {:.6f}".format(epoch + 1, MAX_EPOCHS, kld))
 
         # add scalars to tensorboard
         writer.add_scalar(f"vae_loss_function /train", loss, epoch + 1)
         writer.add_scalar(
             f"vae_loss_function /validation", val_loss, epoch + 1)
+        writer.add_scalar(
+            f"vae_loss_function /kld", kld, epoch + 1)
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY
