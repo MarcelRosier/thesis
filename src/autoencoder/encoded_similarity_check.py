@@ -73,7 +73,7 @@ def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasu
         json.dump(results, file)
 
 
-def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: int, train_size: int):
+def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: int, train_size: int, vae: bool = False):
     """
     Calculate the L2 similarity between the input tumor and all encoded synthetic tumors and store the result in:\n
     autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_encoded.json"
@@ -81,7 +81,7 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: i
     @test_set_size - string specifying the test set size
     """
     # load real tumor
-    encoded_folder_path = f"{ENCODED_BASE_PATH}_{latent_dim}_{train_size}"
+    encoded_folder_path = f"{ENCODED_BASE_PATH}{'_VAE'if vae else ''}_{latent_dim}_{train_size}"
     real_tumor_t1c = np.load(os.path.join(
         encoded_folder_path, f"real/{real_tumor}.npy"))[0]
     real_tumor_t1c = utils.normalize(real_tumor_t1c)
@@ -103,7 +103,7 @@ def calc_encoded_similarities(real_tumor: str, test_set_size: str, latent_dim: i
         }
 
     # save data
-    filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/enc_{latent_dim}_{train_size}/{real_tumor}_encoded.json"
+    filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/enc{'_VAE'if vae else ''}_{latent_dim}_{train_size}/{real_tumor}_encoded.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -260,7 +260,7 @@ def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str,  save=Fal
     return res
 
 
-def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", latent_dim: int = 4096, train_size: int = 1500):
+def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", latent_dim: int = 4096, train_size: int = 1500, vae: bool = False):
     """
     Run the encoded similarity calculation for all real tumors, comparing each tumor with all syn tumors in the dataset specified by test_set_size\n
     All results will be stored in the encoded l2 sim folder\n
@@ -273,7 +273,7 @@ def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str =
     real_tumors.sort(key=lambda name: int(name[3:6]))
 
     func = partial(calc_encoded_similarities, test_set_size=test_set_size,
-                   latent_dim=latent_dim, train_size=train_size)
+                   latent_dim=latent_dim, train_size=train_size, vae=vae)
     print(func)
     with multiprocessing.Pool(processes) as pool:
         results = pool.map_async(func, real_tumors)
@@ -310,20 +310,20 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 
 def run(real_tumor):
-    # run_calc_encoded_sim_for_all_tumors(
-    #     test_set_size="2k", latent_dim=2048, train_size=1500)
-    calc_best_match_pairs(
-        testset_size="200", enc="enc_1024_1500", gt_metric='dice', save=True)
-    calc_best_match_pairs(
-        testset_size="200", enc="enc_1024_1500", gt_metric='l2', save=True)
-    calc_best_match_pairs(
-        testset_size="2k", enc="enc_1024_1500", gt_metric='dice', save=True)
-    calc_best_match_pairs(
-        testset_size="2k", enc="enc_1024_1500", gt_metric='l2', save=True)
-    calc_best_match_pairs(
-        testset_size="20k", enc="enc_1024_1500", gt_metric='dice', save=True)
-    calc_best_match_pairs(
-        testset_size="20k", enc="enc_1024_1500", gt_metric='l2', save=True)
+    run_calc_encoded_sim_for_all_tumors(processes=4,
+                                        test_set_size="20k", latent_dim=1024, train_size=6000, vae=True)
+    # calc_best_match_pairs(
+    #     testset_size="200", enc="enc_1024_1500", gt_metric='dice', save=True)
+    # calc_best_match_pairs(
+    #     testset_size="200", enc="enc_1024_1500", gt_metric='l2', save=True)
+    # calc_best_match_pairs(
+    #     testset_size="2k", enc="enc_1024_1500", gt_metric='dice', save=True)
+    # calc_best_match_pairs(
+    #     testset_size="2k", enc="enc_1024_1500", gt_metric='l2', save=True)
+    # calc_best_match_pairs(
+    #     testset_size="20k", enc="enc_1024_1500", gt_metric='dice', save=True)
+    # calc_best_match_pairs(
+    #     testset_size="20k", enc="enc_1024_1500", gt_metric='l2', save=True)
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=1, test_set_size="20k", metric=SimilarityMeasureType.DICE)
     # run_calc_encoded_sim_for_all_tumors(
