@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from autoencoder.datasets import TumorT1CDataset
+from autoencoder.datasets import TumorDataset
 from autoencoder import networks
 from autoencoder.modules import Autoencoder, GenerateCallback
 from constants import AE_CHECKPOINT_PATH, ENV
@@ -40,9 +40,9 @@ def run(cuda_id=0):
     device = torch.device(
         f"cuda:{cuda_id}") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
-    train_dataset = TumorT1CDataset(subset=(35000, 36000))
-    val_dataset = TumorT1CDataset(subset=(2000, 2100))
-    test_dataset = TumorT1CDataset(subset=(3000, 3100))
+    train_dataset = TumorDataset(subset=(35000, 36000))
+    val_dataset = TumorDataset(subset=(2000, 2100))
+    test_dataset = TumorDataset(subset=(3000, 3100))
 
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=BATCH_SIZE,

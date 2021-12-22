@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from autoencoder import networks
-from autoencoder.datasets import TumorT1CDataset
+from autoencoder.datasets import TumorDataset
 from autoencoder.losses import CustomDiceLoss
 from autoencoder.modules import Autoencoder, VarAutoencoder
 
@@ -42,6 +42,7 @@ LEARNING_RATE = 5e-5
 CHECKPOINT_FREQUENCY = 60
 VAE = True
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
+T1C = True
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -59,11 +60,11 @@ nets = networks.get_basic_net_16_16_16(
 def run(cuda_id=0):
     # print params
     utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, VAE=VAE, BETA=BETA)
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, VAE=VAE, BETA=BETA, T1C=T1C)
 
     # datasets
-    train_dataset = TumorT1CDataset(subset=(35000, 35000 + TRAIN_SIZE))
-    val_dataset = TumorT1CDataset(subset=(2000, 2000 + VAL_SIZE))
+    train_dataset = TumorDataset(subset=(35000, 35000 + TRAIN_SIZE), t1c=T1C)
+    val_dataset = TumorDataset(subset=(2000, 2000 + VAL_SIZE), t1c=T1C)
 
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=BATCH_SIZE,
