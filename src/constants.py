@@ -7,6 +7,7 @@ ENV = socket.getfqdn()
 LOCAL = 'lx'
 IBBM = 'atnavab66.informatik.tu-muenchen.de'
 GIGA = 'ibbm-giga'
+MAC = 'marcel-mbp.local'
 
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json',
@@ -24,19 +25,22 @@ REAL_TUMOR_PATH = {
 REAL_TUMOR_BASE_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/real_tumors',
     IBBM: '/home/rosierm/marcel_tgm',
-    GIGA: '/mnt/Drive3/ivan_marcel/real_tumors'
+    GIGA: '/mnt/Drive3/ivan_marcel/real_tumors',
+    MAC: '/Users/marcelrosier/Projects/uni/tumor_data/real_tumors'
 }
 
 SYN_TUMOR_BASE_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset',
     IBBM: '/home/rosierm/samples_extended/Dataset',
-    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset'
+    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset',
+    MAC: '/Users/marcelrosier/Projects/uni/samples_extended/Dataset'
 }
 
 SYN_TUMOR_PATH_TEMPLATE = {
     LOCAL: '/home/marcel/Projects/uni/thesis/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz',
     IBBM: '/home/rosierm/samples_extended/Dataset/{id}/Data_0001.npz',
-    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset/{id}/Data_0001.npz'
+    GIGA: '/mnt/Drive3/ivan/samples_extended/Dataset/{id}/Data_0001.npz',
+    MAC: '/Users/marcelrosier/Projects/uni/tumor_data/samples_extended/Dataset/{id}/Data_0001.npz',
 }
 
 T1C_PATH = {
@@ -54,7 +58,8 @@ FLAIR_PATH = {
 BASELINE_SIMILARITY_BASE_PATH = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/baseline/data',
     IBBM: None,
-    GIGA: '/home/ivan_marcel/thesis/src/baseline/data'
+    GIGA: '/home/ivan_marcel/thesis/src/baseline/data',
+    MAC: '/Users/marcelrosier/Projects/uni/thesis/src/baseline/data',
 }
 
 # Autoencoder constants
