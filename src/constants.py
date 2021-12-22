@@ -78,7 +78,13 @@ AE_MODEL_SAVE_PATH = {
 ENCODED_BASE_PATH = {
     LOCAL: None,
     IBBM: None,
-    GIGA: '/mnt/Drive3/ivan_marcel/encoded'
+    GIGA: '/mnt/Drive3/ivan_marcel/encoded',
+    MAC: None,
+}
+
+MEDIA_BASE_PATH = {
+    LOCAL: '/home/marcel/Projects/uni/thesis/media',
+    MAC: '/Users/marcelrosier/Projects/uni/thesis/media'
 }
 
 default = {
@@ -99,6 +105,7 @@ TEST_SET_RANGES = {
     LOCAL: default,
     IBBM: default,
     GIGA: default,
+    MAC: default,
 }
 
 # Dataset size constants
