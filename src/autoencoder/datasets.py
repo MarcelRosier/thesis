@@ -15,10 +15,10 @@ SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 
-class TumorT1CDataset(Dataset):
-    """Tumor T1C dataset."""
+class TumorDataset(Dataset):
+    """Tumor dataset."""
 
-    def __init__(self, subset=None, transform=None, syntethic=True):
+    def __init__(self, subset=None, transform=None, syntethic=True, t1c=True):
         """TODO"""
         if syntethic:
             # synthetic
@@ -40,6 +40,7 @@ class TumorT1CDataset(Dataset):
         self.tumor_ids = folders
         self.transform = transform
         self.syntethic = syntethic
+        self.t1c = t1c
 
     def __len__(self):
         return self.n_samples
@@ -60,7 +61,8 @@ class TumorT1CDataset(Dataset):
         else:
             path = os.path.join(REAL_TUMOR_BASE_PATH, tumor_id)
             # returns t1c, flair
-            tumor, _ = utils.load_real_tumor(base_path=path)
+            t1c_tumor, flair_tumor = utils.load_real_tumor(base_path=path)
+            tumor = t1c_tumor if self.t1c else flair_tumor
 
         # crop 129^3 to 128^3 if needed
         if tumor.shape != (128, 128, 128):
@@ -73,6 +75,7 @@ class TumorT1CDataset(Dataset):
             tumor *= 1.0/max_val
 
         # threshold
-        tumor[tumor < 0.6] = 0
-        tumor[tumor >= 0.6] = 1
+        threshold = 0.6 if self.t1c else 0.2
+        tumor[tumor < threshold] = 0
+        tumor[tumor >= threshold] = 1
         return tumor

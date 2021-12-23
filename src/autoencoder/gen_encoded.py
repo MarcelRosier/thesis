@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from autoencoder import networks
-from autoencoder.datasets import TumorT1CDataset
+from autoencoder.datasets import TumorDataset
 from autoencoder.losses import CustomDiceLoss
 from autoencoder.modules import Autoencoder, VarAutoencoder
 
@@ -51,24 +51,25 @@ LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
 TEST_START = TEST_SET_RANGES[TEST_SET_SIZE]['START']
 TEST_SIZE = TEST_SET_RANGES[TEST_SET_SIZE]['END'] - TEST_START
+T1C = True
 
 
 def run(cuda_id=0):
     # print params
     utils.pretty_print_params(BASE_CHANNELS=BASE_CHANNELS, MAX_EPOCHS=MAX_EPOCHS, LATENT_DIM=LATENT_DIM, MIN_DIM=MIN_DIM, BATCH_SIZE=BATCH_SIZE,
-                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, TEST_SIZE=TEST_SIZE, SYNTHETIC=SYNTHETIC)
+                              TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, TEST_SIZE=TEST_SIZE, SYNTHETIC=SYNTHETIC, T1C=T1C)
     nets = networks.get_basic_net_16_16_16(
         c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
 
     if SYNTHETIC:
-        test_dataset = TumorT1CDataset(
-            subset=(TEST_START, TEST_START + TEST_SIZE))
+        test_dataset = TumorDataset(
+            subset=(TEST_START, TEST_START + TEST_SIZE), t1c=T1C)
         test_loader = DataLoader(dataset=test_dataset,
                                  batch_size=BATCH_SIZE,
                                  shuffle=False,
                                  num_workers=4)
     else:
-        test_dataset = TumorT1CDataset(syntethic=False)
+        test_dataset = TumorDataset(syntethic=False, t1c=T1C)
         test_loader = DataLoader(dataset=test_dataset,
                                  batch_size=1,
                                  shuffle=False,
