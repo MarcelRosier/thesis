@@ -1,6 +1,7 @@
 import json
 
 import matplotlib.pyplot as plt
+from constants import MEDIA_BASE_PATH, ENV
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -12,6 +13,7 @@ sns.set_style("whitegrid")
 
 DICE_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-09-30 19:47:08_comparison.json'
 L2_DATA_PATH = '/home/marcel/Projects/uni/thesis/src/data/baseline_data/2021-10-06 22:33:30_comparison_l2.json'
+MEDIA_BASE_PATH = MEDIA_BASE_PATH[ENV]
 
 
 def load_json_data(path):
@@ -77,7 +79,7 @@ def plot_runtime_vs_threads_dual_input(data_1, data_2):
 
 def plot_gt_enc_comp(enc: str, test_set_size: str, gt_metric: str):
     table = pd.read_csv(
-        f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv").to_numpy()
+        f"{MEDIA_BASE_PATH}/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv").to_numpy()
     # transform list strings to length
     for row in table:
         row[0] = int(row[0][3:6])
@@ -116,7 +118,7 @@ def plot_gt_enc_rbo_scores():
 
 def plot_enc4096_gt_best_matches(test_set_size: str, enc: str, gt_metric: str):
     json_data = {}
-    with open(f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{enc}_gt_match_pairs/testset_size_{test_set_size}.json") as file:
+    with open(f"{MEDIA_BASE_PATH}/{enc}/{gt_metric}/{enc}_gt_match_pairs/testset_size_{test_set_size}.json") as file:
         json_data = json.load(file)
     tumors = []
     gt_indices = []
@@ -141,7 +143,7 @@ def plot_enc4096_gt_best_matches(test_set_size: str, enc: str, gt_metric: str):
 def plot_best_match_presence(enc: str, test_set_size: str, gt_metric: str, top_n: int, ax):
     from autoencoder.encoded_similarity_check import load_top_15_lists
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
-        csv_path=f"/home/marcel/Projects/uni/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv")
+        csv_path=f"{MEDIA_BASE_PATH}/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{test_set_size}.csv")
     # transform list strings to length
     is_present = []
     for tumor, gt_list, enc_list in zip(tumor_ids, gt_lists, encoded_lists):
@@ -227,10 +229,10 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
     plt.show()
 
 
-plot_downsampled_best_match_presence_overview(
-    testset_size="2k", metric=SimilarityMeasureType.DICE)
-# enc = "enc_1024_1500"
-# gt_metric = 'l2'
+# plot_downsampled_best_match_presence_overview(
+#     testset_size="2k", metric=SimilarityMeasureType.DICE)
+enc = "enc_VAE_1024_6000"
+gt_metric = 'l2'
 # plot_best_match_presence_overview(
 #     enc=enc, test_set_size="200", gt_metric=gt_metric)
 # plot_best_match_presence_overview(
@@ -238,20 +240,25 @@ plot_downsampled_best_match_presence_overview(
 # plot_best_match_presence_overview(
 #     enc=enc, test_set_size="20k", gt_metric=gt_metric)
 # plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
 # plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
 # plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
 # plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
 # plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
-# gt_metric = 'dice'
-# plot_best_match_presence_overview(
-#     enc=enc, test_set_size="20k", gt_metric=gt_metric)
-# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-# plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
-# plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
-# plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
-# plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
+
+gt_metric = 'dice'
+plot_best_match_presence_overview(
+    enc=enc, test_set_size="200", gt_metric=gt_metric)
+plot_best_match_presence_overview(
+    enc=enc, test_set_size="2k", gt_metric=gt_metric)
+plot_best_match_presence_overview(
+    enc=enc, test_set_size="20k", gt_metric=gt_metric)
+plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
+plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
 
 # 4096_1500
 

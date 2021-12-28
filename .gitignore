@@ -12,3 +12,4 @@ src/autoencoder/tutorials/dataset
 src/autoencoder/tutorials/checkpoints
 src/autoencoder/checkpoints
 src/tests.py
+.ds_store
