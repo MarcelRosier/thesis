@@ -240,7 +240,8 @@ def pretty_print_params(BASE_CHANNELS=None,
         console.print(params_table)
 
     except ImportError:
-        print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}")
+        print(f"INFO:\n{BASE_CHANNELS=}\n{MAX_EPOCHS=}\n{LATENT_DIM=}\n{MIN_DIM=}\n{BATCH_SIZE=}\n{TRAIN_SIZE=}\n{VAL_SIZE=}\n{LEARNING_RATE=}\n{CHECKPOINT_FREQUENCY=}\
+        \n{SYNTHETIC=}\n{VAE=}\n{BETA=}\n{T1C=}")
 
 
 def pretty_print_gpu_info(device):
