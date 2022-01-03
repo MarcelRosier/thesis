@@ -39,7 +39,7 @@ LATENT_DIM = 1024
 TEST_SET_SIZE = "20k"
 TRAIN_SIZE = 1500
 SYNTHETIC = True
-VAE = True
+VAE = False
 BETA = 0.001
 T1C = False
 
