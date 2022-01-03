@@ -311,10 +311,10 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 def run(real_tumor):
     # run_calc_encoded_sim_for_all_tumors(processes=4,
-    #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
+    #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=True, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
-    # enc = "enc_VAE_FLAIR_1024_1500"
-    enc = "enc_FLAIR_1024_1500"
+    enc = "enc_VAE_FLAIR_1024_1500"
+    # enc = "enc_FLAIR_1024_1500"
     run_top_15_comp(enc=enc, testset_size="200",
                     gt_metric=SimilarityMeasureType.DICE, save=True)
     run_top_15_comp(enc=enc, testset_size="200",
