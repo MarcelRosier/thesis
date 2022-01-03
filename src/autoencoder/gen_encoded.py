@@ -37,10 +37,12 @@ torch.backends.cudnn.benchmark = False
 # Hyper parameters
 LATENT_DIM = 1024
 TEST_SET_SIZE = "20k"
-TRAIN_SIZE = 6000
-SYNTHETIC = False
+TRAIN_SIZE = 1500
+SYNTHETIC = True
 VAE = True
 BETA = 0.001
+T1C = False
+
 #
 BASE_CHANNELS = 24
 MAX_EPOCHS = 120
@@ -51,7 +53,6 @@ LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 30
 TEST_START = TEST_SET_RANGES[TEST_SET_SIZE]['START']
 TEST_SIZE = TEST_SET_RANGES[TEST_SET_SIZE]['END'] - TEST_START
-T1C = True
 
 
 def run(cuda_id=0):
@@ -84,7 +85,13 @@ def run(cuda_id=0):
     # Load model
     checkpoint_path = ""
     if VAE:
-        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062_ep_final.pt"
+        if TRAIN_SIZE == 6000:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062_ep_final.pt"
+        elif TRAIN_SIZE == 1500:
+            if T1C:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640341453/VAE_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640341453_ep_final.pt"
+            else:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822/VAE_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822_ep_final.pt"
         nets = networks.get_basic_net_16_16_16_without_last_linear(
             c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
         model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
@@ -99,7 +106,10 @@ def run(cuda_id=0):
         elif LATENT_DIM == 2048:
             checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499/BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499_ep_final.pt"
         elif LATENT_DIM == 1024:
-            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629_ep_final.pt"
+            if T1C:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629_ep_final.pt"
+            else:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1640617079/BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1640617079_ep_final.pt"
 
     print(f"Loading: {checkpoint_path=}")
     #! only_encode=True
@@ -120,9 +130,9 @@ def run(cuda_id=0):
         # save
         np_encoded = encoded.cpu().detach().numpy()
         if SYNTHETIC:
-            save_path = f"/mnt/Drive3/ivan_marcel/encoded{'_VAE'if VAE else ''}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
         else:
-            save_path = f"/mnt/Drive3/ivan_marcel/encoded{'_VAE'if VAE else ''}_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'wb') as file:
             np.save(file=file, arr=np_encoded)
