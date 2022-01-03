@@ -310,20 +310,37 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 
 def run(real_tumor):
-    run_calc_encoded_sim_for_all_tumors(processes=4,
-                                        test_set_size="2k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
-    # calc_best_match_pairs(
-    #     testset_size="200", enc="enc_VAE_1024_6000", gt_metric='dice', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="200", enc="enc_VAE_1024_6000", gt_metric='l2', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="2k", enc="enc_VAE_1024_6000", gt_metric='dice', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="2k", enc="enc_VAE_1024_6000", gt_metric='l2', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="20k", enc="enc_VAE_1024_6000", gt_metric='dice', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="20k", enc="enc_VAE_1024_6000", gt_metric='l2', save=True)
+    # run_calc_encoded_sim_for_all_tumors(processes=4,
+    #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
+    # enc = "enc_VAE_T1C_1024_1500"
+    # enc = "enc_VAE_FLAIR_1024_1500"
+    enc = "enc_FLAIR_1024_1500"
+    run_top_15_comp(enc=enc, testset_size="200",
+                    gt_metric=SimilarityMeasureType.DICE, save=True)
+    run_top_15_comp(enc=enc, testset_size="200",
+                    gt_metric=SimilarityMeasureType.L2, save=True)
+    run_top_15_comp(enc=enc, testset_size="2k",
+                    gt_metric=SimilarityMeasureType.DICE, save=True)
+    run_top_15_comp(enc=enc, testset_size="2k",
+                    gt_metric=SimilarityMeasureType.L2, save=True)
+    run_top_15_comp(enc=enc, testset_size="20k",
+                    gt_metric=SimilarityMeasureType.DICE, save=True)
+    run_top_15_comp(enc=enc, testset_size="20k",
+                    gt_metric=SimilarityMeasureType.L2, save=True)
+
+    calc_best_match_pairs(
+        testset_size="200", enc=enc, gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="200", enc=enc, gt_metric='l2', save=True)
+    calc_best_match_pairs(
+        testset_size="2k", enc=enc, gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="2k", enc=enc, gt_metric='l2', save=True)
+    calc_best_match_pairs(
+        testset_size="20k", enc=enc, gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="20k", enc=enc, gt_metric='l2', save=True)
+
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=1, test_set_size="20k", metric=SimilarityMeasureType.DICE)
     # run_calc_encoded_sim_for_all_tumors(
@@ -331,8 +348,7 @@ def run(real_tumor):
     # sims = calc_similarity_of_top_lists(
     #     csv_path="/home/ivan_marcel/thesis/src/autoencoder/data/gt_enc_comp_200.csv", top_n=1, dataset_size="200", save=False)
     """Example usages"""
-    # run_top_15_comp(enc="enc_VAE_1024_6000", testset_size="200",
-    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
+
     # calc_groundtruth(real_tumor=real_tumor, syn_subset=syn_subset)
     # find 15 best from groundtruth
     # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
