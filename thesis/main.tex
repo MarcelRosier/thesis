@@ -6,6 +6,13 @@
 
 % TODO: change citation style in settings
 \input{settings}
+\usepackage{svg}
+\usepackage{amsmath}
+\usepackage{placeins}
+\usepackage{chngcntr}
+\usepackage[capitalize,nameinlink]{cleveref}
+\counterwithout{figure}{chapter}
+
 
 % TODO: change thesis information
 \newcommand*{\getUniversity}{Technische Universität München}
@@ -58,8 +65,8 @@
 %\input{pages/appendix}
 
 \microtypesetup{protrusion=false}
-\listoffigures{}
-\listoftables{}
+%\listoffigures{}
+%\listoftables{}
 \microtypesetup{protrusion=true}
 %\printglossaries
 \printbibliography{}

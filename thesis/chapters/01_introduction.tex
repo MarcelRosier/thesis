@@ -2,9 +2,15 @@
 % Add the above to each chapter to make compiling the PDF easier in some editors.
 
 \chapter{Introduction}\label{chapter:introduction}
-Use with pdfLaTeX and Biber.
 
-Citation test (with Biber)~\parencite{latex}.
+\todo {COPIED PARAGRAPH ADAPT!}
+Glioblastoma (GBM) is one of the most aggressive brain tumors, characterized by varying and unknown infiltration into the surrounding tissue. After resection of tumor mass visible in MRI scans, current treatment includes radiotherapy targeting tissue around the visible lesion uniformly, accounting for residual tumor cells. Tumor recurrence is present in most cases, possibly due to patient-specific and non-uniform distribution of residual tumor cells. Personalization of the clinical target volume (CTV), i.e. the irradiated volume targeting residual cells, could spare more healthy tissue and increase progression-free survival by potentially avoiding recurrence. \todo{add references}
+For instance, \todo{k26} achieves a personalization of tumor growth parameters for the simulation of the overall tumor volume using partial differential equations in the brain anatomy, while being highly time-expensive \todo{k4}. Scibilia et al. \todo{cite kevins} try to overcome this runtime issue by introducing a !!neural network based surrogate for the deterministic inference of patient specific parameters with the Fisher-Kolmogorov PDE (FK-PDE) from single time-point synthetic noise-free clinical brain scans, namely a T1Gd and FLAIR scan obtained via MRI and a FET-PET scan. !! \todo{rephrase/shorten? COPIED}
+In the following, we propose an image retrieval based approach to find personalized tumor growth parameters based on a dataset of 50k synthetic tumors. As a baseline, this image retrieval process is achieved via a primitive iterative and parallelized pair wise comparison that uses a DICE or L2 metric using the original $128^3$ dimensional data, as well as a down sampled version of dimensionality $64^3$. 
+To improve runtime and space complexity, we introduce both a traditional autoencoder (AE) and a variational auto encoder (VAE) to encode the input tumor as well as the dataset to vectors of dimension $1024$ and run the comparison with the encoded versions. \newline
+We then evaluate how well different encodings preserve the similarity relations between input and synthetic tumors and point to future improvements and attempts. \newline
+As a result, this work shows that autoencoders can to a certain degree be used to improve time- and space complexity of the T1C part in (this) pipeline, while the FLAIR segmentation is in the current form of data and network not suited. VAE achieve similar results on all fronts.
+\todo{Citations, rework copied paragraphs, mention T1C / Flair}
 
 
 

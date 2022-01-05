@@ -145,7 +145,7 @@ def normalize(v):
     return v / norm
 
 
-def load_reconstructed_tumor(path):
+def load_reconstructed_tumor(path, threshold=0.6):
     """
     Load a reconstructed syntethic tumor\n
     This differs from the usual tumor loading in the format of the saved tumor
@@ -155,7 +155,7 @@ def load_reconstructed_tumor(path):
     if tumor.shape != (128, 128, 128):
         tumor = np.delete(np.delete(
             np.delete(tumor, 128, 0), 128, 1), 128, 2)
-    return norm_and_threshold_tumor(tumor)
+    return norm_and_threshold_tumor(tumor, threshold=threshold)
 
 
 def norm_and_threshold_tumor(tumor, threshold=0.6):
@@ -301,7 +301,7 @@ def plot_tumor(tumor, cmp_tumor=None, title="title", c_base='b', zoom_factor: fl
     # plt.show()
 
 
-def plot_tumor_overview(latend_dim):
+def plot_tumor_overview(latent_dim, seg_type):
     """
     Plot an overview for tumor encoding:\n
     - input tumor
@@ -309,18 +309,25 @@ def plot_tumor_overview(latend_dim):
     - differences between input and output
     - both tumors in the same plot, blue= input, magenta= output
     """
-    rec_path = "/home/marcel/Projects/uni/thesis/src/data/test_3000.npy" if latend_dim == 4096 else "/home/marcel/Projects/uni/thesis/media/3000_reconstructed_2048.npy"
-    base = load_single_tumor(tumor_id=3000)
+    rec_path = "/home/marcel/Projects/uni/thesis/src/data/test_3000.npy" if latent_dim == 4096 else "/home/marcel/Projects/uni/thesis/media/3000_reconstructed_2048.npy"
+    rec_path = "/Users/marcelrosier/Projects/uni/thesis/media/reconstructed_tumors/3000_reconstructed_FLAIR_1024_1500.npy"
+
+    threshold = 0.2 if seg_type == 'flair' else 0.6
+    print(threshold)
+    base = load_single_tumor(
+        tumor_id=3000, threshold=threshold)
     output = load_reconstructed_tumor(
-        path=rec_path)
+        path=rec_path, threshold=threshold)
     intersection = (base != output)
 
-    plot_tumor(base, title=f"input, {latend_dim}")
-    plot_tumor(output, title=f"output, {latend_dim}", c_base='m')
-    plot_tumor(tumor=intersection, title=f"input != output, {latend_dim}")
-    plot_tumor(base, cmp_tumor=output, title=f"input and output, {latend_dim}")
+    plot_tumor(base, title=f"input, {latent_dim}, {seg_type}")
+    plot_tumor(output, title=f"output, {latent_dim}, {seg_type}", c_base='m')
+    plot_tumor(tumor=intersection,
+               title=f"input != output, {latent_dim}, {seg_type}")
+    plot_tumor(base, cmp_tumor=output,
+               title=f"input and output, {latent_dim}, {seg_type}")
 
-    # plt.show()
+    plt.show()
 
 
 def plot_tumor_list(tumor_list: List[int]):
@@ -345,6 +352,6 @@ def test():
 
 
 # test()
-# plot_tumor_overview(latend_dim=4096)
-# plot_tumor_overview(latend_dim=2048)
+# plot_tumor_overview(latent_dim=4096)
+plot_tumor_overview(latent_dim=1024, seg_type='flair')
 # plt.show()
