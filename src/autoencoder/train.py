@@ -33,7 +33,7 @@ torch.backends.cudnn.benchmark = False
 # Hyper parameters
 BASE_CHANNELS = 24
 MAX_EPOCHS = 120
-LATENT_DIM = 1024
+LATENT_DIM = 32
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
@@ -42,7 +42,7 @@ LEARNING_RATE = 1e-5
 CHECKPOINT_FREQUENCY = 120
 VAE = False
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
-T1C = False
+T1C = True
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
