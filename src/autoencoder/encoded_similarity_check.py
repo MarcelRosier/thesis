@@ -8,6 +8,7 @@ from functools import partial
 import numpy as np
 from numpy.lib.type_check import real
 import pandas as pd
+from torch.nn.functional import threshold
 import utils
 from utils import SimilarityMeasureType
 from constants import (ENCODED_BASE_PATH, ENV, REAL_TUMOR_BASE_PATH,
@@ -26,7 +27,7 @@ TEST_START = 4000
 TEST_SIZE = 2000
 
 
-def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasureType.L2):
+def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasureType.L2, t1c: bool = True):
     """
     Calculate the L2 similarity between the input tumor and all (not encoded!) synthetic tumors and store the result in:\n
     autoencoder/data/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor}_gt.json"
@@ -36,11 +37,13 @@ def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasu
 
     # load real_tumor
     real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
-    real_tumor_t1c, _ = utils.load_real_tumor(base_path=real_tumor_path)
+    real_tumor_t1c, real_tumor_flair = utils.load_real_tumor(
+        base_path=real_tumor_path)
+    real_tumor = real_tumor_t1c if t1c else real_tumor_flair
 
     # unencoded real tumor is already only 0 and 1
     # added check to ensure thresholding is really not needed
-    assert len(np.unique(real_tumor_t1c) <= 2)
+    assert len(np.unique(real_tumor) <= 2)
 
     # load syn tumors, and extract wanted subset if specified
     folders = utils.get_sorted_syn_tumor_list()
@@ -52,11 +55,13 @@ def calc_groundtruth(real_tumor: str, test_set_size: str, metric=SimilarityMeasu
     print(
         f"Running with {len(folders)} folders, RANGE={TEST_SET_RANGES[test_set_size]['START']}-{TEST_SET_RANGES[test_set_size]['END']}")
     results = {}
+    threshold = 0.6 if t1c else 0.2
     for folder in folders:
-        syn_tumor_t1c = utils.load_single_tumor(tumor_id=folder, threshold=0.6)
+        syn_tumor_t1c = utils.load_single_tumor(
+            tumor_id=folder, threshold=threshold)
         norm = utils.calc_l2_norm if metric == SimilarityMeasureType.L2 else utils.calc_dice_coef
         distance = norm(
-            syn_data=syn_tumor_t1c, real_data=real_tumor_t1c)
+            syn_data=syn_tumor_t1c, real_data=real_tumor)
         results[folder] = {
             't1c': distance,
         }
@@ -281,7 +286,7 @@ def run_calc_encoded_sim_for_all_tumors(processes: int = 1, test_set_size: str =
         t = results.get()
 
 
-def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", metric: SimilarityMeasureType = SimilarityMeasureType.L2):
+def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: str = "200", metric: SimilarityMeasureType = SimilarityMeasureType.L2, t1c: bool = True):
     """
     Run the encoded similarity calculation for all real tumors, comparing each tumor with all syn tumors in the dataset specified by test_set_size\n
     All results will be stored in the encoded l2 sim folder\n
@@ -305,7 +310,7 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
         print(
             f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         calc_groundtruth(real_tumor=real_tumor,
-                         test_set_size=test_set_size, metric=metric)
+                         test_set_size=test_set_size, metric=metric, t1c=t1c)
         bar.next()
     bar.finish()
 
