@@ -56,6 +56,7 @@ def calc_groundtruth(real_tumor_str: str, test_set_size: str, metric=SimilarityM
         f"Running with {len(folders)} folders, RANGE={TEST_SET_RANGES[test_set_size]['START']}-{TEST_SET_RANGES[test_set_size]['END']}")
     results = {}
     threshold = 0.6 if t1c else 0.2
+    segmenation = "t1c" if t1c else "flair"
     for folder in folders:
         syn_tumor_t1c = utils.load_single_tumor(
             tumor_id=folder, threshold=threshold)
@@ -63,15 +64,16 @@ def calc_groundtruth(real_tumor_str: str, test_set_size: str, metric=SimilarityM
         distance = norm(
             syn_data=syn_tumor_t1c, real_data=real_tumor)
         results[folder] = {
-            't1c': distance,
+            segmenation: distance,
         }
 
     # save data
     filename_dump = None
+
     if metric == SimilarityMeasureType.L2:
-        filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/{real_tumor_str}_gt.json"
+        filename_dump = f"{data_path}/encoded_l2_sim/testset_size_{test_set_size}/gt/{segmenation}/{real_tumor_str}_gt.json"
     else:
-        filename_dump = f"{data_path}/groundtruth_dice_sim/testset_size_{test_set_size}/{real_tumor_str}_gt.json"
+        filename_dump = f"{data_path}/groundtruth_dice_sim/testset_size_{test_set_size}/{segmenation}/{real_tumor_str}_gt.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -130,11 +132,11 @@ def run_top_15_comp(enc: str, testset_size: str, gt_metric: SimilarityMeasureTyp
                       "encoded_top", "intersection"])
 
     is_l2 = gt_metric == SimilarityMeasureType.L2
-    segmenation = "t1c" if t1c else "flair"
+    segmentation = "t1c" if t1c else "flair"
     # loop over tumors and add the tumor, the top_15 ranks of the gt and encoded and the intersection the dataframe @df
     for tumor in real_tumors:
         # get gt top
-        gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{segmenation}/{tumor}_gt.json"
+        gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{segmentation}/{tumor}_gt.json"
         gt_best_order_func = min if is_l2 else max
         gt_best = utils.find_n_best_score_ids(
             path=gt_best_path,
@@ -224,7 +226,7 @@ def calc_similarity_of_top_lists(csv_path: str, top_n: int = 15, dataset_size: s
     return sims
 
 
-def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str,  save=False) -> Dict:
+def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str, t1c: bool,  save=False) -> Dict:
     """
     Get the best match for all encoded tumors and find the same tumor in the ranked list of the unencoded comparison
     @test_set_size - testset size string [200, 2k, 20k] 
@@ -298,27 +300,31 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     """
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-    # func = partial(calc_groundtruth,
-    #                test_set_size=test_set_size, metric=metric)
-    # print(func)
-    # print(multiprocessing.cpu_count())
-    # with multiprocessing.Pool(processes=processes) as pool:
-    #     results = pool.map_async(func, real_tumors)
-    #     t = results.get()
+    func = partial(calc_groundtruth,
+                   test_set_size=test_set_size, metric=metric, t1c=t1c)
+    print(func)
+    print(multiprocessing.cpu_count())
+    with multiprocessing.Pool(processes=processes) as pool:
+        results = pool.map_async(func, real_tumors)
+        t = results.get()
 
-    bar = Bar('Processing', max=len(real_tumors))
-    for real_tumor in real_tumors:
-        print(
-            f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        calc_groundtruth(real_tumor=real_tumor,
-                         test_set_size=test_set_size, metric=metric, t1c=t1c)
-        bar.next()
-    bar.finish()
+    # bar = Bar('Processing', max=len(real_tumors))
+    # for real_tumor in real_tumors:
+    #     print(
+    #         f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    #     calc_groundtruth(real_tumor_str=real_tumor,
+    #                      test_set_size=test_set_size, metric=metric, t1c=t1c)
+    #     bar.next()
+    # bar.finish()
 
 
 def run(real_tumor):
+    print(datetime.now())
     run_calc_encoded_sim_for_all_tumors(processes=16,
-                                        test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
+                                        test_set_size="200", latent_dim=1024, train_size=1500, vae=False, t1c=False)
+    print(datetime.now())
+    # run_calc_groundtruth_sim_for_all_tumors(
+    #     processes=32, test_set_size="20k", metric=SimilarityMeasureType.DICE, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
     # enc = "enc_VAE_FLAIR_1024_1500"
     # enc = "enc_FLAIR_1024_1500"
@@ -348,8 +354,6 @@ def run(real_tumor):
     # calc_best_match_pairs(
     #     testset_size="20k", enc=enc, gt_metric='l2', save=True)
 
-    # run_calc_groundtruth_sim_for_all_tumors(
-    #     processes=1, test_set_size="20k", metric=SimilarityMeasureType.DICE)
     # run_calc_encoded_sim_for_all_tumors(
     #     processes=32, test_set_size="20k", latent_dim=4096, train_size=3000)
     # sims = calc_similarity_of_top_lists(
