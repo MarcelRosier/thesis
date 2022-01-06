@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 import multiprocessing
 from functools import partial
 import numpy as np
-from numpy.lib.type_check import real
+from numpy.lib.type_check import nan_to_num, real
 import pandas as pd
 from torch.nn.functional import threshold
 import utils
@@ -141,7 +141,7 @@ def run_top_15_comp(enc: str, testset_size: str, gt_metric: SimilarityMeasureTyp
         gt_best = utils.find_n_best_score_ids(
             path=gt_best_path,
             n_best=15,
-            value_type=utils.DSValueType.T1C,
+            value_type=utils.DSValueType.T1C if t1c else utils.DSValueType.FLAIR,
             # for l2 the minimal distance is the best, for dice the max score
             order_func=gt_best_order_func
         )
@@ -149,7 +149,7 @@ def run_top_15_comp(enc: str, testset_size: str, gt_metric: SimilarityMeasureTyp
         encoded_best = utils.find_n_best_score_ids(
             path=f"{data_path}/encoded_l2_sim/testset_size_{testset_size}/{enc}/{tumor}_encoded.json",
             n_best=15,
-            value_type=utils.DSValueType.T1C,
+            value_type=utils.DSValueType.T1C if t1c else utils.DSValueType.FLAIR,
             # encoded ranking always uses l2 -> min
             order_func=min
         )
@@ -239,16 +239,23 @@ def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str, t1c: bool
     folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{testset_size}"
     res = {}
     is_l2 = gt_metric == 'l2'
+    segmentation = 't1c' if t1c else 'flair'
     for real_tumor, gt_top, enc_top in zip(tumor_ids, gt_lists, encoded_lists):
         best_enc_match = enc_top[0]
         try:
             index_in_gt = gt_top.index(best_enc_match)
         except ValueError:
-            gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{real_tumor}_gt.json"
+            gt_best_path = f"{data_path}/{'encoded_l2_sim' if is_l2 else 'groundtruth_dice_sim'}/testset_size_{testset_size}{'/gt' if is_l2 else ''}/{segmentation}/{real_tumor}_gt.json"
+            if testset_size == "20k":
+                n_best = 20000
+            elif testset_size == "2k":
+                n_best = 2000
+            elif testset_size == "200":
+                n_best = 200
             gt_best_extended = utils.find_n_best_score_ids(
-                path=f"{folder_path}/gt/{real_tumor}_gt.json",
-                n_best=200 if testset_size == "200" else 1024,
-                value_type=utils.DSValueType.T1C,
+                path=gt_best_path,
+                n_best=n_best,
+                value_type=utils.DSValueType.T1C if t1c else utils.DSValueType.FLAIR,
                 order_func=min
             )
             try:
@@ -319,38 +326,39 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
 
 
 def run(real_tumor):
-    print(datetime.now())
-    run_calc_encoded_sim_for_all_tumors(processes=16,
-                                        test_set_size="200", latent_dim=1024, train_size=1500, vae=False, t1c=False)
-    print(datetime.now())
+    # print(datetime.now())
+    # print(datetime.now())
+    # run_calc_encoded_sim_for_all_tumors(processes=16,
+    #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
     # run_calc_groundtruth_sim_for_all_tumors(
     #     processes=32, test_set_size="20k", metric=SimilarityMeasureType.DICE, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
     # enc = "enc_VAE_FLAIR_1024_1500"
-    # enc = "enc_FLAIR_1024_1500"
-    # run_top_15_comp(enc=enc, testset_size="200",
-    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
-    # run_top_15_comp(enc=enc, testset_size="200",
-    #                 gt_metric=SimilarityMeasureType.L2, save=True)
+    enc = "enc_FLAIR_1024_1500"
+    t1c = False
+    run_top_15_comp(enc=enc, testset_size="200",
+                    gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
     # run_top_15_comp(enc=enc, testset_size="2k",
-    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
-    # run_top_15_comp(enc=enc, testset_size="2k",
-    #                 gt_metric=SimilarityMeasureType.L2, save=True)
+    #                 gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
     # run_top_15_comp(enc=enc, testset_size="20k",
-    #                 gt_metric=SimilarityMeasureType.DICE, save=True)
+    #                 gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
+    # run_top_15_comp(enc=enc, testset_size="200",
+    #                 gt_metric=SimilarityMeasureType.L2, save=True)
+    # run_top_15_comp(enc=enc, testset_size="2k",
+    #                 gt_metric=SimilarityMeasureType.L2, save=True)
     # run_top_15_comp(enc=enc, testset_size="20k",
     #                 gt_metric=SimilarityMeasureType.L2, save=True)
 
-    # calc_best_match_pairs(
-    #     testset_size="200", enc=enc, gt_metric='dice', save=True)
+    calc_best_match_pairs(
+        testset_size="200", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    calc_best_match_pairs(
+        testset_size="2k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    calc_best_match_pairs(
+        testset_size="20k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
     # calc_best_match_pairs(
     #     testset_size="200", enc=enc, gt_metric='l2', save=True)
     # calc_best_match_pairs(
-    #     testset_size="2k", enc=enc, gt_metric='dice', save=True)
-    # calc_best_match_pairs(
     #     testset_size="2k", enc=enc, gt_metric='l2', save=True)
-    # calc_best_match_pairs(
-    #     testset_size="20k", enc=enc, gt_metric='dice', save=True)
     # calc_best_match_pairs(
     #     testset_size="20k", enc=enc, gt_metric='l2', save=True)
 
