@@ -353,5 +353,5 @@ def test():
 
 # test()
 # plot_tumor_overview(latent_dim=4096)
-plot_tumor_overview(latent_dim=1024, seg_type='flair')
+# plot_tumor_overview(latent_dim=1024, seg_type='flair')
 # plt.show()

@@ -226,25 +226,25 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
                                          top_downsampled_list, top_n=1, ax=axes[1][2], value_type=value_type)
 
-    plt.show()
+    # plt.show()
 
 
 # plot_downsampled_best_match_presence_overview(
 #     testset_size="2k", metric=SimilarityMeasureType.DICE)
-enc = "enc_VAE_T1C_1024_1500"
+enc = "enc_FLAIR_1024_1500"
 gt_metric = 'l2'
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="20k", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="2k", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
 
 gt_metric = 'dice'
 plot_best_match_presence_overview(
@@ -253,12 +253,12 @@ plot_best_match_presence_overview(
     enc=enc, test_set_size="2k", gt_metric=gt_metric)
 plot_best_match_presence_overview(
     enc=enc, test_set_size="20k", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
-plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
+# plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="200", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
+# plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
 
 # 4096_1500
 
