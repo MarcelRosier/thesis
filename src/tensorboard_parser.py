@@ -76,14 +76,14 @@ def save_train_loss_as_pkl(exp_name):
             "val_loss": val_loss
         }, ignore_index=True)
     print(df)
-    # df.to_pickle(f"{save_path}/{exp_name}.pkl")
+    df.to_pickle(f"{save_path}/{exp_name}.pkl")
 
 
 if __name__ == "__main__":
-    exp_name = ""
+    exp_name = "T1C_BC_24_LD_128_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1641399246"
+    # "T1C_BC_24_LD_512_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1641390171"
     # "T1C_BC_24_LD_32_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1641399376"
     # "BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1640617079"
     # "BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499"
     # "BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907"
-    # "BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629"
     save_train_loss_as_pkl(exp_name)
