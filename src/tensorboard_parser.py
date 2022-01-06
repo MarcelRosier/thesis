@@ -58,8 +58,32 @@ def convert_tb_data(root_dir, sort_by=None):
     return all_df.reset_index(drop=True)
 
 
-if __name__ == "__main__":
+def save_train_loss_as_pkl(exp_name):
     dir_path = CHECKPOINT_PATH
-    exp_name = "BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629"
-    df = convert_tb_data(f"{dir_path}/{exp_name}")
+    save_path = "/home/ivan_marcel/thesis/src/autoencoder/data/log_train_loss_pkl"
+    log_df = convert_tb_data(f"{dir_path}/{exp_name}")
+    import pandas as pd
+
+    df = pd.DataFrame(columns=["train_loss", "val_loss"])
+    # print(log_df.loc[0].step)
+    print(log_df)
+
+    for i in range(0, 240, 2):
+        train_loss = log_df.loc[i].value
+        val_loss = log_df.loc[i+1].value
+        df = df.append({
+            "train_loss": train_loss,
+            "val_loss": val_loss
+        }, ignore_index=True)
     print(df)
+    # df.to_pickle(f"{save_path}/{exp_name}.pkl")
+
+
+if __name__ == "__main__":
+    exp_name = ""
+    # "T1C_BC_24_LD_32_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1641399376"
+    # "BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_BETA_0001_1640617079"
+    # "BC_24_LD_2048_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1638352499"
+    # "BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907"
+    # "BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1639041629"
+    save_train_loss_as_pkl(exp_name)

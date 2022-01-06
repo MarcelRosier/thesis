@@ -236,7 +236,7 @@ def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str, t1c: bool
     """
     tumor_ids, gt_lists, encoded_lists = load_top_15_lists(
         csv_path=f"/home/ivan_marcel/thesis/media/{enc}/{gt_metric}/{gt_metric}_gt_{enc}_comp_{testset_size}.csv")
-    folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{testset_size}"
+    # folder_path = f"/home/ivan_marcel/thesis/src/autoencoder/data/encoded_l2_sim/testset_size_{testset_size}"
     res = {}
     is_l2 = gt_metric == 'l2'
     segmentation = 't1c' if t1c else 'flair'
@@ -261,7 +261,7 @@ def calc_best_match_pairs(testset_size: str, enc: str, gt_metric: str, t1c: bool
             try:
                 index_in_gt = gt_best_extended.index(best_enc_match)
             except ValueError:
-                index_in_gt = -1
+                index_in_gt = -1  # should never occur, might fuck up diagram integrity
 
         res[real_tumor] = {
             'encoded_best_match': best_enc_match,
@@ -334,10 +334,10 @@ def run(real_tumor):
     #     processes=32, test_set_size="20k", metric=SimilarityMeasureType.DICE, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
     # enc = "enc_VAE_FLAIR_1024_1500"
-    enc = "enc_FLAIR_1024_1500"
-    t1c = False
-    run_top_15_comp(enc=enc, testset_size="200",
-                    gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
+    enc = "enc_VAE_1024_6000"
+    t1c = True
+    # run_top_15_comp(enc=enc, testset_size="200",
+    #                 gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
     # run_top_15_comp(enc=enc, testset_size="2k",
     #                 gt_metric=SimilarityMeasureType.DICE, t1c=t1c, save=True)
     # run_top_15_comp(enc=enc, testset_size="20k",
