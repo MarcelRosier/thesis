@@ -307,22 +307,22 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     """
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-    func = partial(calc_groundtruth,
-                   test_set_size=test_set_size, metric=metric, t1c=t1c)
-    print(func)
-    print(multiprocessing.cpu_count())
-    with multiprocessing.Pool(processes=processes) as pool:
-        results = pool.map_async(func, real_tumors)
-        t = results.get()
+    # func = partial(calc_groundtruth,
+    #                test_set_size=test_set_size, metric=metric, t1c=t1c)
+    # print(func)
+    # print(multiprocessing.cpu_count())
+    # with multiprocessing.Pool(processes=processes) as pool:
+    #     results = pool.map_async(func, real_tumors)
+    #     t = results.get()
 
-    # bar = Bar('Processing', max=len(real_tumors))
-    # for real_tumor in real_tumors:
-    #     print(
-    #         f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    #     calc_groundtruth(real_tumor_str=real_tumor,
-    #                      test_set_size=test_set_size, metric=metric, t1c=t1c)
-    #     bar.next()
-    # bar.finish()
+    bar = Bar('Processing', max=len(real_tumors))
+    for real_tumor in real_tumors:
+        print(
+            f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        calc_groundtruth(real_tumor_str=real_tumor,
+                         test_set_size=test_set_size, metric=metric, t1c=t1c)
+        bar.next()
+    bar.finish()
 
 
 def run(real_tumor):
@@ -330,8 +330,8 @@ def run(real_tumor):
     # print(datetime.now())
     # run_calc_encoded_sim_for_all_tumors(processes=16,
     #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
-    # run_calc_groundtruth_sim_for_all_tumors(
-    #     processes=32, test_set_size="20k", metric=SimilarityMeasureType.DICE, t1c=False)
+    run_calc_groundtruth_sim_for_all_tumors(
+        processes=1, test_set_size="20k", metric=SimilarityMeasureType.L2, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
     # enc = "enc_VAE_FLAIR_1024_1500"
     enc = "enc_VAE_1024_6000"
@@ -349,12 +349,12 @@ def run(real_tumor):
     # run_top_15_comp(enc=enc, testset_size="20k",
     #                 gt_metric=SimilarityMeasureType.L2, save=True)
 
-    calc_best_match_pairs(
-        testset_size="200", enc=enc, gt_metric='dice', t1c=t1c, save=True)
-    calc_best_match_pairs(
-        testset_size="2k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
-    calc_best_match_pairs(
-        testset_size="20k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="200", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="2k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="20k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
     # calc_best_match_pairs(
     #     testset_size="200", enc=enc, gt_metric='l2', save=True)
     # calc_best_match_pairs(

@@ -1,19 +1,22 @@
+import os
 import json
 import logging
-import os
 import time
 from datetime import datetime
 from enum import Enum
 from typing import List
-
 import matplotlib.pyplot as plt
 import nibabel as nib
-import numpy as np
-import torch
-import torch.nn.functional as F
-from scipy.ndimage import zoom
-
 from constants import ENV, SYN_TUMOR_BASE_PATH, SYN_TUMOR_PATH_TEMPLATE
+from scipy.ndimage import zoom
+import torch.nn.functional as F
+import torch
+os.environ["OMP_NUM_THREADS"] = "1"  # export OMP_NUM_THREADS=4
+os.environ["OPENBLAS_NUM_THREADS"] = "1"  # export OPENBLAS_NUM_THREADS=4
+os.environ["MKL_NUM_THREADS"] = "1"  # export MKL_NUM_THREADS=6
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"  # export VECLIB_MAXIMUM_THREADS=4
+os.environ["NUMEXPR_NUM_THREADS"] = "1"  # export NUMEXPR_NUM_THREADS=6
+import numpy as np
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]

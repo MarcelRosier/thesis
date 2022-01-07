@@ -68,7 +68,7 @@ def save_train_loss_as_pkl(exp_name):
     # print(log_df.loc[0].step)
     print(log_df)
 
-    for i in range(0, 240, 2):
+    for i in range(0, 240, 2):  # for older 600,5
         train_loss = log_df.loc[i].value
         val_loss = log_df.loc[i+1].value
         df = df.append({
