@@ -307,22 +307,25 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
     """
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-    # func = partial(calc_groundtruth,
-    #                test_set_size=test_set_size, metric=metric, t1c=t1c)
-    # print(func)
-    # print(multiprocessing.cpu_count())
-    # with multiprocessing.Pool(processes=processes) as pool:
-    #     results = pool.map_async(func, real_tumors)
-    #     t = results.get()
+    func = partial(calc_groundtruth,
+                   test_set_size=test_set_size, metric=metric, t1c=t1c)
+    print(func)
+    print(multiprocessing.cpu_count())
+    idx = real_tumors.index("tgm063_preop")
+    real_tumors = real_tumors[idx+1:]
+    print(real_tumors)
+    with multiprocessing.Pool(processes=processes) as pool:
+        results = pool.map_async(func, real_tumors)
+        t = results.get()
 
-    bar = Bar('Processing', max=len(real_tumors))
-    for real_tumor in real_tumors:
-        print(
-            f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        calc_groundtruth(real_tumor_str=real_tumor,
-                         test_set_size=test_set_size, metric=metric, t1c=t1c)
-        bar.next()
-    bar.finish()
+    # bar = Bar('Processing', max=len(real_tumors))
+    # for real_tumor in real_tumors:
+    #     print(
+    #         f"Starting calc for {real_tumor} @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    #     calc_groundtruth(real_tumor_str=real_tumor,
+    #                      test_set_size=test_set_size, metric=metric, t1c=t1c)
+    #     bar.next()
+    # bar.finish()
 
 
 def run(real_tumor):
