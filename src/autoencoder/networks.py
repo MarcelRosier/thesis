@@ -1,4 +1,5 @@
 import torch.nn as nn
+from monai.networks.nets import varautoencoder
 # basic network
 
 
@@ -62,12 +63,12 @@ def get_basic_net_16_16_16_without_last_linear(num_input_channels=1, c_hid=16, a
         nn.Conv3d(c_hid, 2*c_hid, kernel_size=3,
                   padding=1, stride=2),  # 64^3 => 32^3
         act_fn(),
+        nn.Conv3d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
+        act_fn(),
         nn.Conv3d(2 * c_hid, 3 * c_hid, kernel_size=3,
                   padding=1, stride=2),  # 32^3 => 16^3
         act_fn(),
         nn.Conv3d(3 * c_hid, 3 * c_hid, kernel_size=3, padding=1),
-        act_fn(),
-        nn.Conv3d(c_hid, c_hid, kernel_size=3, padding=1),
         act_fn(),
         nn.Flatten(),  # Image grid to single feature vector
         # nn.Linear(linear_layer_size, latent_dim)  # 3 * 16^3 * c_hid

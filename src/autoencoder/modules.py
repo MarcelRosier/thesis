@@ -110,7 +110,7 @@ class VarAutoencoder(nn.Module):
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         std = torch.exp(0.5 * logvar)
 
-        if self.training:  # multiply random noise with std only during training
+        if not self.only_encode:  # self.training:  # multiply random noise with std only during training
             std = torch.randn_like(std).mul(std)
 
         return std.add_(mu)
