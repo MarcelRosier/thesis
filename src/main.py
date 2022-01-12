@@ -103,11 +103,11 @@ def run_parallel_base():
     for real_tumor in tumor_ids:
         print(f"running for {real_tumor}")
         real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
-        testset_size = "2k"
+        testset_size = "20k"
         subset = (TEST_SET_RANGES[testset_size]['START'],
                   TEST_SET_RANGES[testset_size]['END'])
         baseline_parallel.run(
-            processes=1,
+            processes=32,
             similarity_measure_type=SimilarityMeasureType.DICE,
             tumor_path=real_tumor_path,
             subset=subset,
@@ -121,7 +121,7 @@ logging.basicConfig(level=utils.LOG_LEVEL)
 # Exec
 ###
 
-analysis.compare_best_match_for_downsampling()
+# analysis.compare_best_match_for_downsampling()
 # run_parallel_base()
 # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"
 # new_path = "/home/ivan_marcel/thesis/src/autoencoder/data/2021-11-24/2021-11-24 15:35:18_dump_l2.json"
