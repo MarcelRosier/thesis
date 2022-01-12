@@ -1,4 +1,5 @@
 import json
+from sys import path
 
 import matplotlib.pyplot as plt
 from constants import MEDIA_BASE_PATH, ENV
@@ -7,7 +8,7 @@ import pandas as pd
 import seaborn as sns
 from numpy.core.fromnumeric import mean
 
-from utils import DSValueType, SimilarityMeasureType
+from utils import DSValueType, SimilarityMeasureType, load_single_tumor, load_reconstructed_tumor, calc_dice_coef, calc_l2_norm
 
 sns.set_style("whitegrid")
 
@@ -229,10 +230,31 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
     # plt.show()
 
 
+def test_mayavi():
+    seg_type = 't1c'
+    threshold = 0.2 if seg_type == 'flair' else 0.6
+    base = load_single_tumor(
+        tumor_id=3000, threshold=threshold)
+    rec_path = "/Users/marcelrosier/Projects/uni/thesis/media/reconstructed_tumors/3000_reconstructed_2048.npy"
+    rec = load_reconstructed_tumor(path=rec_path, threshold=threshold)
+
+    print(calc_dice_coef(base, rec))
+    print(calc_l2_norm(base, rec))
+    # print(base.shape)
+    # from mayavi import mlab
+    # # contour3d(base)
+    # mlab.clf()
+    # x, y = np.mgrid[-10:10:100j, -10:10:100j]
+    # r = np.sqrt(x**2 + y**2)
+    # z = np.sin(r)/r
+    # mlab.surf(z, warp_scale='auto')
+
+
+test_mayavi()
 # plot_downsampled_best_match_presence_overview(
 #     testset_size="2k", metric=SimilarityMeasureType.DICE)
-enc = "enc_FLAIR_1024_1500"
-gt_metric = 'l2'
+# enc = "enc_FLAIR_1024_1500"
+# gt_metric = 'l2'
 # plot_best_match_presence_overview(
 #     enc=enc, test_set_size="200", gt_metric=gt_metric)
 # plot_best_match_presence_overview(
@@ -246,13 +268,13 @@ gt_metric = 'l2'
 # plot_enc4096_gt_best_matches(test_set_size="2k", enc=enc, gt_metric=gt_metric)
 # plot_enc4096_gt_best_matches(test_set_size="20k", enc=enc, gt_metric=gt_metric)
 
-gt_metric = 'dice'
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="200", gt_metric=gt_metric)
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="2k", gt_metric=gt_metric)
-plot_best_match_presence_overview(
-    enc=enc, test_set_size="20k", gt_metric=gt_metric)
+# gt_metric = 'dice'
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="200", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="2k", gt_metric=gt_metric)
+# plot_best_match_presence_overview(
+#     enc=enc, test_set_size="20k", gt_metric=gt_metric)
 # plot_gt_enc_comp(enc=enc, test_set_size="200", gt_metric=gt_metric)
 # plot_gt_enc_comp(enc=enc, test_set_size="2k", gt_metric=gt_metric)
 # plot_gt_enc_comp(enc=enc, test_set_size="20k", gt_metric=gt_metric)

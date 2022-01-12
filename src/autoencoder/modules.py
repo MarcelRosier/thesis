@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import threshold
 from torch.utils.tensorboard import SummaryWriter
+from monai.networks.nets import VarAutoEncoder
 
 
 class Encoder(nn.Module):
