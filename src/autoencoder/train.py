@@ -32,15 +32,15 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 120
-LATENT_DIM = 2048
+MAX_EPOCHS = 600
+LATENT_DIM = 8
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
-CHECKPOINT_FREQUENCY = 120
-VAE = False
+CHECKPOINT_FREQUENCY = 300
+VAE = True
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
 T1C = True
 

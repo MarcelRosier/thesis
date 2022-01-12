@@ -311,6 +311,9 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
                    test_set_size=test_set_size, metric=metric, t1c=t1c)
     print(func)
     print(multiprocessing.cpu_count())
+    idx = real_tumors.index("tgm063_preop")
+    real_tumors = real_tumors[idx+1:]
+    print(real_tumors)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, real_tumors)
         t = results.get()
@@ -330,8 +333,8 @@ def run(real_tumor):
     # print(datetime.now())
     # run_calc_encoded_sim_for_all_tumors(processes=16,
     #                                     test_set_size="20k", latent_dim=1024, train_size=1500, vae=False, t1c=False)
-    # run_calc_groundtruth_sim_for_all_tumors(
-    #     processes=32, test_set_size="20k", metric=SimilarityMeasureType.DICE, t1c=False)
+    run_calc_groundtruth_sim_for_all_tumors(
+        processes=1, test_set_size="20k", metric=SimilarityMeasureType.L2, t1c=False)
     # enc = "enc_VAE_T1C_1024_1500"
     # enc = "enc_VAE_FLAIR_1024_1500"
     enc = "enc_VAE_1024_6000"
@@ -349,12 +352,12 @@ def run(real_tumor):
     # run_top_15_comp(enc=enc, testset_size="20k",
     #                 gt_metric=SimilarityMeasureType.L2, save=True)
 
-    calc_best_match_pairs(
-        testset_size="200", enc=enc, gt_metric='dice', t1c=t1c, save=True)
-    calc_best_match_pairs(
-        testset_size="2k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
-    calc_best_match_pairs(
-        testset_size="20k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="200", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="2k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
+    # calc_best_match_pairs(
+    #     testset_size="20k", enc=enc, gt_metric='dice', t1c=t1c, save=True)
     # calc_best_match_pairs(
     #     testset_size="200", enc=enc, gt_metric='l2', save=True)
     # calc_best_match_pairs(
