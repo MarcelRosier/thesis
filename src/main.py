@@ -98,16 +98,16 @@ def run_top_10_l2_dice_comp():
 def run_parallel_base():
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
-    tumor_ids = tumor_ids[10:]
+    # tumor_ids = tumor_ids[:10]
 
     for real_tumor in tumor_ids:
         print(f"running for {real_tumor}")
         real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
-        testset_size = "20k"
+        testset_size = "50k"
         subset = (TEST_SET_RANGES[testset_size]['START'],
                   TEST_SET_RANGES[testset_size]['END'])
         baseline_parallel.run(
-            processes=32,
+            processes=42,
             similarity_measure_type=SimilarityMeasureType.DICE,
             tumor_path=real_tumor_path,
             subset=subset,
@@ -120,7 +120,7 @@ logging.basicConfig(level=utils.LOG_LEVEL)
 ###
 # Exec
 ###
-
+run_parallel_base()
 # analysis.compare_best_match_for_downsampling()
 # run_parallel_base()
 # gt_path = "/home/ivan_marcel/thesis/src/data/2021-11-24/tgm_001_vs_3000_3199_l2/2021-11-24 14:25:47_parallel_datadump_l2.json"

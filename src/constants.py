@@ -100,6 +100,10 @@ default = {
         'START': 8000,
         'END': 28000
     },
+    '50k': {
+        'START': 0,
+        'END': 50000
+    },
 }
 TEST_SET_RANGES = {
     LOCAL: default,

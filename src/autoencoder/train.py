@@ -33,7 +33,7 @@ torch.backends.cudnn.benchmark = False
 # Hyper parameters
 BASE_CHANNELS = 24
 MAX_EPOCHS = 600
-LATENT_DIM = 8
+LATENT_DIM = 32
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
