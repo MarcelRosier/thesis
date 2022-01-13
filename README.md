@@ -16,19 +16,16 @@ optional arguments:
 ### Structure
 ```
 📦autoencoder
- ┃ 
- ┣ 📂legacy_lightning - original lightning code before transform to default torch
- ┃ ┣ 📜lightning_main.py
- ┃ ┗ 📜lightning_modules.py
- ┣ 📂tutorials - basis upon which most networks are constructed
- ┃ ┣ 📜tutorial_1.py
- ┃ ┣ 📜tutorial_2.py
- ┃ ┗ 📜tutorial_2_modules.py
- ┣ 📜dataset.py - TumorT1C dataset
- ┣ 📜losses.py - Custom Losses, e.g. CustomDiceLoss 
- ┣ 📜main.py - Main class, with training loop
- ┣ 📜modules.py - Autoencoder, Encoder, Decoder and Helper modules
- ┗ 📜networks.py - Different networks for the Autoencoder
+ ┣ 📂data - Result data
+ ┣ 📂legacy_lightning - PyTorch Lightning version of legacy code
+ ┣ 📂tutorials - Basis for implementatation
+ ┣ 📜datasets.py
+ ┣ 📜encoded_similarity_check.py
+ ┣ 📜gen_encoded.py
+ ┣ 📜losses.py
+ ┣ 📜modules.py
+ ┣ 📜networks.py
+ ┗ 📜train.py
 ```
 
 ---
