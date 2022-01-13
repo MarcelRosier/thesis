@@ -3,15 +3,20 @@
 
 \chapter{Introduction}\label{chapter:introduction}
 
-\todo {COPIED PARAGRAPH ADAPT!}
-Glioblastoma (GBM) is one of the most aggressive brain tumors, characterized by varying and unknown infiltration into the surrounding tissue. After resection of tumor mass visible in MRI scans, current treatment includes radiotherapy targeting tissue around the visible lesion uniformly, accounting for residual tumor cells. Tumor recurrence is present in most cases, possibly due to patient-specific and non-uniform distribution of residual tumor cells. Personalization of the clinical target volume (CTV), i.e. the irradiated volume targeting residual cells, could spare more healthy tissue and increase progression-free survival by potentially avoiding recurrence. \todo{add references}
-For instance, \todo{k26} achieves a personalization of tumor growth parameters for the simulation of the overall tumor volume using partial differential equations in the brain anatomy, while being highly time-expensive \todo{k4}. Scibilia et al. \todo{cite kevins} try to overcome this runtime issue by introducing a !!neural network based surrogate for the deterministic inference of patient specific parameters with the Fisher-Kolmogorov PDE (FK-PDE) from single time-point synthetic noise-free clinical brain scans, namely a T1Gd and FLAIR scan obtained via MRI and a FET-PET scan. !! \todo{rephrase/shorten? COPIED}
-In the following, we propose an image retrieval based approach to find personalized tumor growth parameters based on a dataset of 50k synthetic tumors. As a baseline, this image retrieval process is achieved via a primitive iterative and parallelized pair wise comparison that uses a DICE or L2 metric using the original $128^3$ dimensional data, as well as a down sampled version of dimensionality $64^3$. 
-To improve runtime and space complexity, we introduce both a traditional autoencoder (AE) and a variational auto encoder (VAE) to encode the input tumor as well as the dataset to vectors of dimension $1024$ and run the comparison with the encoded versions. \newline
-We then evaluate how well different encodings preserve the similarity relations between input and synthetic tumors and point to future improvements and attempts. \newline
-As a result, this work shows that autoencoders can to a certain degree be used to improve time- and space complexity of the T1C part in (this) pipeline, while the FLAIR segmentation is in the current form of data and network not suited. VAE achieve similar results on all fronts.
-\todo{Citations, rework copied paragraphs, mention T1C / Flair}
-
+Magnetic resonance imaging (MRI) is the state of the art diagnostic tool to diagnose and locate brain tumors. While being able to reliably highlight areas of sufficiently high tumor cell concentration, it struggles with areas of lower density.
+For glioblastoma (GBM), which is one of the most aggressive types of brain tumor that characteristically infiltrates surrounding tissue, the shortcomings of MRI scans often lead to tumor recurrence after treatment.\\
+Current treatment plans try to account for the unknown infiltration by also uniformly targeting the visible tumor's surrounding.
+While decreasing the probability of secondary tumors, this has the significant drawback of typically still not resecting all infiltrations and also often unnecessarily damaging healthy tissue, which has a negative impact on the patient's life quality.
+Personalizing the target of radio therapy by complementing the MRI scans with individual simulations that give information about the spatial distribution of tumor cell concentration could preserve healthy tissue and reduce the likelihood of residual tumor cells \parencite{Stupp2014} \parencite{Lipkova2019} \parencite{AdultGlioAlexander}.\\
+Conventional approaches to implement a personalization try to simulate the tumor growth for each individual patient based on differential equations. 
+However, utilizing highly efficient numerical solvers still results in extreme runtimes that obstruct transfer into clinical practice
+\parencite{ezhov2021geometryaware}.
+To overcome this issue \parencite{LearnMorphInfer} introduced the learn-morph-infer pipeline that delivers fairly accurate results in near real-time.
+Since it relies on a neural network to predict patient-specific parameters, it is nondeterministic and might not be robust to all inputs.
+In the following, we propose an image retrieval based approach that performs a query of a patient specific scan to a database of synthetic tumors, returning an ideally close match of the patient's tumor. This can function as a replacement for the predicting network and forward solver within the pipeline.
+As a baseline, this image retrieval process is achieved via a primitive iterative pair wise comparison.
+We investigate how down sampling as well as compression using autoencoders and variational autoencoders can improve runtimes, while assessing the quality of results by comparison with the iterative baseline.\\
+\todo{results and point to future work}
 
 
 

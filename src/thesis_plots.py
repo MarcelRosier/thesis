@@ -1,9 +1,13 @@
+import os
+import json
+
 import matplotlib.pyplot as plt
-# plt.style.use('classic')
 import numpy as np
 import pandas as pd
-
 import seaborn as sns
+from seaborn.palettes import color_palette
+
+from utils import DSValueType
 
 
 def plot_train_and_val_loss_ae():
@@ -88,7 +92,7 @@ def plot_train_and_val_loss_vae():
     ticks = list(np.linspace(0, 600, 13))
     # yticks = list(np.linspace(0, 1, 11))
 
-    fig, axes = plt.subplots(2, 2)
+    fig, axes = plt.subplots(2, 2, sharex=True)
 
     # train sum
     train_plot = sns.lineplot(
@@ -114,7 +118,7 @@ def plot_train_and_val_loss_vae():
     train_plot = sns.lineplot(
         ax=axes[1][0], data=dice_loss_data, dashes=False)
     train_plot.set_xlim(-1)
-    train_plot.set_ylim(0.05, 0.20)
+    train_plot.set_ylim(0.08, 0.20)
     train_plot.set_title("Training loss per epoch (Dice part)")
     train_plot.set_xticks(ticks)
     train_plot.set_xlabel("epoch")
@@ -125,16 +129,63 @@ def plot_train_and_val_loss_vae():
     train_plot = sns.lineplot(
         ax=axes[1][1], data=kld_loss_data, dashes=False)
     train_plot.set_xlim(-1)
-    train_plot.set_ylim(0.00, 0.10)
+    train_plot.set_ylim(0.05, 0.10)
     train_plot.set_title("Training loss per epoch (kld part)")
     train_plot.set_xticks(ticks)
     train_plot.set_xlabel("epoch")
     train_plot.set_ylabel("0.001 * D_KL Loss")
 
-    # plt.savefig("test.png", bbox_inches='tight', dpi=800)
+    plt.savefig("test_vae.png", bbox_inches='tight', dpi=800)
+    # plt.show()
+
+
+def plot_best_match_input_dice():
+    base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000/dim_128/dice"
+    tumor_ids = os.listdir(base_dir)
+    tumor_ids.sort(key=lambda f: int(f[3:6]))
+    t1c_scores = []
+    flair_scores = []
+
+    for tumor_id in tumor_ids:
+        with open(f"{base_dir}/{tumor_id}") as json_file:
+            data = json.load(json_file)
+            best_key = max(
+                data.keys(), key=lambda k: data[k][DSValueType.COMBINED.value])
+            t1c_scores.append(data[best_key][DSValueType.T1C.value])
+            flair_scores.append(data[best_key][DSValueType.FLAIR.value])
+
+    fig, axes = plt.subplots(1, 2)
+    x_labels = [int(tumor[3:6]) for tumor in tumor_ids]
+    y_ticks = np.linspace(0, 1, 11)
+
+    t1c_avg = sum(t1c_scores) / len(t1c_scores)
+    t1c_plot = sns.barplot(
+        ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
+    t1c_plot.set_xlim(-1)
+    t1c_plot.set_ylim(0, 1)
+    t1c_plot.set_title("Dice score between input and best match (T1Gd)")
+    t1c_plot.set_xlabel("tumors")
+    t1c_plot.set_xticklabels([])
+    t1c_plot.set_ylabel("Dice score")
+    t1c_plot.set_yticks(y_ticks)
+    t1c_plot.axhline(t1c_avg, color="#5ba56e")
+
+    flair_avg = sum(flair_scores) / len(flair_scores)
+    flair_plot = sns.barplot(
+        ax=axes[1], x=x_labels, y=flair_scores, color="#3070B3")
+    flair_plot.set_xlim(-1)
+    flair_plot.set_ylim(0, 1)
+    flair_plot.set_title("Dice score between input and best match (FLAIR)")
+    flair_plot.set_xlabel("tumors")
+    flair_plot.set_xticklabels([])
+    flair_plot.set_ylabel("Dice score")
+    flair_plot.set_yticks(y_ticks)
+    flair_plot.axhline(flair_avg, color="#5ba56e")
     plt.show()
+    # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
 
 
-sns.set(rc={'figure.figsize': (12, 4.5)})
+sns.set(rc={'figure.figsize': (16, 9)})
 sns.set_theme(style='whitegrid')
-plot_train_and_val_loss_vae()
+# plot_train_and_val_loss_vae()
+plot_best_match_input_dice()
