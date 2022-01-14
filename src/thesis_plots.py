@@ -1,7 +1,7 @@
 import os
 import json
-
 import matplotlib.pyplot as plt
+from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -159,10 +159,16 @@ def plot_best_match_input_dice():
     y_ticks = np.linspace(0, 1, 11)
 
     t1c_avg = sum(t1c_scores) / len(t1c_scores)
+    # t1c_plot = sns.barplot(
+    #     ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
+    norm = TwoSlopeNorm(vmin=0, vcenter=0.5, vmax=1)
+    red_green_pal = sns.diverging_palette(0, 150, l=50, n=32, as_cmap=True)
+    colors = [red_green_pal(norm(c)) for c in t1c_scores]
+    p = sns.color_palette("Spectral", as_cmap=True)
     t1c_plot = sns.barplot(
-        ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
+        ax=axes[0], x=x_labels, y=t1c_scores, palette=colors)
     t1c_plot.set_xlim(-1)
-    t1c_plot.set_ylim(0, 1)
+    t1c_plot.set_ylim(-0.01, 1)
     t1c_plot.set_title("Dice score between input and best match (T1Gd)")
     t1c_plot.set_xlabel("tumors")
     t1c_plot.set_xticklabels([])
@@ -170,11 +176,12 @@ def plot_best_match_input_dice():
     t1c_plot.set_yticks(y_ticks)
     t1c_plot.axhline(t1c_avg, color="#5ba56e")
 
+    colors = [red_green_pal(norm(c)) for c in flair_scores]
     flair_avg = sum(flair_scores) / len(flair_scores)
     flair_plot = sns.barplot(
-        ax=axes[1], x=x_labels, y=flair_scores, color="#3070B3")
+        ax=axes[1], x=x_labels, y=flair_scores, palette=colors)
     flair_plot.set_xlim(-1)
-    flair_plot.set_ylim(0, 1)
+    flair_plot.set_ylim(-0.01, 1)
     flair_plot.set_title("Dice score between input and best match (FLAIR)")
     flair_plot.set_xlabel("tumors")
     flair_plot.set_xticklabels([])

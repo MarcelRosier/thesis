@@ -148,9 +148,9 @@ def plot_best_match_presence(enc: str, test_set_size: str, gt_metric: str, top_n
     # transform list strings to length
     is_present = []
     for tumor, gt_list, enc_list in zip(tumor_ids, gt_lists, encoded_lists):
-        gt_best = gt_list[0]
-        gt_best_in_top_n_enc = gt_best in enc_list[:top_n]
-        is_present.append(float(gt_best_in_top_n_enc))
+        enc_best = enc_list[0]
+        encbest_in_top_n_gt = enc_best in gt_list[:top_n]
+        is_present.append(float(encbest_in_top_n_gt))
 
     tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
     avg = sum(is_present) / len(is_present)
@@ -158,14 +158,14 @@ def plot_best_match_presence(enc: str, test_set_size: str, gt_metric: str, top_n
     ax.axhline(avg)
     ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
     ax.set_title(
-        f"gt best match in top {top_n} encoded matches")
+        f"encoded best match in top {top_n} gt matches")
     # plt.show()
 
 
 def plot_best_match_presence_overview(enc: str, test_set_size: str, gt_metric: str):
     fig, axes = plt.subplots(3, 1, figsize=(15, 5), sharey=True)
     fig.suptitle(
-        f'GT best match present in encoded top n ranking\n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2')
+        f'encoded best match present in gt top n ranking\n Datasetsize={test_set_size}, {enc}\n groundtruth_metric={gt_metric}, encoded_metric=l2')
 
     plot_best_match_presence(
         enc, test_set_size, gt_metric, top_n=15, ax=axes[0])
@@ -181,9 +181,9 @@ def plot_downsampled_best_match_presence(tumor_ids, top_gt_list, top_downsampled
 
     is_present = []
     for gt, downsampled in zip(top_gt_list, top_downsampled_list):
-        gt_best = gt[0]
-        gt_best_in_top_n_downsampled = gt_best in downsampled[:top_n]
-        is_present.append(float(gt_best_in_top_n_downsampled))
+        down_best = downsampled[0]
+        down_best_in_top_n_gt = down_best in gt[:top_n]
+        is_present.append(float(down_best_in_top_n_gt))
     tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
     avg = sum(is_present) / len(is_present)
     sns.barplot(ax=ax, x=tumor_ids, y=is_present, color="#2a9c2c")
@@ -191,14 +191,14 @@ def plot_downsampled_best_match_presence(tumor_ids, top_gt_list, top_downsampled
     ax.text(0, avg + 0.05, str(avg*100)[:4] + "%")
     ax.set(xticklabels=[])
     ax.set_title(
-        f"gt best match in top {top_n} downsampled matches, value_type={value_type}")
+        f"down sampled best match in top {top_n} gt matches, value_type={value_type}")
     # plt.show()
 
 
 def plot_downsampled_best_match_presence_overview(testset_size: str, metric: SimilarityMeasureType):
     fig, axes = plt.subplots(2, 3, sharex=True, sharey=True)
     fig.suptitle(
-        f'GT best match present in downsampled top n ranking\n Datasetsize={testset_size}\n metric={metric}')
+        f'Down sampled best match present in gt top n ranking\n Datasetsize={testset_size}\n metric={metric}')
     from baseline import analysis
 
     value_type = DSValueType.T1C
@@ -227,7 +227,7 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
                                          top_downsampled_list, top_n=1, ax=axes[1][2], value_type=value_type)
 
-    # plt.show()
+    plt.show()
 
 
 def test_mayavi():
@@ -250,7 +250,7 @@ def test_mayavi():
     # mlab.surf(z, warp_scale='auto')
 
 
-test_mayavi()
+# test_mayavi()
 # plot_downsampled_best_match_presence_overview(
 #     testset_size="2k", metric=SimilarityMeasureType.DICE)
 # enc = "enc_FLAIR_1024_1500"
