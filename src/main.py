@@ -111,7 +111,7 @@ def run_parallel_base():
             similarity_measure_type=SimilarityMeasureType.DICE,
             tumor_path=real_tumor_path,
             subset=subset,
-            downsample_to=None
+            downsample_to=32
         )
 
 
