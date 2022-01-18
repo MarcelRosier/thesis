@@ -99,20 +99,26 @@ def run_parallel_base():
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
-
+    start = datetime.now()
     for real_tumor in tumor_ids:
         print(f"running for {real_tumor}")
         real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
         testset_size = "50k"
         subset = (TEST_SET_RANGES[testset_size]['START'],
                   TEST_SET_RANGES[testset_size]['END'])
+        single_start = datetime.now()
         baseline_parallel.run(
-            processes=42,
+            processes=32,
             similarity_measure_type=SimilarityMeasureType.DICE,
             tumor_path=real_tumor_path,
             subset=subset,
-            downsample_to=32
+            downsample_to=32,
+            save=False
         )
+        single_dur = (datetime.now() - single_start)
+        print(f"{single_dur=}")
+    total_dur = (datetime.now() - start)
+    print(f"{total_dur=}")
 
 
 logging.basicConfig(level=utils.LOG_LEVEL)

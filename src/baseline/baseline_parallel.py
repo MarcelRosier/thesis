@@ -106,7 +106,7 @@ def get_scores_for_real_tumor_parallel(similarity_measure: SimilarityMeasureType
     return scores, best_score
 
 
-def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_path=REAL_TUMOR_PATH, subset=None, downsample_to: int = None):
+def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_path=REAL_TUMOR_PATH, subset=None, downsample_to: int = None, save: bool = True):
     scores, best_score = get_scores_for_real_tumor_parallel(
         similarity_measure=similarity_measure_type,
         processes=processes,
@@ -122,6 +122,8 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_pat
     if subset:
         testset_size = str(subset[1] - subset[0])
 
+    if not save:
+        return best_score
     tumor_id = tumor_path.split('/')[-1]
     sub_path = f"testset_size_{testset_size}/dim_{downsample_to if downsample_to else 128}/{'dice' if similarity_measure_type==SimilarityMeasureType.DICE else 'l2'}/{tumor_id}.json"
     save_path = os.path.join(BASELINE_SIMILARITY_BASE_PATH, sub_path)
