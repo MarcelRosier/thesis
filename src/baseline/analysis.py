@@ -7,11 +7,11 @@ import pandas as pd
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 
-def compare_best_match_for_downsampling(downsample_to=64, value_type=DSValueType.FLAIR, n_best=3):
+def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSValueType.FLAIR, n_best=3):
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
-    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_2000"
+    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000"
     top_gt_list = []
     top_downsampled_list = []
     for tumor_id in tumor_ids:
