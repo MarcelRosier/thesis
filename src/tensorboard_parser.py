@@ -68,21 +68,22 @@ def save_train_loss_as_pkl(exp_name):
     # print(log_df.loc[0].step)
     print(log_df)
 
-    for i in range(0, 1800, 3):  # for older 600,5
+    for i in range(0, 600, 2):  # for older 600,5
         train_loss = log_df.loc[i].value
         val_loss = log_df.loc[i+1].value
-        kld_loss = log_df.loc[i+2].value
+        # kld_loss = log_df.loc[i+2].value
         df = df.append({
             "train_loss": train_loss,
             "val_loss": val_loss,
-            "kld_loss": kld_loss
+            # "kld_loss": kld_loss
         }, ignore_index=True)
     print(df)
     df.to_pickle(f"{save_path}/{exp_name}.pkl")
 
 
 if __name__ == "__main__":
-    exp_name = "VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232"
+    exp_name = "T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438"
+    # "VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232"
     # "VAE_T1C_BC_24_LD_512_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641550824"
 
     # AE logs
