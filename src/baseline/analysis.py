@@ -1,3 +1,4 @@
+import json
 import os
 
 from constants import ENV, REAL_TUMOR_BASE_PATH
@@ -34,3 +35,40 @@ def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSVa
         top_gt_list.append(top_gt)
         top_downsampled_list.append(top_downsampled)
     return tumor_ids, top_gt_list, top_downsampled_list
+
+
+def compare_best_match_for_enc(is_ae=True):
+    tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
+    tumor_ids.sort(key=lambda f: int(f[3:6]))
+    # tumor_ids = tumor_ids[:10]
+    assert len(tumor_ids) == 62
+    base_path_gt = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000"
+    base_path_enc = ""
+
+    data = {}
+
+    for tumor_id in tumor_ids:
+        path_enc = f"{base_path_enc}/{tumor_id}.json"
+        top_enc = find_n_best_score_ids(
+            path_enc,
+            DSValueType.COMBINED,
+            min,
+            n_best=15
+        )
+
+        path_gt = f"{base_path_gt}/dim_128/dice/{tumor_id}.json"
+        top_gt = find_n_best_score_ids(
+            path_gt,
+            DSValueType.COMBINED,
+            max,
+            n_best=15
+        )
+        # same_best_match = top_gt[0] == top_downsampled[0]
+        data[tumor_id] = {
+            'top_gt': top_gt,
+            'top_enc': top_enc
+        }
+
+    path = ""
+    with open(path) as file:
+        json.dump(data, file)
