@@ -42,8 +42,8 @@ def compare_best_match_for_enc(is_ae=True):
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
     assert len(tumor_ids) == 62
-    base_path_gt = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000"
-    base_path_enc = ""
+    base_path_gt = "/home/ivan_marcel/thesis/src/baseline/data/testset_size_50000/dim_128/dice"
+    base_path_enc = "/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_enc_sim"
 
     data = {}
 
@@ -56,7 +56,7 @@ def compare_best_match_for_enc(is_ae=True):
             n_best=15
         )
 
-        path_gt = f"{base_path_gt}/dim_128/dice/{tumor_id}.json"
+        path_gt = f"{base_path_gt}/{tumor_id}.json"
         top_gt = find_n_best_score_ids(
             path_gt,
             DSValueType.COMBINED,
@@ -69,6 +69,6 @@ def compare_best_match_for_enc(is_ae=True):
             'top_enc': top_enc
         }
 
-    path = ""
-    with open(path) as file:
+    path = "/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/top_15.json"
+    with open(path, "w") as file:
         json.dump(data, file)
