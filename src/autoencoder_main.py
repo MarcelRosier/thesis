@@ -24,3 +24,6 @@ elif args.mode == 3:
     from autoencoder import encoded_similarity_check
     encoded_similarity_check.run(
         real_tumor="tgm001_preop")
+elif args.mode == 4:
+    from autoencoder import query
+    query.run(processes=32)

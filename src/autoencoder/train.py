@@ -29,24 +29,23 @@ torch.manual_seed(42)
 torch.backends.cudnn.determinstic = True
 torch.backends.cudnn.benchmark = False
 
-
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 300
-LATENT_DIM = 1024
+MAX_EPOCHS = 50
+LATENT_DIM = 8
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
-LEARNING_RATE = 1e-5
-CHECKPOINT_FREQUENCY = 300
-VAE = False
+LEARNING_RATE = 3e-5
+CHECKPOINT_FREQUENCY = 50
+VAE = True
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
-T1C = False
+T1C = True
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"{'VAE_'if VAE else ''}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
+run_name = f"{'ref_no_kld_VAE_'if VAE else ''}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
 
 # remove trailing time details after dot
 run_name = ''.join(run_name.split('.')[:-1])
@@ -187,7 +186,7 @@ def vae_loss_function(criterion, recon_x, x, mu, log_var, beta):
     reconstruction_loss = criterion(recon_x, x)
     kld = -0.5 * beta * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
     # print(f"{reconstruction_loss=} | {kld=}")
-    return reconstruction_loss + kld, kld
+    return reconstruction_loss + kld, kld  # + kld
 
 
 def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
@@ -245,20 +244,25 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
 
         # compute validation_loss
         val_loss = 0
+        val_kld_loss = 0
         with torch.no_grad():
             model.eval()  # set to eval mode
             for batch, _ in val_loader:
                 batch = batch.to(device)
                 outputs, mu, logvar = model(batch_features)
-                cur_loss, _ = vae_loss_function(
+                cur_loss, cur_kld = vae_loss_function(
                     criterion=criterion, recon_x=outputs, x=batch_features, mu=mu, log_var=logvar, beta=BETA)
                 val_loss += cur_loss.item()
+                val_kld_loss += cur_kld
         val_loss = val_loss / len(val_loader)
+        val_kld_loss = cur_kld / len(val_loader)
 
         # prints
         print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
         print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
         print("epoch : {}/{}, kld = {:.6f}".format(epoch + 1, MAX_EPOCHS, kld))
+        print("epoch : {}/{}, val_kld = {:.6f}".format(epoch +
+              1, MAX_EPOCHS, val_kld_loss))
 
         # add scalars to tensorboard
         writer.add_scalar(f"vae_loss_function /train", loss, epoch + 1)
@@ -266,6 +270,8 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
             f"vae_loss_function /validation", val_loss, epoch + 1)
         writer.add_scalar(
             f"vae_loss_function /kld", kld, epoch + 1)
+        writer.add_scalar(
+            f"vae_loss_function /val_kld", val_kld_loss, epoch + 1)
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY

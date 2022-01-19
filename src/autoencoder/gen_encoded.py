@@ -38,10 +38,10 @@ torch.backends.cudnn.benchmark = False
 LATENT_DIM = 1024
 TEST_SET_SIZE = "50k"
 TRAIN_SIZE = 1500
-SYNTHETIC = True
+SYNTHETIC = False
 VAE = False
 BETA = 0.001
-T1C = False
+T1C = True
 
 #
 BASE_CHANNELS = 24
@@ -99,8 +99,8 @@ def run(cuda_id=0):
                                latent_dim=LATENT_DIM, only_encode=True)
     else:
         model = Autoencoder(nets=nets, min_dim=MIN_DIM, only_encode=True)
-        # checkpoint_path = "/mnt/Drive3/ivan_marcel/models/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
-        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
+        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
+        # checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
         # if LATENT_DIM == 4096 and TRAIN_SIZE == 1500:
         #     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907_ep_final.pt"
         # if LATENT_DIM == 4096 and TRAIN_SIZE == 3000:

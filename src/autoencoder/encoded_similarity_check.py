@@ -311,8 +311,8 @@ def run_calc_groundtruth_sim_for_all_tumors(processes: int = 1, test_set_size: s
                    test_set_size=test_set_size, metric=metric, t1c=t1c)
     print(func)
     print(multiprocessing.cpu_count())
-    idx = real_tumors.index("tgm063_preop")
-    real_tumors = real_tumors[idx+1:]
+    # idx = real_tumors.index("tgm063_preop")
+    # real_tumors = real_tumors[idx+1:]
     print(real_tumors)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, real_tumors)
