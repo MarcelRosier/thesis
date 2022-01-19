@@ -220,4 +220,5 @@ def plot_best_match_input_dice():
 sns.set(rc={'figure.figsize': (16, 9)})
 sns.set_theme(style='whitegrid')
 # plot_train_and_val_loss_vae()
-plot_best_match_input_dice()
+# plot_best_match_input_dice()
+plot_train_and_val_loss_ae()
