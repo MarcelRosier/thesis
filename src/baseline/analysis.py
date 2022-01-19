@@ -37,7 +37,7 @@ def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSVa
     return tumor_ids, top_gt_list, top_downsampled_list
 
 
-def compare_best_match_for_enc(is_ae=True):
+def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType.COMBINED):
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
@@ -51,7 +51,7 @@ def compare_best_match_for_enc(is_ae=True):
         path_enc = f"{base_path_enc}/{tumor_id}.json"
         top_enc = find_n_best_score_ids(
             path_enc,
-            DSValueType.COMBINED,
+            value_type,
             min,
             n_best=15
         )
@@ -59,7 +59,7 @@ def compare_best_match_for_enc(is_ae=True):
         path_gt = f"{base_path_gt}/{tumor_id}.json"
         top_gt = find_n_best_score_ids(
             path_gt,
-            DSValueType.COMBINED,
+            value_type,
             max,
             n_best=15
         )
@@ -69,6 +69,6 @@ def compare_best_match_for_enc(is_ae=True):
             'top_enc': top_enc
         }
 
-    path = "/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/top_15.json"
+    path = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/top_15_{value_type}.json"
     with open(path, "w") as file:
         json.dump(data, file)
