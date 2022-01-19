@@ -39,9 +39,9 @@ def run_query_for_encoded_data(real_tumor_id, is_ae=True):
         flair_score = utils.calc_l2_norm(real_tumor_flair, syn_flair)
         t1c_score = utils.calc_l2_norm(real_tumor_t1c, syn_t1c)
         results[folder] = {
-            'flair': flair_score,
-            't1c': t1c_score,
-            'combined': flair_score + t1c_score
+            'flair': str(flair_score),
+            't1c': str(t1c_score),
+            'combined': str(flair_score + t1c_score)
         }
     data_path = "/home/ivan_marcel/thesis/src/autoencoder/data"
     filename_dump = f"{data_path}/final_50k_enc_sim/{real_tumor_id}.json"
