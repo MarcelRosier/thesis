@@ -95,3 +95,16 @@ def analyze():
         t1c_data = json.load(file)
     avg_flair = sum(flair_data.values()) / len(flair_data.values())
     print(avg_flair)
+
+
+def compare_custom_monai_ranking():
+    monai_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/monai_dice/50000/dim_128/dice/tgm001_preop.json"
+    custom_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/tgm001_preop.json"
+
+    monai_best = utils.find_n_best_score_ids(
+        monai_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+    custom_best = utils.find_n_best_score_ids(
+        custom_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+    # print(monai_best)
+    # print(custom_best)
+    # print(monai_best == custom_best)
