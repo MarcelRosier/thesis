@@ -16,7 +16,7 @@ from autoencoder.modules import Autoencoder, VarAutoencoder
 
 
 def compute_recon_dice_scores(is_t1c, cuda_id):
-    SYNTHETIC = False
+    SYNTHETIC = True
     VAE = False
     if SYNTHETIC:
         test_dataset = TumorDataset(
@@ -65,7 +65,7 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
 
     # generate encoded dataset
     data = {}
-    bar = Bar('Processing', max=len(test_loader))
+    # bar = Bar('Processing', max=len(test_loader))
     print(f"Starting @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     i = 0
     criterion = DiceLoss(
@@ -79,9 +79,10 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
         #     tumor.cpu().detach().numpy(), np_encoded)
         dice_loss = criterion(tumor.cpu().detach(), np_encoded)
         data[folder_id] = 1 - dice_loss.item()
-
-        bar.next()
-    bar.finish()
+        i += 1
+        print(i)
+    #     bar.next()
+    # bar.finish()
     print(data)
     with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/{"syn" if SYNTHETIC else "real"}/monai_scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
         json.dump(data, file)
