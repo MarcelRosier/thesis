@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from functools import partial
 from typing import Tuple
+from monai.losses.dice import DiceLoss
 
 import numpy as np
 import utils
@@ -49,8 +50,18 @@ def get_scores_for_pair(measure_func, t1c, flair, downsample_to, tumor_folder):
     tumor_06[tumor_06 >= 0.6] = 1
 
     # calc and update dice scores and partners
+    dice = False
+    if not measure_func:
+        criterion = DiceLoss(
+            smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
+        measure_func = criterion
+        dice = True
+
     cur_flair = measure_func(tumor_02, flair)
     cur_t1c = measure_func(tumor_06, t1c)
+    if dice:
+        cur_flair = 1 - cur_flair
+        cur_t1c = 1 - cur_t1c
     combined = cur_t1c + cur_flair
     scores = {}
     scores[tumor_folder] = {
@@ -84,7 +95,7 @@ def get_scores_for_real_tumor_parallel(similarity_measure: SimilarityMeasureType
     print("Starting parallel loop for {} folders with {} processes".format(
         len(folders), processes))
 
-    measure_func = utils.calc_dice_coef if similarity_measure == SimilarityMeasureType.DICE else utils.calc_l2_norm
+    measure_func = None if similarity_measure == SimilarityMeasureType.DICE else utils.calc_l2_norm
     func = partial(get_scores_for_pair, measure_func,
                    t1c, flair, downsample_to)
     with multiprocessing.Pool(processes) as pool:
@@ -125,7 +136,7 @@ def run(processes, similarity_measure_type=SimilarityMeasureType.DICE, tumor_pat
     if not save:
         return best_score
     tumor_id = tumor_path.split('/')[-1]
-    sub_path = f"testset_size_{testset_size}/dim_{downsample_to if downsample_to else 128}/{'dice' if similarity_measure_type==SimilarityMeasureType.DICE else 'l2'}/{tumor_id}.json"
+    sub_path = f"monai_dice/{testset_size}/dim_{downsample_to if downsample_to else 128}/{'dice' if similarity_measure_type==SimilarityMeasureType.DICE else 'l2'}/{tumor_id}.json"
     save_path = os.path.join(BASELINE_SIMILARITY_BASE_PATH, sub_path)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     with open(save_path, "w") as file:
