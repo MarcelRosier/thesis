@@ -82,3 +82,12 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
     print(data)
     with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/{"syn" if SYNTHETIC else "real"}/scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
         json.dump(data, file)
+
+
+def analyze():
+    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/syn/scores_flair.json') as file:
+        flair_data: dict = json.load(file)
+    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/syn/scores_t1c.json') as file:
+        t1c_data = json.load(file)
+    avg_flair = sum(flair_data.values()) / len(flair_data.values())
+    print(avg_flair)

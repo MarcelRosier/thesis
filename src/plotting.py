@@ -1,5 +1,4 @@
 import json
-from sys import path
 from matplotlib import colors
 
 import matplotlib.pyplot as plt
