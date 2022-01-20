@@ -4,9 +4,10 @@ import os
 from datetime import datetime
 from functools import partial
 from typing import Tuple
+from monai.metrics import compute_meandice
 from monai.losses.dice import DiceLoss
-
 import numpy as np
+import torch
 import utils
 from constants import (BASELINE_SIMILARITY_BASE_PATH, ENV, REAL_TUMOR_PATH,
                        SYN_TUMOR_BASE_PATH, SYN_TUMOR_PATH_TEMPLATE)
@@ -50,18 +51,32 @@ def get_scores_for_pair(measure_func, t1c, flair, downsample_to, tumor_folder):
     tumor_06[tumor_06 >= 0.6] = 1
 
     # calc and update dice scores and partners
-    dice = False
     if not measure_func:
         criterion = DiceLoss(
             smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
-        measure_func = criterion
-        dice = True
+        tumor_02 = torch.from_numpy(tumor_02)
+        tumor_02.unsqueeze_(0)
+        tumor_02.unsqueeze_(0)
+        flair = torch.from_numpy(flair)
+        flair.unsqueeze_(0)
+        flair.unsqueeze_(0)
+        # cur_flair = compute_meandice(
+        #     tumor_02, flair, include_background=False)
+        cur_flair = criterion(tumor_02, flair)
 
-    cur_flair = measure_func(tumor_02, flair)
-    cur_t1c = measure_func(tumor_06, t1c)
-    if dice:
-        cur_flair = 1 - cur_flair
-        cur_t1c = 1 - cur_t1c
+        tumor_06 = torch.from_numpy(tumor_06)
+        tumor_06.unsqueeze_(0)
+        tumor_06.unsqueeze_(0)
+        t1c = torch.from_numpy(t1c)
+        t1c.unsqueeze_(0)
+        t1c.unsqueeze_(0)
+        # cur_t1c = compute_meandice(tumor_06, t1c, include_background=False)
+        cur_t1c = criterion(tumor_06, t1c)
+        cur_flair = 1 - cur_flair.item()
+        cur_t1c = 1 - cur_t1c.item()
+    else:
+        cur_flair = measure_func(tumor_02, flair)
+        cur_t1c = measure_func(tumor_06, t1c)
     combined = cur_t1c + cur_flair
     scores = {}
     scores[tumor_folder] = {
@@ -98,10 +113,14 @@ def get_scores_for_real_tumor_parallel(similarity_measure: SimilarityMeasureType
     measure_func = None if similarity_measure == SimilarityMeasureType.DICE else utils.calc_l2_norm
     func = partial(get_scores_for_pair, measure_func,
                    t1c, flair, downsample_to)
-    with multiprocessing.Pool(processes) as pool:
-        results = pool.map_async(func, folders)
-        single_scores = results.get()
-        scores = {k: v for d in single_scores for k, v in d.items()}
+    # with multiprocessing.Pool(processes) as pool:
+    #     results = pool.map_async(func, folders)
+    #     single_scores = results.get()
+    #     scores = {k: v for d in single_scores for k, v in d.items()}
+    scores = {}
+    for f in folders:
+        r = func(f)
+        scores[f] = r[f]
 
     # find best
     best_key = 0

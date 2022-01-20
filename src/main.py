@@ -104,19 +104,19 @@ def run_parallel_base():
         print(f"running for {real_tumor}")
         real_tumor_path = os.path.join(REAL_TUMOR_BASE_PATH, real_tumor)
         testset_size = "50k"
-        subset = (TEST_SET_RANGES[testset_size]['START'],
-                  TEST_SET_RANGES[testset_size]['END'])
+        subset = (0, 50000)
         single_start = datetime.now()
         baseline_parallel.run(
-            processes=32,
+            processes=1,
             similarity_measure_type=SimilarityMeasureType.DICE,
             tumor_path=real_tumor_path,
             subset=subset,
-            downsample_to=32,
-            save=False
+            downsample_to=None,
+            save=True
         )
         single_dur = (datetime.now() - single_start)
         print(f"{single_dur=}")
+
     total_dur = (datetime.now() - start)
     print(f"{total_dur=}")
 
