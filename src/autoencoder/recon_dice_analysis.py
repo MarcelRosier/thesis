@@ -1,13 +1,13 @@
 
-from datetime import datetime
 import json
 import os
-from traceback import print_tb
+from datetime import datetime
+from progress.bar import Bar
 
 import numpy as np
 import torch
 import utils
-from progress.bar import Bar
+from monai.losses.dice import DiceLoss
 from torch.utils.data import DataLoader
 
 from autoencoder import networks
@@ -65,22 +65,25 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
 
     # generate encoded dataset
     data = {}
-    # bar = Bar('Processing', max=len(test_loader))
+    bar = Bar('Processing', max=len(test_loader))
     print(f"Starting @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     i = 0
+    criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
     for tumor, internal_id_tensor in test_loader:
         folder_id = test_dataset.tumor_ids[internal_id_tensor.item()]
         encoded = model(tumor)
         # save
-        np_encoded = encoded.cpu().detach().numpy()
-        dice_score = utils.calc_dice_coef(
-            tumor.cpu().detach().numpy(), np_encoded)
-        data[folder_id] = dice_score
+        np_encoded = encoded.cpu().detach()
+        # dice_score = utils.calc_dice_coef(
+        #     tumor.cpu().detach().numpy(), np_encoded)
+        dice_loss = criterion(tumor.cpu().detach(), np_encoded)
+        data[folder_id] = 1 - dice_loss.item()
 
-        # bar.next()
-    # bar.finish()
+        bar.next()
+    bar.finish()
     print(data)
-    with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/{"syn" if SYNTHETIC else "real"}/scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
+    with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/{"syn" if SYNTHETIC else "real"}/monai_scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
         json.dump(data, file)
 
 

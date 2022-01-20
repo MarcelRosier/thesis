@@ -405,34 +405,71 @@ def plot_recon_losses():
         flair_data: dict = json.load(file)
     with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/syn/scores_t1c.json') as file:
         t1c_data: dict = json.load(file)
+    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/real/scores_flair.json') as file:
+        real_flair_data: dict = json.load(file)
+    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/real/scores_t1c.json') as file:
+        real_t1c_data: dict = json.load(file)
 
-    # plot
-    fig, axes = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(12, 3))
-    axes[0].set_title("FLAIR")
-    axes[1].set_title("T1Gd")
-    # flair plot
-    sorted_flair_list_nth = sorted(flair_data.values())[::100]
+    print(sorted(flair_data.values())[-10:])
+    return
+    # General plot
+    fig, axes = plt.subplots(2, 2, sharex=False, sharey=False, figsize=(12, 3))
+    axes[0][0].set_title(r"Synthetic Dataset $S$")
+    axes[0][1].set_title(r"Real Dataset $P$")
+    axes[0][0].set_ylabel("FLAIR")
+    axes[1][0].set_ylabel("T1Gd")
+
+    # syn flair plot
+    sorted_flair_list_nth = sorted(flair_data.values())  # [::100]
     flair_avg = sum(flair_data.values())/len(flair_data.values())
     x = np.linspace(1, len(sorted_flair_list_nth), len(sorted_flair_list_nth))
     flair_plot = sns.lineplot(
-        ax=axes[0], x=x, y=sorted_flair_list_nth, color=tum_blue)
+        ax=axes[0][0], x=x, y=sorted_flair_list_nth, color=tum_blue)
     flair_plot.set_yticks(list(np.linspace(0, 1, 11)))
-    flair_plot.set_xlim(0, 500)
-    avg_50k = flair_plot.axhline(flair_avg, color=orange)
-    avg_val = flair_plot.axhline(flair_avg_val, color=lime)
-    flair_plot.legend(['Reconstruction', 'Average 50K', 'Average Validation'])
+    flair_plot.set_xlim(0, 50000)
+    flair_plot.axhline(flair_avg, color=orange)
+    flair_plot.axhline(flair_avg_val, color=lime)
+    flair_plot.legend(
+        [r'$Dice_{S}$', r'$\overline{Dice}_{S}$', r'$\overline{Dice}_{Validation}$'])
 
-    # t1c plot
+    # syn t1c plot
     t1c_avg = sum(t1c_data.values())/(len(t1c_data.values()))
-    sorted_t1c_list_nth = sorted(t1c_data.values())[::100]
+    sorted_t1c_list_nth = sorted(t1c_data.values())  # [::100]
     x = np.linspace(1, len(sorted_t1c_list_nth), len(sorted_t1c_list_nth))
     t1c_plot = sns.lineplot(
-        ax=axes[1], x=x, y=sorted_t1c_list_nth, color=tum_blue)
+        ax=axes[1][0], x=x, y=sorted_t1c_list_nth, color=tum_blue)
     t1c_plot.set_yticks(list(np.linspace(0, 1, 11)))
-    t1c_plot.set_xlim(0, 500)
-    avg_50k = t1c_plot.axhline(t1c_avg, color=orange)
-    avg_val = t1c_plot.axhline(t1c_avg_val, color=lime)
-    t1c_plot.legend(['Reconstruction', 'Average 50K', 'Average Validation'])
+    t1c_plot.set_xlim(0, 50000)
+    t1c_plot.axhline(t1c_avg, color=orange)
+    t1c_plot.axhline(t1c_avg_val, color=lime)
+    t1c_plot.legend([r'$Dice_{S}$',
+                    r'$\overline{Dice}_{S}$', r'$\overline{Dice}_{Validation}$'])
+
+    # real flair plot
+    real_sorted_flair_list = sorted(real_flair_data.values())
+    real_flair_avg = (sum(real_flair_data.values()) /
+                      len(real_flair_data.values()))
+    x = np.linspace(1, len(real_sorted_flair_list),
+                    len(real_sorted_flair_list))
+    flair_plot = sns.lineplot(
+        ax=axes[0][1], x=x, y=real_sorted_flair_list, color=tum_blue)
+    flair_plot.set_yticks(list(np.linspace(0, 1, 11)))
+    flair_plot.set_xlim(0, len(real_sorted_flair_list))
+    flair_plot.axhline(real_flair_avg, color=orange)
+    flair_plot.legend([r'$Dice_{P}$', r'$\overline{Dice}_{P}$'])
+
+    # real t1cplot
+    real_sorted_t1c_list = sorted(real_t1c_data.values())
+    real_t1c_avg = (sum(real_t1c_data.values()) /
+                    len(real_t1c_data.values()))
+    x = np.linspace(1, len(real_sorted_t1c_list),
+                    len(real_sorted_t1c_list))
+    t1c_plot = sns.lineplot(
+        ax=axes[1][1], x=x, y=real_sorted_t1c_list, color=tum_blue)
+    t1c_plot.set_yticks(list(np.linspace(0, 1, 11)))
+    t1c_plot.set_xlim(0, len(real_sorted_t1c_list))
+    t1c_plot.axhline(real_t1c_avg, color=orange)
+    t1c_plot.legend([r'$Dice_{P}$', r'$\overline{Dice}_{P}$'])
 
 
 sns.set(rc={'figure.figsize': (16, 9)})
