@@ -31,15 +31,15 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 50
-LATENT_DIM = 8
+MAX_EPOCHS = 300
+LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
-TRAIN_SIZE = 1500
+TRAIN_SIZE = 20000
 VAL_SIZE = 150
-LEARNING_RATE = 3e-5
-CHECKPOINT_FREQUENCY = 50
-VAE = True
+LEARNING_RATE = 1e-5
+CHECKPOINT_FREQUENCY = 30
+VAE = False
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
 T1C = True
 
@@ -62,7 +62,7 @@ def run(cuda_id=0):
                               TRAIN_SIZE=TRAIN_SIZE, VAL_SIZE=VAL_SIZE, LEARNING_RATE=LEARNING_RATE, CHECKPOINT_FREQUENCY=CHECKPOINT_FREQUENCY, VAE=VAE, BETA=BETA, T1C=T1C)
 
     # datasets
-    train_dataset = TumorDataset(subset=(35000, 35000 + TRAIN_SIZE), t1c=T1C)
+    train_dataset = TumorDataset(subset=(30000, 30000 + TRAIN_SIZE), t1c=T1C)
     val_dataset = TumorDataset(subset=(2000, 2000 + VAL_SIZE), t1c=T1C)
 
     train_loader = DataLoader(dataset=train_dataset,
@@ -109,8 +109,8 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
     for epoch in range(MAX_EPOCHS):
         loss = 0
         # set to training mode
-        model.train()
         for batch_features, _ in train_loader:
+            model.train()
             # load it to the active device
             batch_features = batch_features.to(device)
 
@@ -215,8 +215,8 @@ def train_VAE_tumort1c(cuda_id, train_loader, val_loader):
         loss = 0
         kld = 0
         # set to training mode
-        model.train()
         for batch_features, _ in train_loader:
+            model.train()
             # load it to the active device
             batch_features = batch_features.to(device)
 
