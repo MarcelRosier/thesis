@@ -45,7 +45,7 @@ T1C = False
 
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"{'ref_no_kld_VAE_'if VAE else ''}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
+run_name = f"{'VAE_'if VAE else ''}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
 
 # remove trailing time details after dot
 run_name = ''.join(run_name.split('.')[:-1])

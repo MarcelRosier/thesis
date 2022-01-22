@@ -35,13 +35,13 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-LATENT_DIM = 1024
+LATENT_DIM = 8
 TEST_SET_SIZE = "50k"
 TRAIN_SIZE = 1500
 SYNTHETIC = False
-VAE = False
+VAE = True
 BETA = 0.001
-T1C = True
+T1C = False
 
 #
 BASE_CHANNELS = 24
@@ -49,7 +49,7 @@ MAX_EPOCHS = 300
 MIN_DIM = 16
 BATCH_SIZE = 1
 VAL_SIZE = 150
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 3e-5
 CHECKPOINT_FREQUENCY = 30
 TEST_START = TEST_SET_RANGES[TEST_SET_SIZE]['START']
 TEST_SIZE = TEST_SET_RANGES[TEST_SET_SIZE]['END'] - TEST_START
@@ -97,10 +97,16 @@ def run(cuda_id=0):
         model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
                                base_channels=BASE_CHANNELS, training=False,
                                latent_dim=LATENT_DIM, only_encode=True)
+        if T1C:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180/VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180_ep_final.pt"
+        else:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006_ep_final.pt"
     else:
         model = Autoencoder(nets=nets, min_dim=MIN_DIM, only_encode=True)
-        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
-        # checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
+        if T1C:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
+        else:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
         # if LATENT_DIM == 4096 and TRAIN_SIZE == 1500:
         #     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907/BC_24_LD_4096_MD_16_BS_2_TS_1500_LR_1e-05_ME_120_1636735907_ep_final.pt"
         # if LATENT_DIM == 4096 and TRAIN_SIZE == 3000:
