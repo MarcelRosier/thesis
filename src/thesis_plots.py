@@ -183,6 +183,89 @@ def plot_train_and_val_loss_vae():
     # plt.show()
 
 
+def plot_t1c_and_flair_train_and_val_loss_vae():
+    base_pkl_path = "/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/log_train_loss_pkl/vae"
+    train_loss_data = pd.DataFrame()
+    val_loss_data = pd.DataFrame()
+    kld_loss_data = pd.DataFrame()
+
+    exp_name = "VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006"
+    df = pd.read_pickle(f"{base_pkl_path}/{exp_name}.pkl")
+    train_loss_data["T1Gd"] = df['train_loss']
+    val_loss_data["T1Gd"] = df['val_loss']
+    kld_loss_data["T1Gd"] = df['kld_loss']
+
+    exp_name = "VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006"
+    df = pd.read_pickle(f"{base_pkl_path}/{exp_name}.pkl")
+    train_loss_data["FLAIR"] = df['train_loss']
+    val_loss_data["FLAIR"] = df['val_loss']
+    kld_loss_data["FLAIR"] = df['kld_loss']
+
+    # exp_name = "VAE_T1C_BC_24_LD_2_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641834797"
+    # df = pd.read_pickle(f"{base_pkl_path}/{exp_name}.pkl")
+    # train_loss_data["2"] = df['train_loss']
+    # val_loss_data["2"] = df['val_loss']
+    # kld_loss_data["2"] = df['kld_loss']
+
+    ticks = list(np.linspace(0, 600, 13))
+    # yticks = list(np.linspace(0, 1, 11))
+
+    fig, axes = plt.subplots(2, 2, sharex=True)
+
+    # train sum
+    train_plot = sns.lineplot(
+        ax=axes[0][0], data=train_loss_data, dashes=False)
+    train_plot.set_xlim(-1)
+    train_plot.set_ylim(0.10, 0.20)
+    train_plot.set_title("Training loss per epoch")
+    train_plot.set_xticks(ticks)
+    train_plot.set_xlabel("epoch")
+    train_plot.set_ylabel(r"Dice + 0.001* $D_{KL}$ Loss")
+    train_plot.set_yticks(list(np.linspace(0.1, 0.2, 11)))
+    train_plot.legend(loc='lower left')
+
+    # val
+    val_plot = sns.lineplot(
+        ax=axes[0][1], data=val_loss_data, dashes=False, alpha=0.8)
+    val_plot.set_xlim(-1)
+    val_plot.set_ylim(0.08, 0.13)
+    val_plot.set_title("Validation loss per epoch")
+    val_plot.set_xticks(ticks)
+    val_plot.set_xlabel("epoch")
+    val_plot.set_ylabel(r"Dice + 0.001* $D_{KL}$ Loss")
+    val_plot.set_yticks(list(np.linspace(0.08, 0.13, 11)))
+    val_plot.legend(loc='lower left')
+
+    # train dice
+    dice_loss_data = train_loss_data - kld_loss_data
+    train_plot = sns.lineplot(
+        ax=axes[1][0], data=dice_loss_data, dashes=False)
+    train_plot.set_xlim(-1)
+    train_plot.set_ylim(0.06, 0.16)
+    train_plot.set_title("Training loss per epoch (Dice part)")
+    train_plot.set_xticks(ticks)
+    train_plot.set_xlabel("epoch")
+    train_plot.set_ylabel("Dice Loss")
+    train_plot.set_yticks(list(np.linspace(0.06, 0.16, 11)))
+    train_plot.legend(loc='lower left')
+
+    # train kld
+    dice_loss_data = train_loss_data - kld_loss_data
+    train_plot = sns.lineplot(
+        ax=axes[1][1], data=kld_loss_data, dashes=False)
+    train_plot.set_xlim(-1)
+    train_plot.set_ylim(0.0, 0.10)
+    train_plot.set_title(r"Training loss per epoch ($D_{KL}$ part)")
+    train_plot.set_xticks(ticks)
+    train_plot.set_xlabel("epoch")
+    train_plot.set_ylabel(r"0.001 * $D_{KL}$ Loss")
+    train_plot.set_yticks(list(np.linspace(0, 0.1, 11)))
+    train_plot.legend(loc='lower left')
+
+    # plt.savefig("test_vae.png", bbox_inches='tight', dpi=800)
+    # plt.show()
+
+
 def plot_best_match_input_dice():
     base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice"
     tumor_ids = os.listdir(base_dir)
@@ -307,7 +390,7 @@ def plot_t1c_flair_train_and_val_loss_ae():
     # plt.show()
 
 
-def plot_enc_best_match_presence_overview():
+def plot_enc_best_match_presence_overview(is_ae: bool):
 
     def plot_enc_best_match_presence(tumor_ids, top_gt_list, top_enc_list, top_n: int, ax, value_type: DSValueType):
 
@@ -343,7 +426,7 @@ def plot_enc_best_match_presence_overview():
 
     # Combined
     value_type = DSValueType.COMBINED
-    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/top_15_combined.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/{"ae" if is_ae else "vae"}/top_15_combined.json') as file:
         data: dict = json.load(file)
     tumor_ids = data.keys()
     top_gt_lists = []
@@ -351,24 +434,24 @@ def plot_enc_best_match_presence_overview():
     for tumor_id in tumor_ids:
         top_gt_lists.append(data[tumor_id]['top_gt'])
         top_enc_lists.append(data[tumor_id]['top_enc'])
-    chosen_ids = ['tgm036_preop', 'tgm008_preop',
-                  'tgm055_preop', 'tgm025_preop', 'tgm035_preop']
-    for cid in chosen_ids:
-        rid = list(tumor_ids).index(cid)
-        same = top_gt_lists[rid][0] == top_enc_lists[rid][0]
-        print(same)
-    for tumor_id in tumor_ids:
-        same = top_gt_lists[list(tumor_ids).index(
-            tumor_id)][0] == top_enc_lists[list(tumor_ids).index(tumor_id)][0]
-        if same:
-            print(tumor_id)
-    print()
-    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-    #                              top_enc_lists, top_n=1, ax=axes[0], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-    #                              top_enc_lists, top_n=5, ax=axes[1], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-    #  top_enc_lists, top_n = 15, ax = axes[2], value_type = value_type)
+    # chosen_ids = ['tgm036_preop', 'tgm008_preop',
+    #               'tgm055_preop', 'tgm025_preop', 'tgm035_preop']
+    # for cid in chosen_ids:
+    #     rid = list(tumor_ids).index(cid)
+    #     same = top_gt_lists[rid][0] == top_enc_lists[rid][0]
+    #     print(same)
+    # for tumor_id in tumor_ids:
+    #     same = top_gt_lists[list(tumor_ids).index(
+    #         tumor_id)][0] == top_enc_lists[list(tumor_ids).index(tumor_id)][0]
+    #     if same:
+    #         print(tumor_id)
+    # print()
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=1, ax=axes[0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=5, ax=axes[1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=15, ax=axes[2], value_type=value_type)
     # # flair
     # value_type = DSValueType.FLAIR
     # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/top_15_{value_type}.json') as file:
@@ -407,21 +490,25 @@ def plot_enc_best_match_presence_overview():
     fig.tight_layout()
 
 
-def plot_recon_losses():
+def plot_recon_losses(is_ae: bool):
     tum_blue = "#446EB0"
     orange = "#F0746E"
     lime = "#7CCBA2"
     purple = "#7C1D6F"
-    flair_avg_val = 1 - 0.050507
-    t1c_avg_val = 1 - 0.063680
+    if is_ae:
+        flair_avg_val = 1 - 0.050507
+        t1c_avg_val = 1 - 0.063680
+    else:
+        pass
 
-    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/syn/monai_scores_flair.json') as file:
+    folder = 'ae_TS_1500' if is_ae else 'vae_TS_1500'
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/{folder}/syn/monai_scores_flair.json') as file:
         flair_data: dict = json.load(file)
-    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/syn/monai_scores_t1c.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/{folder}/syn/monai_scores_t1c.json') as file:
         t1c_data: dict = json.load(file)
-    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/real/monai_scores_flair.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/{folder}/real/monai_scores_flair.json') as file:
         real_flair_data: dict = json.load(file)
-    with open('/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/real/monai_scores_t1c.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/recon_analysis/{folder}/real/monai_scores_t1c.json') as file:
         real_t1c_data: dict = json.load(file)
 
     # General plot
@@ -436,7 +523,7 @@ def plot_recon_losses():
     sorted_flair_list_nth = sorted(flair_data.values())  # [::100]
     flair_avg = sum(flair_data.values())/len(flair_data.values())
     print(f"{flair_avg=}")
-    print(f"{flair_avg_val=}")
+    # print(f"{flair_avg_val=}")
     x = np.linspace(1, len(sorted_flair_list_nth), len(sorted_flair_list_nth))
     flair_plot = sns.lineplot(
         ax=axes[0][0], x=x, y=sorted_flair_list_nth, color=tum_blue)
@@ -450,7 +537,7 @@ def plot_recon_losses():
     # syn t1c plot
     t1c_avg = sum(t1c_data.values())/(len(t1c_data.values()))
     print(f"{t1c_avg=}")
-    print(f"{t1c_avg_val=}")
+    # print(f"{t1c_avg_val=}")
     sorted_t1c_list_nth = sorted(t1c_data.values())  # [::100]
     x = np.linspace(1, len(sorted_t1c_list_nth), len(sorted_t1c_list_nth))
     t1c_plot = sns.lineplot(
@@ -496,6 +583,6 @@ sns.set_theme(style='whitegrid')
 # plot_train_and_val_loss_vae()
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
-plot_enc_best_match_presence_overview()
-# plot_recon_losses()
-# plt.show()
+# plot_enc_best_match_presence_overview(is_ae=False)
+plot_recon_losses(is_ae=False)
+plt.show()
