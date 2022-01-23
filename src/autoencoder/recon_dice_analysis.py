@@ -17,7 +17,7 @@ from autoencoder.modules import Autoencoder, VarAutoencoder
 
 def compute_recon_dice_scores(is_t1c, cuda_id):
     SYNTHETIC = True
-    VAE = False
+    VAE = True
     if SYNTHETIC:
         test_dataset = TumorDataset(
             subset=(0, 50000), t1c=is_t1c)
@@ -46,6 +46,10 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
         model = VarAutoencoder(nets=nets, min_dim=16,
                                base_channels=24, training=False,
                                latent_dim=8, only_encode=False)
+        if is_t1c:
+            checkpoint_path = ""
+        else:
+            checkpoint_path = ""
     else:
         nets = networks.get_basic_net_16_16_16(
             c_hid=24,  latent_dim=1024)
@@ -84,7 +88,7 @@ def compute_recon_dice_scores(is_t1c, cuda_id):
     #     bar.next()
     # bar.finish()
     print(data)
-    with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/ae_TS_1500/{"syn" if SYNTHETIC else "real"}/monai_scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
+    with open(f'/home/ivan_marcel/thesis/src/autoencoder/data/recon_analysis/{"vae" if VAE else "ae"}_TS_1500/{"syn" if SYNTHETIC else "real"}/monai_scores_{"t1c" if is_t1c else "flair"}.json', 'w') as file:
         json.dump(data, file)
 
 
@@ -98,13 +102,13 @@ def analyze():
 
 
 def compare_custom_monai_ranking():
-    monai_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/monai_dice/50000/dim_128/dice/tgm001_preop.json"
-    custom_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/tgm001_preop.json"
+    monai_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/monai_dice/50000/dim_128/dice/tgm019_preop.json"
+    custom_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/tgm019_preop.json"
 
     monai_best = utils.find_n_best_score_ids(
-        monai_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+        monai_base_path, utils.DSValueType.T1C, max, n_best=500)
     custom_best = utils.find_n_best_score_ids(
-        custom_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+        custom_base_path, utils.DSValueType.T1C, max, n_best=500)
     # print(monai_best)
     # print(custom_best)
-    # print(monai_best == custom_best)
+    print(monai_best == custom_best)

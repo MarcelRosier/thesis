@@ -255,6 +255,10 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
         downsample_to=64, value_type=value_type, n_best=15)
     _, _, top_downsampled_32_list = analysis.compare_best_match_for_downsampling(
         downsample_to=32, value_type=value_type, n_best=15)
+    for i, tumor_id in enumerate(tumor_ids):
+        if top_gt_list[i][0] == top_downsampled_32_list[i][0]:
+            print(tumor_id)
+    return
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
                                          top_downsampled_64_list, top_n=1, ax=axes[0][0], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,

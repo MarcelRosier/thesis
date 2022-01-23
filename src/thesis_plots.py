@@ -184,7 +184,7 @@ def plot_train_and_val_loss_vae():
 
 
 def plot_best_match_input_dice():
-    base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000/dim_128/dice"
+    base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice"
     tumor_ids = os.listdir(base_dir)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     t1c_scores = []
@@ -239,6 +239,8 @@ def plot_best_match_input_dice():
     flair_plot.set_yticks(y_ticks)
     flair_plot.axhline(flair_avg, color="#446EB0")  # "#5ba56e")
 
+    print(t1c_scores)
+    print(flair_scores)
     # combined plot
     y_ticks = np.linspace(0, 2, 11)
     norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
@@ -258,7 +260,7 @@ def plot_best_match_input_dice():
     combined_scores_plot.axhline(
         combined_scores_avg, color="#446EB0")  # "#5ba56e")
     # plt.show()
-    plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
+    # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
 
 
 def plot_t1c_flair_train_and_val_loss_ae():
@@ -314,7 +316,8 @@ def plot_enc_best_match_presence_overview():
             enc_best = enc[0]
             enc_best_in_top_n_gt = enc_best in gt[:top_n]
             if top_n == 15 and not enc_best_in_top_n_gt:
-                print("test")
+                # print("test")
+                pass
             is_present.append(float(enc_best_in_top_n_gt))
         tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
         x_ax = np.linspace(1, len(tumor_ids), 62)
@@ -327,7 +330,7 @@ def plot_enc_best_match_presence_overview():
         plot.set_xticklabels([])
         plot.set_xlabel("Tumors")
         avg = sum(is_present) / len(is_present)
-        print(cmap(1))
+        # print(cmap(1))
         legend = plot.legend([str(avg*100)[:4] + "%"], loc="center right")
         legend.legendHandles[0].set_color('green')
 
@@ -348,13 +351,24 @@ def plot_enc_best_match_presence_overview():
     for tumor_id in tumor_ids:
         top_gt_lists.append(data[tumor_id]['top_gt'])
         top_enc_lists.append(data[tumor_id]['top_enc'])
-
-    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-                                 top_enc_lists, top_n=1, ax=axes[0], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-                                 top_enc_lists, top_n=5, ax=axes[1], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
-                                 top_enc_lists, top_n=15, ax=axes[2], value_type=value_type)
+    chosen_ids = ['tgm036_preop', 'tgm008_preop',
+                  'tgm055_preop', 'tgm025_preop', 'tgm035_preop']
+    for cid in chosen_ids:
+        rid = list(tumor_ids).index(cid)
+        same = top_gt_lists[rid][0] == top_enc_lists[rid][0]
+        print(same)
+    for tumor_id in tumor_ids:
+        same = top_gt_lists[list(tumor_ids).index(
+            tumor_id)][0] == top_enc_lists[list(tumor_ids).index(tumor_id)][0]
+        if same:
+            print(tumor_id)
+    print()
+    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+    #                              top_enc_lists, top_n=1, ax=axes[0], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+    #                              top_enc_lists, top_n=5, ax=axes[1], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+    #  top_enc_lists, top_n = 15, ax = axes[2], value_type = value_type)
     # # flair
     # value_type = DSValueType.FLAIR
     # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/top_15_{value_type}.json') as file:
@@ -411,7 +425,8 @@ def plot_recon_losses():
         real_t1c_data: dict = json.load(file)
 
     # General plot
-    fig, axes = plt.subplots(2, 2, sharex=False, sharey=False, figsize=(12, 3))
+    fig, axes = plt.subplots(2, 2, sharex=False,
+                             sharey=False, figsize=(12, 3))
     axes[0][0].set_title(r"Synthetic Dataset $S$")
     axes[0][1].set_title(r"Real Dataset $P$")
     axes[0][0].set_ylabel("FLAIR")
@@ -481,6 +496,6 @@ sns.set_theme(style='whitegrid')
 # plot_train_and_val_loss_vae()
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
-# plot_enc_best_match_presence_overview()
-plot_recon_losses()
-plt.show()
+plot_enc_best_match_presence_overview()
+# plot_recon_losses()
+# plt.show()
