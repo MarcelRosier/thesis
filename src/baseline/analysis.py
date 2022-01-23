@@ -10,9 +10,10 @@ REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSValueType.FLAIR, n_best=3):
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
+    tumor_ids.remove('.DS_Store')
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
-    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/testset_size_50000"
+    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000"
     top_gt_list = []
     top_downsampled_list = []
     for tumor_id in tumor_ids:
@@ -31,7 +32,7 @@ def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSVa
             max,
             n_best
         )
-        # same_best_match = top_gt[0] == top_downsampled[0]
+        # same_best_match = top_gt[0] == top_downsam‘pled[0]
         top_gt_list.append(top_gt)
         top_downsampled_list.append(top_downsampled)
     return tumor_ids, top_gt_list, top_downsampled_list

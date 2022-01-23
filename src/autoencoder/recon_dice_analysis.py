@@ -105,13 +105,13 @@ def analyze():
 
 
 def compare_custom_monai_ranking():
-    monai_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/monai_dice/50000/dim_128/dice/tgm001_preop.json"
-    custom_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/tgm001_preop.json"
+    monai_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/monai_dice/50000/dim_128/dice/tgm019_preop.json"
+    custom_base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/tgm019_preop.json"
 
     monai_best = utils.find_n_best_score_ids(
-        monai_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+        monai_base_path, utils.DSValueType.T1C, max, n_best=500)
     custom_best = utils.find_n_best_score_ids(
-        custom_base_path, utils.DSValueType.COMBINED, max, n_best=5000)
+        custom_base_path, utils.DSValueType.T1C, max, n_best=500)
     # print(monai_best)
     # print(custom_best)
     # print(monai_best == custom_best)
