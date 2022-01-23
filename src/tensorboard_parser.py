@@ -68,21 +68,25 @@ def save_train_loss_as_pkl(exp_name):
     # print(log_df.loc[0].step)
     print(log_df)
 
-    for i in range(0, 1800, 3):  # for older 600,5
+    for i in range(0, 4000, 4):  # for older 600,5
         train_loss = log_df.loc[i].value
         val_loss = log_df.loc[i+1].value
         kld_loss = log_df.loc[i+2].value
+        val_kld_loss = log_df.loc[i+3].value
         df = df.append({
             "train_loss": train_loss,
             "val_loss": val_loss,
-            "kld_loss": kld_loss
+            "kld_loss": kld_loss,
+            'val_kld_loss': val_kld_loss
         }, ignore_index=True)
     print(df)
     df.to_pickle(f"{save_path}/{exp_name}.pkl")
 
 
 if __name__ == "__main__":
-    exp_name = "VAE_T1C_BC_24_LD_2_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641834797"
+    exp_name = "ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006"
+    # "ref_no_kld_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180"
+    # "VAE_T1C_BC_24_LD_2_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641834797"
     # "VAE_T1C_BC_24_LD_4_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641900178"
     # "VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641830476"
     # "VAE_T1C_BC_24_LD_32_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641806824"
