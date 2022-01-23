@@ -12,12 +12,13 @@ REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 def run_query_for_encoded_data(real_tumor_id, is_ae=True):
     """Run two queries for t1c and flair for 50k dataset and return best combined match"""
+    print(real_tumor_id)
     if is_ae:
         base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_FLAIR_1024_1500"
         base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_T1C_1024_1500"
     else:
-        base_path_flair = ""
-        base_path_t1c = ""
+        base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_VAE_FLAIR_8_1500"
+        base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_VAE_T1C_8_1500"
     # load real_tumor
     real_tumor_t1c = utils.normalize(
         np.load(f"{base_path_t1c}/real/{real_tumor_id}.npy"))
@@ -44,7 +45,7 @@ def run_query_for_encoded_data(real_tumor_id, is_ae=True):
             'combined': str(flair_score + t1c_score)
         }
     data_path = "/home/ivan_marcel/thesis/src/autoencoder/data"
-    filename_dump = f"{data_path}/final_50k_enc_sim/{real_tumor_id}.json"
+    filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else 'vae'}/{real_tumor_id}.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -52,9 +53,10 @@ def run_query_for_encoded_data(real_tumor_id, is_ae=True):
 
 
 def run(processes: int):
+    is_ae = False
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
-    func = partial(run_query_for_encoded_data, is_ae=True)
+    func = partial(run_query_for_encoded_data, is_ae=is_ae)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, real_tumors)
         t = results.get()
