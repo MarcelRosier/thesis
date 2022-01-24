@@ -220,3 +220,80 @@ def compare_monai_vs_custom_loss():
     d_m = 1 - criterion(input_t1c, rec_3000).item()
     print(f"{d_c=}")
     print(f"{d_m=}")
+
+
+def gen_recons(cuda_id):
+    VAE = True
+    T1C = True
+    selected_tumors = [
+        'tgm047_preop',  # 1.4
+        'tgm008_preop',  # 1.2
+        'tgm051_preop',    # 1.0
+        'tgm025_preop',  # 0.8
+        'tgm023_preop',  # 0.6
+    ]
+
+    # print gpu info
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    utils.pretty_print_gpu_info(device)
+
+    # Load model
+    checkpoint_path = ""
+    if VAE:
+        nets = networks.get_basic_net_16_16_16_without_last_linear(
+            c_hid=24,  latent_dim=8)
+        model = VarAutoencoder(nets=nets, min_dim=16,
+                               base_channels=24, training=False,
+                               latent_dim=8, only_encode=False)
+
+        if T1C:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180/VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180_ep_final.pt"
+        else:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006_ep_final.pt"
+    else:
+        nets = networks.get_basic_net_16_16_16(
+            c_hid=24,  latent_dim=1024)
+        model = Autoencoder(nets=nets, min_dim=16, only_encode=False)
+        if T1C:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
+        else:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
+
+    print(f"Loading: {checkpoint_path=}")
+
+    checkpoint = torch.load(checkpoint_path)
+    model_state_dict = checkpoint['model_state_dict']
+    model.load_state_dict(model_state_dict)
+    # model.to(device)  # move to gpu
+    model.eval()
+
+    # generate encoded dataset
+    data = {}
+    # bar = Bar('Processing', max=len(test_loader))
+    print(f"Starting @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    i = 0
+    criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
+    base_path = "/mnt/Drive3/ivan_marcel/real_tumors/"
+    save_path = "/home/ivan_marcel/thesis/src/autoencoder/data/recons/"
+    for tumor_id in selected_tumors:
+        t1c, flair = utils.load_real_tumor(base_path=base_path+tumor_id)
+        tumor = t1c if T1C else flair
+        tumor = torch.from_numpy(tumor)
+        tumor = tumor.float()
+        tumor.unsqueeze_(0)
+        tumor.unsqueeze_(0)
+
+        encoded = model(tumor)[0]
+        # print(encoded[0].shape)
+        # print(encoded[1].shape)
+        # save
+        np_encoded = encoded.cpu().detach()
+        # dice_score = utils.calc_dice_coef(
+        #     tumor.cpu().detach().numpy(), np_encoded)
+        # dice_loss = criterion(tumor.cpu().detach(), np_encoded)
+        path = f"{save_path}{'vae' if VAE else 'ae'}/{'t1c' if T1C else 'flair'}_{tumor_id}.npy"
+        with open(path, "wb") as file:
+            np.save(file=file, arr=np_encoded)
