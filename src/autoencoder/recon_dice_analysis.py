@@ -223,7 +223,7 @@ def compare_monai_vs_custom_loss():
 
 
 def gen_recons(cuda_id):
-    VAE = True
+    VAE = False
     T1C = True
     selected_tumors = [
         'tgm047_preop',  # 1.4
@@ -279,8 +279,14 @@ def gen_recons(cuda_id):
     base_path = "/mnt/Drive3/ivan_marcel/real_tumors/"
     save_path = "/home/ivan_marcel/thesis/src/autoencoder/data/recons/"
     for tumor_id in selected_tumors:
-        t1c, flair = utils.load_real_tumor(base_path=base_path+tumor_id)
-        tumor = t1c if T1C else flair
+
+        path = f"/home/ivan_marcel/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice/{tumor_id}.json"
+        best_match_id = utils.find_n_best_score_ids(
+            path=path, value_type='combined', order_func=max, n_best=1)[0]
+        # t1c, flair = utils.load_real_tumor(base_path=base_path+tumor_id)
+
+        tumor = utils.load_single_tumor(
+            tumor_id=best_match_id, threshold=(0.6 if T1C else 0.2))
         tumor = torch.from_numpy(tumor)
         tumor = tumor.float()
         tumor.unsqueeze_(0)
@@ -294,6 +300,6 @@ def gen_recons(cuda_id):
         # dice_score = utils.calc_dice_coef(
         #     tumor.cpu().detach().numpy(), np_encoded)
         # dice_loss = criterion(tumor.cpu().detach(), np_encoded)
-        path = f"{save_path}{'vae' if VAE else 'ae'}/{'t1c' if T1C else 'flair'}_{tumor_id}.npy"
+        path = f"{save_path}{'vae' if VAE else 'ae'}/{'t1c' if T1C else 'flair'}_{best_match_id}.npy"
         with open(path, "wb") as file:
             np.save(file=file, arr=np_encoded)
