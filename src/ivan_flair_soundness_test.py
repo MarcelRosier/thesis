@@ -67,12 +67,9 @@ data_brain = (data_brain - np.min(data_brain)) / \
     (np.max(data_brain) - np.min(data_brain))
 
 ncols = 4
-fig, axes = plt.subplots(ncols=ncols, nrows=5)
-selected_tumors = ['tgm047_preop',  # 1.4
+fig, axes = plt.subplots(ncols=2, nrows=2)
+selected_tumors = ['tgm008_preop',  # 1.4
                    'tgm008_preop',  # 1.2
-                   'tgm051_preop',    # 1.0
-                   'tgm025_preop',  # 0.8
-                   'tgm023_preop',  # 0.6
                    ]
 # selected_tumors = {
 #     'tgm047_preop': 21359,
@@ -90,21 +87,22 @@ for i, tumor_id in enumerate(selected_tumors):
     path = f"{baseline_ranking_path}/{tumor_id}.json"
     best_match_id = utils.find_n_best_score_ids(
         path=path, value_type='combined', order_func=max, n_best=1)[0]
+    best_match_id = 42685
     rt, rf, st, sf = get_data(
         real_tumor_id=tumor_id, best_match_id=best_match_id)
 
-    ae_best_match_id = utils.find_n_best_score_ids(
-        path=encoded_ranking_base_path + "ae/" + tumor_id + ".json", value_type='combined', order_func=min, n_best=1)[0]
-    vae_best_match_id = utils.find_n_best_score_ids(
-        path=encoded_ranking_base_path + "vae/" + tumor_id + ".json", value_type='combined', order_func=min, n_best=1)[0]
-    ae_t, ae_f = load_syn(tid=ae_best_match_id)
-    vae_t, vae_f = load_syn(tid=vae_best_match_id)
+    # ae_best_match_id = utils.find_n_best_score_ids(
+    #     path=encoded_ranking_base_path + "ae/" + tumor_id + ".json", value_type='combined', order_func=min, n_best=1)[0]
+    # vae_best_match_id = utils.find_n_best_score_ids(
+    #     path=encoded_ranking_base_path + "vae/" + tumor_id + ".json", value_type='combined', order_func=min, n_best=1)[0]
+    # ae_t, ae_f = load_syn(tid=ae_best_match_id)
+    # vae_t, vae_f = load_syn(tid=vae_best_match_id)
 
     fig = mlab.figure(size=(1000, 1000), bgcolor=(1, 1, 1))
     # color=(40/255, 247/255, 1))
     mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
     mlab.contour3d(rf, opacity=0.2, color=(0, 0, 1))
-    mlab.contour3d(rt, opacity=0.6, color=(1, 0, 0))
+    # mlab.contour3d(rt, opacity=0.6, color=(1, 0, 0))
     mlab.savefig(filename="temp_r.png", figure=fig)
     mlab.close(fig)
 
@@ -112,40 +110,40 @@ for i, tumor_id in enumerate(selected_tumors):
     # color=(40/255, 247/255, 1))
     mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
     mlab.contour3d(sf, opacity=0.2, color=(0, 0, 1))
-    mlab.contour3d(st, opacity=0.6, color=(1, 0, 0))
+    # mlab.contour3d(st, opacity=0.6, color=(1, 0, 0))
     mlab.savefig(filename="temp_s.png", figure=fig)
     mlab.close(fig)
     fig = mlab.figure(size=(1000, 1000), bgcolor=(1, 1, 1))
-    # color=(40/255, 247/255, 1))
-    mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
-    mlab.contour3d(ae_f, opacity=0.2, color=(0, 0, 1))
-    mlab.contour3d(ae_t, opacity=0.6, color=(1, 0, 0))
-    mlab.savefig(filename="temp_ae.png", figure=fig)
-    mlab.close(fig)
-    fig = mlab.figure(size=(1000, 1000), bgcolor=(1, 1, 1))
-    # color=(40/255, 247/255, 1))
-    mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
-    mlab.contour3d(vae_f, opacity=0.2, color=(0, 0, 1))
-    mlab.contour3d(vae_t, opacity=0.6, color=(1, 0, 0))
-    mlab.savefig(filename="temp_vae.png", figure=fig)
-    mlab.close(fig)
+    # # color=(40/255, 247/255, 1))
+    # mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
+    # mlab.contour3d(ae_f, opacity=0.2, color=(0, 0, 1))
+    # mlab.contour3d(ae_t, opacity=0.6, color=(1, 0, 0))
+    # mlab.savefig(filename="temp_ae.png", figure=fig)
+    # mlab.close(fig)
+    # fig = mlab.figure(size=(1000, 1000), bgcolor=(1, 1, 1))
+    # # color=(40/255, 247/255, 1))
+    # mlab.contour3d(data_brain, opacity=0.15, color=(1, 1, 1))
+    # mlab.contour3d(vae_f, opacity=0.2, color=(0, 0, 1))
+    # mlab.contour3d(vae_t, opacity=0.6, color=(1, 0, 0))
+    # mlab.savefig(filename="temp_vae.png", figure=fig)
+    # mlab.close(fig)
 
     with open(path) as file:
         data = json.load(file)
 
     r_img = imread("temp_r.png")
     s_img = imread("temp_s.png")
-    ae_img = imread("temp_ae.png")
-    vae_img = imread("temp_vae.png")
-    axes[i][0].imshow(r_img[50:750][100:700])
+    # ae_img = imread("temp_ae.png")
+    # vae_img = imread("temp_vae.png")
+    axes[i][0].imshow(r_img)  # [50:750][100:700])
     remove_ticks(axes[i][0])
     axes[i][0].set_ylabel(f"{i+1}", fontsize=32, rotation=0, labelpad=-10)
-    axes[i][1].imshow(s_img[50:750][100:700])
+    axes[i][1].imshow(s_img)  # [50:750][100:700])
     remove_ticks(axes[i][1])
-    axes[i][2].imshow(ae_img[50:750][100:700])
-    remove_ticks(axes[i][2])
-    axes[i][3].imshow(vae_img[50:750][100:700])
-    remove_ticks(axes[i][3])
+    # axes[i][2].imshow(ae_img[50:750][100:700])
+    # remove_ticks(axes[i][2])
+    # axes[i][3].imshow(vae_img[50:750][100:700])
+    # remove_ticks(axes[i][3])
     # axes[1][i].set_xlabel(r"$Dice_{T1Gd}=$" + f"{str(data[best_match_id]['t1c'])[:5]}\n" +
     #                       r"$ Dice_{FLAIR}=$" + f"{str(data[best_match_id]['flair'])[:5]}", fontsize=28)
 
@@ -153,10 +151,10 @@ for i, tumor_id in enumerate(selected_tumors):
     # os.remove("temp_r.png")
     # os.remove("temp_s.png")
 
-axes[0][0].set_title('Input', fontsize=32)
-axes[0][1].set_title('Baseline', fontsize=32)
-axes[0][2].set_title('AE', fontsize=32)
-axes[0][3].set_title('VAE', fontsize=32)
+axes[0][0].set_title('tgm008', fontsize=32)
+axes[0][1].set_title('42685', fontsize=32)
+# axes[0][2].set_title('AE', fontsize=32)
+# axes[0][3].set_title('VAE', fontsize=32)
 
 plt.subplots_adjust(wspace=0, hspace=0)
 plt.tight_layout()

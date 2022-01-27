@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import json
 import logging
@@ -16,7 +17,6 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"  # export OPENBLAS_NUM_THREADS=4
 os.environ["MKL_NUM_THREADS"] = "1"  # export MKL_NUM_THREADS=6
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"  # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "1"  # export NUMEXPR_NUM_THREADS=6
-import numpy as np
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 SYN_TUMOR_BASE_PATH = SYN_TUMOR_BASE_PATH[ENV]
@@ -153,11 +153,14 @@ def load_reconstructed_tumor(path, threshold=0.6):
     Load a reconstructed syntethic tumor\n
     This differs from the usual tumor loading in the format of the saved tumor
     """
-    tumor = np.load(path)[0][0]
+    tumor = np.load(path)[0]
     # crop 129^3 to 128^3 if needed
     if tumor.shape != (128, 128, 128):
-        tumor = np.delete(np.delete(
-            np.delete(tumor, 128, 0), 128, 1), 128, 2)
+        if tumor.shape == (1, 128, 128, 128):
+            tumor = tumor[0]
+        else:
+            tumor = np.delete(np.delete(
+                np.delete(tumor, 128, 0), 128, 1), 128, 2)
     return norm_and_threshold_tumor(tumor, threshold=threshold)
 
 

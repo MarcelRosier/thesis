@@ -189,7 +189,7 @@ def plot_t1c_and_flair_train_and_val_loss_vae():
     val_loss_data = pd.DataFrame()
     kld_loss_data = pd.DataFrame()
 
-    exp_name = "VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006"
+    exp_name = "VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180"
     df = pd.read_pickle(f"{base_pkl_path}/{exp_name}.pkl")
     train_loss_data["T1Gd"] = df['train_loss']
     val_loss_data["T1Gd"] = df['val_loss']
@@ -207,7 +207,7 @@ def plot_t1c_and_flair_train_and_val_loss_vae():
     # val_loss_data["2"] = df['val_loss']
     # kld_loss_data["2"] = df['kld_loss']
 
-    ticks = list(np.linspace(0, 600, 13))
+    ticks = list(np.linspace(0, 1000, 11))
     # yticks = list(np.linspace(0, 1, 11))
 
     fig, axes = plt.subplots(2, 2, sharex=True)
@@ -216,12 +216,12 @@ def plot_t1c_and_flair_train_and_val_loss_vae():
     train_plot = sns.lineplot(
         ax=axes[0][0], data=train_loss_data, dashes=False)
     train_plot.set_xlim(-1)
-    train_plot.set_ylim(0.10, 0.20)
+    train_plot.set_ylim(0.08, 0.18)
     train_plot.set_title("Training loss per epoch")
     train_plot.set_xticks(ticks)
     train_plot.set_xlabel("epoch")
     train_plot.set_ylabel(r"Dice + 0.001* $D_{KL}$ Loss")
-    train_plot.set_yticks(list(np.linspace(0.1, 0.2, 11)))
+    train_plot.set_yticks(list(np.linspace(0.08, 0.18, 11)))
     train_plot.legend(loc='lower left')
 
     # val
@@ -241,12 +241,12 @@ def plot_t1c_and_flair_train_and_val_loss_vae():
     train_plot = sns.lineplot(
         ax=axes[1][0], data=dice_loss_data, dashes=False)
     train_plot.set_xlim(-1)
-    train_plot.set_ylim(0.06, 0.16)
+    train_plot.set_ylim(0.04, 0.14)
     train_plot.set_title("Training loss per epoch (Dice part)")
     train_plot.set_xticks(ticks)
     train_plot.set_xlabel("epoch")
     train_plot.set_ylabel("Dice Loss")
-    train_plot.set_yticks(list(np.linspace(0.06, 0.16, 11)))
+    train_plot.set_yticks(list(np.linspace(0.04, 0.14, 11)))
     train_plot.legend(loc='lower left')
 
     # train kld
@@ -418,11 +418,11 @@ def plot_enc_best_match_presence_overview(is_ae: bool):
         legend.legendHandles[0].set_color('green')
 
     fig, axes = plt.subplots(3, 1, sharex=True, sharey=True, figsize=(12, 3))
-    cols = ["Best match = best ground truth match",
-            "Best match in top 5 ground truth matches", "Best match in top 15 ground truth matches"]
+    cols = ["Top 1", "Top 5", "Top 15"]
     rows = [r"$64^3$", r"$32^3$"]
     for ax, col in zip(axes, cols):
-        ax.set_title(col)
+        ax.set_ylabel(col, rotation=0)
+    # for ax, row in zip(axes
 
     # Combined
     value_type = DSValueType.COMBINED
@@ -553,6 +553,7 @@ def plot_recon_losses(is_ae: bool):
     real_sorted_flair_list = sorted(real_flair_data.values())
     real_flair_avg = (sum(real_flair_data.values()) /
                       len(real_flair_data.values()))
+    print(f"{real_flair_avg=}")
     x = np.linspace(1, len(real_sorted_flair_list),
                     len(real_sorted_flair_list))
     flair_plot = sns.lineplot(
@@ -567,6 +568,7 @@ def plot_recon_losses(is_ae: bool):
     real_sorted_t1c_list = sorted(real_t1c_data.values())
     real_t1c_avg = (sum(real_t1c_data.values()) /
                     len(real_t1c_data.values()))
+    print(f"{real_t1c_avg=}")
     x = np.linspace(1, len(real_sorted_t1c_list),
                     len(real_sorted_t1c_list))
     t1c_plot = sns.lineplot(
@@ -583,6 +585,10 @@ sns.set_theme(style='whitegrid')
 # plot_train_and_val_loss_vae()
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
-# plot_enc_best_match_presence_overview(is_ae=False)
-plot_recon_losses(is_ae=False)
+plot_enc_best_match_presence_overview(is_ae=True)
+# print("AE")
+# plot_recon_losses(is_ae=True)
+# print("VAE")
+# plot_recon_losses(is_ae=False)
+# plot_t1c_and_flair_train_and_val_loss_vae()
 plt.show()
