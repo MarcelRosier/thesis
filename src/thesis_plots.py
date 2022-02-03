@@ -582,10 +582,10 @@ def plot_recon_losses(is_ae: bool):
 
 sns.set(rc={'figure.figsize': (16, 9)})
 sns.set_theme(style='whitegrid')
-# plot_train_and_val_loss_vae()
+plot_train_and_val_loss_vae()
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
-plot_enc_best_match_presence_overview(is_ae=True)
+# plot_enc_best_match_presence_overview(is_ae=True)
 # print("AE")
 # plot_recon_losses(is_ae=True)
 # print("VAE")

@@ -124,7 +124,7 @@ def find_n_best_score_ids(path: str, value_type: DSValueType, order_func, n_best
     return best_keys
 
 
-def load_single_tumor(tumor_id, threshold=0.6):
+def load_single_tumor(tumor_id, threshold=0.6, cut=True):
     """
     Loads a single syntethic, thresholded, normalized tumor with dim 128^3 \n
     @tumor_id = folder_id of the syn tumor\n
@@ -134,7 +134,7 @@ def load_single_tumor(tumor_id, threshold=0.6):
         'data']
 
     # crop 129^3 to 128^3 if needed
-    if tumor.shape != (128, 128, 128):
+    if tumor.shape != (128, 128, 128) and cut:
         tumor = np.delete(np.delete(
             np.delete(tumor, 128, 0), 128, 1), 128, 2)
     return norm_and_threshold_tumor(tumor, threshold)
