@@ -26,4 +26,9 @@ elif args.mode == 3:
         real_tumor="tgm001_preop")
 elif args.mode == 4:
     from autoencoder import query
+    import os
+    import torch
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     query.run(processes=32)

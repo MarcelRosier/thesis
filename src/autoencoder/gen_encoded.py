@@ -35,17 +35,17 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-LATENT_DIM = 8
+LATENT_DIM = 1024
 TEST_SET_SIZE = "50k"
 TRAIN_SIZE = 1500
-SYNTHETIC = False
+SYNTHETIC = True
 VAE = True
 BETA = 0.001
 T1C = False
 
 #
 BASE_CHANNELS = 24
-MAX_EPOCHS = 300
+MAX_EPOCHS = 600
 MIN_DIM = 16
 BATCH_SIZE = 1
 VAL_SIZE = 150
@@ -94,13 +94,23 @@ def run(cuda_id=0):
         #         checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822/VAE_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822_ep_final.pt"
         nets = networks.get_basic_net_16_16_16_without_last_linear(
             c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
+        if LATENT_DIM == 1024 and not T1C:
+            nets = networks.legacy_basic_16_wo_last_linear(
+                c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
         model = VarAutoencoder(nets=nets, min_dim=MIN_DIM,
                                base_channels=BASE_CHANNELS, training=False,
                                latent_dim=LATENT_DIM, only_encode=True)
         if T1C:
-            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180/VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180_ep_final.pt"
+            if LATENT_DIM == 1024:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232/VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232_ep_final.pt"
+            else:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180/VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180_ep_final.pt"
+
         else:
-            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006_ep_final.pt"
+            if LATENT_DIM == 1024:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/VAE_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822/VAE_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822_ep_final.pt"
+            else:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006_ep_final.pt"
     else:
         model = Autoencoder(nets=nets, min_dim=MIN_DIM, only_encode=True)
         if T1C:
