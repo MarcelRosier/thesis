@@ -38,13 +38,13 @@ def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSVa
     return tumor_ids, top_gt_list, top_downsampled_list
 
 
-def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType.COMBINED):
+def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType.COMBINED, is_1024=False):
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
     assert len(tumor_ids) == 62
     base_path_gt = "/home/ivan_marcel/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice"
-    base_path_enc = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_enc_sim/{'ae' if is_ae else 'vae'}"
+    base_path_enc = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_enc_sim/{'ae' if is_ae else ('vae/1024' if is_1024 else 'vae/8')}"
 
     data = {}
 
@@ -70,6 +70,6 @@ def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType
             'top_enc': top_enc
         }
 
-    path = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/{'ae' if is_ae else 'vae'}/top_15_{value_type}.json"
+    path = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/{'ae' if is_ae else ('vae/1024' if is_1024 else 'vae/8')}/top_15_{value_type}.json"
     with open(path, "w") as file:
         json.dump(data, file)

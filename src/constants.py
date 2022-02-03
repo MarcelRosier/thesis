@@ -8,7 +8,7 @@ GIGA = 'ibbm-giga'
 MAC = 'marcel-mbp.local'
 
 # env var
-ENV = MAC  # socket.getfqdn()  # MAC  #
+ENV = socket.getfqdn()  # MAC  #
 
 DICE_SCORE_DATADUMP_PATH_TEMPLATE = {
     LOCAL: '/home/marcel/Projects/uni/thesis/src/data/{id}_datadump.json',

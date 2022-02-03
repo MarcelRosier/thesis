@@ -89,33 +89,32 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
 
     results = {}
 
-    func = partial(calc_score_for_pair, real_tumor_t1c,
-                   real_tumor_flair, base_path_t1c, base_path_flair)
+    # func = partial(calc_score_for_pair, real_tumor_t1c,
+    #                real_tumor_flair, base_path_t1c, base_path_flair)
 
-    # for folder in folders:
+    for folder in folders:
+        syn_t1c = utils.normalize(
+            np.load(f"{base_path_t1c}/syn_50k/{folder}.npy"))
+        syn_flair = utils.normalize(
+            np.load(f"{base_path_flair}/syn_50k/{folder}.npy"))
+        flair_score = utils.calc_l2_norm(real_tumor_flair, syn_flair)
+        t1c_score = utils.calc_l2_norm(real_tumor_t1c, syn_t1c)
+        results[folder] = {
+            'flair': str(flair_score),
+            't1c': str(t1c_score),
+            'combined': str(flair_score + t1c_score)
+        }
 
-    #     syn_t1c = utils.normalize(
-    #         np.load(f"{base_path_t1c}/syn_50k/{folder}.npy"))
-    #     syn_flair = utils.normalize(
-    #         np.load(f"{base_path_flair}/syn_50k/{folder}.npy"))
-    #     flair_score = utils.calc_l2_norm(real_tumor_flair, syn_flair)
-    #     t1c_score = utils.calc_l2_norm(real_tumor_t1c, syn_t1c)
-    #     results[folder] = {
-    #         'flair': str(flair_score),
-    #         't1c': str(t1c_score),
-    #         'combined': str(flair_score + t1c_score)
-    #     }
+    # with multiprocessing.Pool(32) as pool:
+    #     results = pool.map_async(func, folders)
+    #     single_scores = results.get()
+    #     results = {k: v for d in single_scores for k, v in d.items()}
+    # best_key = min(results.keys(), key=lambda k: results[k]['combined'])
 
-    with multiprocessing.Pool(32) as pool:
-        results = pool.map_async(func, folders)
-        single_scores = results.get()
-        results = {k: v for d in single_scores for k, v in d.items()}
-    best_key = min(results.keys(), key=lambda k: results[k]['combined'])
-
-    best_score = {
-        'best_score': results[best_key],
-        'partner': best_key
-    }
+    # best_score = {
+    #     'best_score': results[best_key],
+    #     'partner': best_key
+    # }
     data_path = "/home/ivan_marcel/thesis/src/autoencoder/data"
     # filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else 'vae'}/{real_tumor_id}.json"
     filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else 'vae'}/1024/{real_tumor_id}.json"
@@ -124,7 +123,7 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
     with open(filename_dump, "w") as file:
         json.dump(results, file)
 
-    return best_score
+    # return best_score
 
 
 def calc_score_for_pair(rt, rf, base_path_t1c, base_path_flair, syn_id):
@@ -148,7 +147,7 @@ def run(processes: int):
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
     func = partial(run_query_for_encoded_data,
-                   use_stored_real_data=True, is_ae=is_ae)
+                   use_stored_real_data=True, is_ae=is_ae, is_1024=True)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, real_tumors)
         t = results.get()
