@@ -1,3 +1,7 @@
+import numpy as np
+import nibabel as nib
+from scipy.ndimage import zoom
+import torch.nn.functional as F
 import os
 import json
 from utils import DSValueType
@@ -35,14 +39,38 @@ def monai_dice_score(real, syn):
     return 1 - criterion(real, syn).item()
 
 
+def test_load_real_tumor(base_path: str, downsample_to: int = None):
+    """
+    @base_path: path to the real tumor folder, e.g. /tgm001_preop/ \n
+    Return pair (t1c,flair) of a real tumor
+    """
+    import torch
+    t1c = nib.load(os.path.join(
+        base_path, 'tumor_mask_t_to_atlas.nii')).get_fdata()
+    flair = nib.load(os.path.join(
+        base_path, 'tumor_mask_f_to_atlas.nii')).get_fdata()
+
+    flair = torch.from_numpy(flair)
+    t1c = torch.from_numpy(t1c)
+    return (t1c, flair)
+
+
 def print_details():
     import utils
     tumor_id = 'tgm008_preop'
     syn_id = 42685
 
-    _, real_f = utils.load_real_tumor(
-        base_path=f'/Users/marcelrosier/Projects/uni/tumor_data/real_tumors/{tumor_id}')
-    syn_f = utils.load_single_tumor(syn_id, threshold=0.2)
+    # _, real_f = utils.load_real_tumor(
+    #     base_path=f'/Users/marcelrosier/Projects/uni/tumor_data/real_tumors/{tumor_id}')
+    real_f = nib.load(os.path.join(
+        f'/Users/marcelrosier/Projects/uni/tumor_data/real_tumors/{tumor_id}', 'tumor_mask_f_to_atlas.nii')).get_fdata()
+    syn_f = utils.load_single_tumor(syn_id, threshold=0.2, cut=False)
+    syn_f = np.delete(np.delete(
+        np.delete(syn_f, 128, 0), 128, 1), 128, 2)
+    real_f = np.delete(np.delete(
+        np.delete(real_f, 128, 0), 128, 1), 128, 2)
+    print(real_f.shape)
+    print(syn_f.shape)
     # my dice implementation
     print("my dice: ", utils.calc_dice_coef(real_f, syn_f))
     # monai dice loss
