@@ -35,10 +35,10 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-LATENT_DIM = 1024
+LATENT_DIM = 8
 TEST_SET_SIZE = "50k"
-TRAIN_SIZE = 1500
-SYNTHETIC = True
+TRAIN_SIZE = 20000  # 1500
+SYNTHETIC = False
 VAE = True
 BETA = 0.001
 T1C = False
@@ -101,13 +101,17 @@ def run(cuda_id=0):
                                base_channels=BASE_CHANNELS, training=False,
                                latent_dim=LATENT_DIM, only_encode=True)
         if T1C:
-            if LATENT_DIM == 1024:
+            if TRAIN_SIZE == 20000:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/ref_no_kld_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_20000_LR_3e-05_ME_300_BETA_0001_1642620528/ref_no_kld_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_20000_LR_3e-05_ME_300_BETA_0001_1642620528_ep_120.pt"
+            elif LATENT_DIM == 1024:
                 checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232/VAE_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1641757232_ep_final.pt"
             else:
                 checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180/VAE_T1C_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642602180_ep_final.pt"
 
         else:
-            if LATENT_DIM == 1024:
+            if TRAIN_SIZE == 20000:
+                checkpoint_path = "/mnt/Drive3/ivan_marcel/models/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_20000_LR_3e-05_ME_300_BETA_0001_1642620502/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_20000_LR_3e-05_ME_300_BETA_0001_1642620502_ep_120.pt"
+            elif LATENT_DIM == 1024:
                 checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/VAE_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822/VAE_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_3e-05_ME_600_BETA_0001_1640616822_ep_final.pt"
             else:
                 checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006/ref_no_kld_VAE_FLAIR_BC_24_LD_8_MD_16_BS_2_TS_1500_LR_3e-05_ME_1000_BETA_0001_1642709006_ep_final.pt"
