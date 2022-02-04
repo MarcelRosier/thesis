@@ -578,6 +578,93 @@ def plot_vae_enc_best_match_presence_overview():
     fig.tight_layout()
 
 
+def plot_vae_flair_enc_best_match_presence_overview():
+
+    def plot_enc_best_match_presence(tumor_ids, top_gt_list, top_enc_list, top_n: int, ax, value_type: DSValueType):
+
+        is_present = []
+        for gt, enc in zip(top_gt_list, top_enc_list):
+            enc_best = enc[0]
+            enc_best_in_top_n_gt = enc_best in gt[:top_n]
+            if top_n == 15 and not enc_best_in_top_n_gt:
+                # print("test")
+                pass
+            is_present.append(float(enc_best_in_top_n_gt))
+        tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
+        x_ax = np.linspace(1, len(tumor_ids), 62)
+        cmap = colors.ListedColormap(['red', 'green'])
+        assignedColors = [cmap(int(t)) for t in is_present]
+        plot = sns.scatterplot(ax=ax, x=x_ax, y=is_present,
+                               c=assignedColors,  cmap=cmap)
+        plot.set_yticks([1.0, 0.0], ["True",
+                                     "False"])
+        plot.set_xticklabels([])
+        plot.set_xlabel("Tumors")
+        avg = sum(is_present) / len(is_present)
+        # print(cmap(1))
+        legend = plot.legend([str(avg*100)[:4] + "%"], loc="center right")
+        legend.legendHandles[0].set_color('green')
+
+    fig, axes = plt.subplots(3, 3, sharex=True, sharey=True, figsize=(12, 3))
+    rows = ["Top 1", "Top 5", "Top 15"]
+    cols = ["Latent size 8", "Latent size 1024",
+            "Trainset size 20k; latent size 8"]
+    print(axes[:, 0])
+    for ax, row in zip(axes[:, 0], rows):
+        ax.set_ylabel(row, rotation=0)
+    for ax, col in zip(axes[0], cols):
+        ax.set_title(col)
+
+    #  8
+    value_type = DSValueType.FLAIR
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/vae/8/top_15_{value_type.value}.json') as file:
+        data_8: dict = json.load(file)
+    tumor_ids = data_8.keys()
+    top_gt_lists = []
+    top_enc_lists = []
+    for tumor_id in tumor_ids:
+        top_gt_lists.append(data_8[tumor_id]['top_gt'])
+        top_enc_lists.append(data_8[tumor_id]['top_enc'])
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=1, ax=axes[0][0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=5, ax=axes[1][0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=15, ax=axes[2][0], value_type=value_type)
+    #  1024
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/vae/1024/top_15_{value_type.value}.json') as file:
+        data_1024: dict = json.load(file)
+    tumor_ids = data_1024.keys()
+    top_gt_lists = []
+    top_enc_lists = []
+    for tumor_id in tumor_ids:
+        top_gt_lists.append(data_1024[tumor_id]['top_gt'])
+        top_enc_lists.append(data_1024[tumor_id]['top_enc'])
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=1, ax=axes[0][1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=5, ax=axes[1][1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=15, ax=axes[2][1], value_type=value_type)
+    #  8 20k
+    value_type = DSValueType.FLAIR
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/vae20k/8/top_15_{value_type.value}.json') as file:
+        data_1024: dict = json.load(file)
+    tumor_ids = data_1024.keys()
+    top_gt_lists = []
+    top_enc_lists = []
+    for tumor_id in tumor_ids:
+        top_gt_lists.append(data_1024[tumor_id]['top_gt'])
+        top_enc_lists.append(data_1024[tumor_id]['top_enc'])
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=1, ax=axes[0][2], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=5, ax=axes[1][2], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_gt_lists,
+                                 top_enc_lists, top_n=15, ax=axes[2][2], value_type=value_type)
+    fig.tight_layout()
+
+
 def plot_recon_losses(is_ae: bool):
     tum_blue = "#446EB0"
     orange = "#F0746E"
@@ -674,7 +761,7 @@ sns.set_theme(style='whitegrid')
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
 # plot_enc_best_match_presence_overview(is_ae=False, is_1024=True)
-plot_vae_enc_best_match_presence_overview()
+plot_vae_flair_enc_best_match_presence_overview()
 # print("AE")
 # plot_recon_losses(is_ae=True)
 # print("VAE")
