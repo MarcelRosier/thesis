@@ -40,6 +40,7 @@ def compare_best_match_for_downsampling(downsample_to: int = 64, value_type=DSVa
 
 def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType.COMBINED, is_1024=False, is_20k=False):
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
+    tumor_ids = [t for t in tumor_ids if t[3:6].isnumeric()]
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     # tumor_ids = tumor_ids[:10]
     assert len(tumor_ids) == 62

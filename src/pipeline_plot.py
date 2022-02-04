@@ -1,43 +1,13 @@
-import sys
-from datetime import datetime
-import os
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import time
-import subprocess
-import pickle5 as pickle
-from glob import glob
-import nibabel as nib
-import argparse
-import numpy as np
 import matplotlib as mpl
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-# mpl.rc('image', cmap='terrain')
-
-# sys.path.append('/home/ivan/.local/lib/python3.8/site-packages')
-
-# import tensorflow as tf
-# import torch
-# import surface_distance
-# torch.set_num_threads(2) #uses max. 2 cpus for inference! no gpu inference!
-# import torch.nn.functional as F
-# from torch.utils.data import DataLoader
-# from masseffect_solver import masseffect_solver
+import nibabel as nib
+import numpy as np
 
 
 def remove_ticks(ax):
     ax.set_xticks([])
     ax.set_yticks([])
-
-
-def custom_cmap():
-    colors = [(116, 197, 247), (214, 10, 10)]  # R -> G -> B
-    cmap_name = 'my_list'
-
-    cmap = LinearSegmentedColormap.from_list(cmap_name, colors)
-    return cmap
 
 
 mpl.rcParams['text.color'] = 'black'
@@ -46,10 +16,8 @@ mpl.rcParams['ytick.color'] = 'grey'
 mpl.rcParams['axes.labelcolor'] = 'grey'
 plt.rcParams["font.family"] = "Laksaman"
 
-# path = "/home/ivan/ibbm/learnmorph/bene/"
 path_to_orig = "/Users/marcelrosier/Projects/uni/tumor_data/real_tumors/"
-# dirs = os.listdir(path_to_orig)
-# dirs.sort()
+
 dirs = [
     'tgm047_preop',  # 1.4
     'tgm008_preop',  # 1.2
@@ -61,11 +29,6 @@ dirs = [
 # fig = plt.figure(figsize=(10, 8))
 fig, axes = plt.subplots(ncols=4, nrows=5, figsize=(15, 4),
                          gridspec_kw={"width_ratios": [1, 1, 1, 0.05]})
-# fig, (ax, ax1, ax2, cax2) = plt.subplots(ncols=4, nrows=5, figsize=(15, 4),
-#                                          gridspec_kw={"width_ratios": [1, 1, 1, 0.05]})
-# outer = gridspec.GridSpec(2, 2, wspace=0.2, hspace=0.2)
-
-# fig.subplots_adjust(wspace=0.02)
 axes[0][0].set_title("Patient's brain MRI", fontsize=18)
 axes[0][1].set_title("MRI segmentations", fontsize=18)
 axes[0][2].set_title("Queried tumor", fontsize=18)
@@ -128,5 +91,3 @@ for i, folder in enumerate(dirs):
         axes[i][3].axis('off')
     # fig.savefig("./plot_{}.png".format(ii), bbox_inches='tight', dpi=600)
 plt.show()
-# if ii == 2:
-#     break
