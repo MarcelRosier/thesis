@@ -1,5 +1,8 @@
 import json
 import os
+from tkinter import Y
+
+from matplotlib import pyplot as plt
 
 from constants import ENV, REAL_TUMOR_BASE_PATH
 from utils import find_n_best_score_ids, DSValueType
@@ -74,3 +77,38 @@ def compare_best_match_for_enc(is_ae=True, value_type: DSValueType = DSValueType
     path = f"/home/ivan_marcel/thesis/src/autoencoder/data/final_50k_top15/{'ae' if is_ae else ('vae/1024' if is_1024 else ('vae20k/8' if is_20k else'vae/8)'))}/top_15_{value_type}.json"
     with open(path, "w") as file:
         json.dump(data, file)
+
+
+def get_top_2_baseline_dice_scores():
+    df = pd.DataFrame(columns=['tumor', 'first_combined', 'second_combined', ])
+    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/baseline/data/custom_dice/testset_size_50000/dim_128/dice"
+    value_type = DSValueType.COMBINED
+    tumor_list = os.listdir(base_path)  # [:10]
+    tumor_list.sort(key=lambda f: int(f[3:6]))
+    for tumor in tumor_list:
+        path = f"{base_path}/{tumor}"
+        [first, second] = find_n_best_score_ids(
+            path=path, value_type=value_type, order_func=max, n_best=2)
+        with open(path) as file:
+            data = json.load(file)
+        df = df.append({
+            'tumor': tumor.split('.')[0],
+            'first_combined': data[first][value_type.value],
+            'second_combined': data[second][value_type.value],
+        }, ignore_index=True)
+    # print(first)
+    # print(data[first])
+    # print(second)
+    # print(data[second])
+    # df.to_csv("baseline_top_2_combined_dice_scores.csv")
+    import seaborn as sns
+    sns.set(rc={'figure.figsize': (16, 9)})
+    sns.set_theme(style='whitegrid')
+    ax = plt.subplots()
+    first_plot = sns.scatterplot(data=df, x='tumor', y='first_combined')
+    second_plot = sns.barplot(data=df, x='tumor', y='second_combined',
+                              color='#329ea8', alpha=0.8)
+    second_plot.set_xticklabels([])
+    second_plot.set_ylabel("Combined Dice Score")
+    second_plot.legend(['Best match', '2nd best match'])
+    plt.show()

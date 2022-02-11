@@ -282,8 +282,8 @@ def plot_best_match_input_dice():
             flair_scores.append(data[best_key][DSValueType.FLAIR.value])
 
     fig, axes = plt.subplots(3, 1, sharex=True)
-    fig.suptitle("Dice score between input and best match")
-    fig.text(0.5135, 0.075, 'Tumors', ha='center')
+    # fig.suptitle("Dice score between input and best match")
+    # fig.text(0.5135, 0.075, 'Tumors', ha='center')
     x_labels = [int(tumor[3:6]) for tumor in tumor_ids]
     y_ticks = np.linspace(0, 1, 11)
 
@@ -301,10 +301,10 @@ def plot_best_match_input_dice():
         ax=axes[0], x=x_labels, y=t1c_scores, palette=colors)
     t1c_plot.set_xlim(-0.5)
     t1c_plot.set_ylim(-0.01, 1)
-    t1c_plot.set_title("T1Gd")
+    # t1c_plot.set_title("T1Gd")
     # t1c_plot.set_xlabel("tumors")
     t1c_plot.set_xticklabels([])
-    t1c_plot.set_ylabel("Dice score")
+    t1c_plot.set_ylabel("T1Gd dice score", size=16)
     t1c_plot.set_yticks(y_ticks)
     t1c_plot.axhline(t1c_avg, color="#446EB0")  # "#5ba56e")
 
@@ -315,17 +315,17 @@ def plot_best_match_input_dice():
         ax=axes[1], x=x_labels, y=flair_scores, palette=colors)
     flair_plot.set_xlim(-0.5)
     flair_plot.set_ylim(-0.01, 1)
-    flair_plot.set_title("FLAIR")
+    # flair_plot.set_title("FLAIR")
     # flair_plot.set_xlabel("tumors")
     flair_plot.set_xticklabels([])
-    flair_plot.set_ylabel("Dice score")
+    flair_plot.set_ylabel("FLAIR dice score", size=16)
     flair_plot.set_yticks(y_ticks)
     flair_plot.axhline(flair_avg, color="#446EB0")  # "#5ba56e")
 
     print(t1c_scores)
     print(flair_scores)
     # combined plot
-    y_ticks = np.linspace(0, 2, 11)
+    y_ticks = np.linspace(0, 2, 21)
     norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
     combined_scores = [t + f for t, f in zip(t1c_scores, flair_scores)]
     colors = [spectral_palette(norm(c)) for c in combined_scores]
@@ -335,11 +335,15 @@ def plot_best_match_input_dice():
         ax=axes[2], x=x_labels, y=combined_scores, palette=colors)
     combined_scores_plot.set_xlim(-0.5)
     combined_scores_plot.set_ylim(-0.01, 2)
-    combined_scores_plot.set_title("Combined")
+    # combined_scores_plot.set_title("Combined")
     # combined_scores_plot.set_xlabel("tumors")
     combined_scores_plot.set_xticklabels([])
-    combined_scores_plot.set_ylabel("Dice score")
+    combined_scores_plot.set_ylabel("Combined dice score", size=16)
+    combined_scores_plot.set_xlabel("Tumors")
     combined_scores_plot.set_yticks(y_ticks)
+
+    for label in combined_scores_plot.get_yticklabels()[1:][::2]:
+        label.set_visible(False)
     combined_scores_plot.axhline(
         combined_scores_avg, color="#446EB0")  # "#5ba56e")
     # plt.show()
@@ -426,7 +430,8 @@ def plot_enc_best_match_presence_overview(is_ae: bool, is_1024: bool = False):
 
     # Combined
     value_type = DSValueType.COMBINED
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/{"ae" if is_ae else ("vae/1024" if is_1024 else "vae/8")}/top_15_combined.json') as file:
+    # fig.suptitle("AE FLAIR")
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/{"ae" if is_ae else ("vae/1024" if is_1024 else "vae/8")}/top_15_{value_type.value}.json') as file:
         data: dict = json.load(file)
     tumor_ids = data.keys()
     top_gt_lists = []
@@ -606,9 +611,10 @@ def plot_vae_flair_enc_best_match_presence_overview():
         legend.legendHandles[0].set_color('green')
 
     fig, axes = plt.subplots(3, 3, sharex=True, sharey=True, figsize=(12, 3))
+    # fig.suptitle("VAE FLAIR")
     rows = ["Top 1", "Top 5", "Top 15"]
     cols = ["Latent size 8", "Latent size 1024",
-            "Trainset size 20k; latent size 8"]
+            "Trainset size 20k; Latent size 8"]
     print(axes[:, 0])
     for ax, row in zip(axes[:, 0], rows):
         ax.set_ylabel(row, rotation=0)
@@ -616,7 +622,7 @@ def plot_vae_flair_enc_best_match_presence_overview():
         ax.set_title(col)
 
     #  8
-    value_type = DSValueType.FLAIR
+    value_type = DSValueType.COMBINED
     with open(f'/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/final_50k_top15/vae/8/top_15_{value_type.value}.json') as file:
         data_8: dict = json.load(file)
     tumor_ids = data_8.keys()
@@ -760,7 +766,7 @@ sns.set_theme(style='whitegrid')
 # plot_train_and_val_loss_vae()
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
-# plot_enc_best_match_presence_overview(is_ae=False, is_1024=True)
+# plot_enc_best_match_presence_overview(is_ae=True, is_1024=True)
 plot_vae_flair_enc_best_match_presence_overview()
 # print("AE")
 # plot_recon_losses(is_ae=True)

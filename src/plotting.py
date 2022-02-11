@@ -188,7 +188,7 @@ def plot_downsampled_best_match_presence(tumor_ids, top_gt_list, top_downsampled
             print("test")
         is_present.append(float(down_best_in_top_n_gt))
     tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
-    x_ax = np.linspace(1, len(tumor_ids), 63)
+    x_ax = np.linspace(1, len(tumor_ids), 62)
     # avg = sum(is_present) / len(is_present)
     # sns.barplot(ax=ax, x=tumor_ids, y=is_present, color="#2a9c2c")
     # ax.axhline(avg)
@@ -216,10 +216,10 @@ def plot_downsampled_best_match_presence(tumor_ids, top_gt_list, top_downsampled
 
 def plot_downsampled_best_match_presence_overview(testset_size: str, metric: SimilarityMeasureType):
     """testset_size only affects title, not the used dataset!"""
-    fig, axes = plt.subplots(2, 3, sharex=True, sharey=True, figsize=(12, 3))
-    cols = ["Best match = best ground truth match",
-            "Best match in top 5 ground truth matches", "Best match in top 15 ground truth matches"]
-    rows = [r"$64^3$", r"$32^3$"]
+    fig, axes = plt.subplots(3, 2, sharex=True, sharey=True, figsize=(12, 3))
+    rows = ["Top 1",
+            "Top 5", "Top 15"]
+    cols = [r"$64^3$", r"$32^3$"]
     for ax, col in zip(axes[0], cols):
         ax.set_title(col)
     for ax, row in zip(axes[:, 0], rows):
@@ -250,27 +250,26 @@ def plot_downsampled_best_match_presence_overview(testset_size: str, metric: Sim
     #  top_downsampled_list, top_n=1, ax=axes[1][1], value_type=value_type)
 
     # Combined
-    value_type = DSValueType.COMBINED
+    fig.suptitle("DS FLAIR")
+    value_type = DSValueType.FLAIR
     tumor_ids, top_gt_list, top_downsampled_64_list = analysis.compare_best_match_for_downsampling(
         downsample_to=64, value_type=value_type, n_best=15)
     _, _, top_downsampled_32_list = analysis.compare_best_match_for_downsampling(
         downsample_to=32, value_type=value_type, n_best=15)
-    for i, tumor_id in enumerate(tumor_ids):
-        if top_gt_list[i][0] == top_downsampled_32_list[i][0]:
-            print(tumor_id)
-    return
+
+    print(len(tumor_ids), len(top_gt_list), len(top_downsampled_64_list))
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
                                          top_downsampled_64_list, top_n=1, ax=axes[0][0], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
-                                         top_downsampled_64_list, top_n=5, ax=axes[0][1], value_type=value_type)
+                                         top_downsampled_64_list, top_n=5, ax=axes[1][0], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
-                                         top_downsampled_64_list, top_n=15, ax=axes[0][2], value_type=value_type)
+                                         top_downsampled_64_list, top_n=15, ax=axes[2][0], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
-                                         top_downsampled_32_list, top_n=1, ax=axes[1][0], value_type=value_type)
+                                         top_downsampled_32_list, top_n=1, ax=axes[0][1], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
                                          top_downsampled_32_list, top_n=5, ax=axes[1][1], value_type=value_type)
     plot_downsampled_best_match_presence(tumor_ids, top_gt_list,
-                                         top_downsampled_32_list, top_n=15, ax=axes[1][2], value_type=value_type)
+                                         top_downsampled_32_list, top_n=15, ax=axes[2][1], value_type=value_type)
 
     fig.tight_layout()
     plt.show()
@@ -297,8 +296,8 @@ def test_mayavi():
 
 
 # test_mayavi()
-plot_downsampled_best_match_presence_overview(
-    testset_size="50k", metric=SimilarityMeasureType.DICE)
+# plot_downsampled_best_match_presence_overview(
+#     testset_size="50k", metric=SimilarityMeasureType.DICE)
 # enc = "enc_FLAIR_1024_1500"
 # gt_metric = 'l2'
 # plot_best_match_presence_overview(
