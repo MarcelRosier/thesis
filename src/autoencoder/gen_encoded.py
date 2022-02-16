@@ -35,13 +35,16 @@ torch.backends.cudnn.benchmark = False
 
 
 # Hyper parameters
-LATENT_DIM = 8
+LATENT_DIM = 1024
 TEST_SET_SIZE = "50k"
-TRAIN_SIZE = 20000  # 1500
+TRAIN_SIZE = 1500  # 1500
 SYNTHETIC = False
+SYN_EVAL = True
+SYN_EVAL_START = 75000
+SYN_EVAL_SIZE = 62
 VAE = True
 BETA = 0.001
-T1C = False
+T1C = True
 
 #
 BASE_CHANNELS = 24
@@ -62,7 +65,14 @@ def run(cuda_id=0):
     nets = networks.get_basic_net_16_16_16(
         c_hid=BASE_CHANNELS,  latent_dim=LATENT_DIM)
 
-    if SYNTHETIC:
+    if SYN_EVAL:
+        test_dataset = TumorDataset(
+            subset=(SYN_EVAL_START, SYN_EVAL_START + SYN_EVAL_SIZE), t1c=T1C)
+        test_loader = DataLoader(dataset=test_dataset,
+                                 batch_size=BATCH_SIZE,
+                                 shuffle=False,
+                                 num_workers=4)
+    elif SYNTHETIC:
         test_dataset = TumorDataset(
             subset=(TEST_START, TEST_START + TEST_SIZE), t1c=T1C)
         test_loader = DataLoader(dataset=test_dataset,
@@ -118,7 +128,7 @@ def run(cuda_id=0):
     else:
         model = Autoencoder(nets=nets, min_dim=MIN_DIM, only_encode=True)
         if T1C:
-            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_final.pt"
         else:
             checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
         # if LATENT_DIM == 4096 and TRAIN_SIZE == 1500:
@@ -151,7 +161,9 @@ def run(cuda_id=0):
         encoded = model(tumor)
         # save
         np_encoded = encoded.cpu().detach().numpy()
-        if SYNTHETIC:
+        if SYN_EVAL:
+            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_eval/{folder_id}.npy"
+        elif SYNTHETIC:
             save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
         else:
             save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"

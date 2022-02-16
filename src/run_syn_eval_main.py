@@ -1,6 +1,5 @@
-from email.mime import base
 from constants import (ENV, SYN_TUMOR_PATH_TEMPLATE)
-from syn_eval import baseline
+from syn_eval import baseline, test, query
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
@@ -15,4 +14,7 @@ def run_baseline(downsample_to: int = None):
 
 # run_baseline(downsample_to=None)
 # run_baseline(downsample_to=64)
-run_baseline(downsample_to=32)
+# run_baseline(downsample_to=32)
+# test.bm_presence()
+
+query.run(processes=32)
