@@ -12,6 +12,7 @@ def run_baseline(downsample_to: int = None):
         cur_id = STARTING_ID + i
         baseline.run(input_tumor_id=cur_id, downsample_to=downsample_to)
 
+
 # run_baseline(downsample_to=None)
 # run_baseline(downsample_to=64)
-# run_baseline(downsample_to=32)
+run_baseline(downsample_to=32)
