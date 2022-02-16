@@ -103,8 +103,6 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
 
     results = {}
 
-    func = partial(calc_score_for_pair, real_tumor_t1c,
-                   real_tumor_flair, base_path_t1c, base_path_flair)
 
     for folder in folders:
         syn_t1c = utils.normalize(
@@ -118,11 +116,14 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
             't1c': str(t1c_score),
             'combined': str(flair_score + t1c_score)
         }
+        
+    func = partial(calc_score_for_pair, real_tumor_t1c,
+                   real_tumor_flair, base_path_t1c, base_path_flair)
 
-    # with multiprocessing.Pool(32) as pool:
-    #     results = pool.map_async(func, folders)
-    #     single_scores = results.get()
-    #     results = {k: v for d in single_scores for k, v in d.items()}
+    with multiprocessing.Pool(32) as pool:
+        results = pool.map_async(func, folders)
+        single_scores = results.get()
+        results = {k: v for d in single_scores for k, v in d.items()}
     # best_key = min(results.keys(), key=lambda k: results[k]['combined'])
 
     # best_score = {
