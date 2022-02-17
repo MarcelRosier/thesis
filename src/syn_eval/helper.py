@@ -61,6 +61,3 @@ def test_enc_bm_quality():
     with open(f"{base_path}/top_15_lists/ae1024.json") as file:
         data = json.load(file)
         print(data['75000'])
-    with open(f"{base_path}/top_15_lists/vae1025.json") as file:
-        data = json.load(file)
-        print(data['75000'])
