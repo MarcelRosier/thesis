@@ -143,15 +143,15 @@ def plot_bmp_val_overview():
 
     # Combined 8
     value_type = DSValueType.COMBINED
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists/baseline.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_val/baseline.json') as file:
         baseline: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists/down64.json') as file:
-        down64: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists/down32.json') as file:
-        down32: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists/ae1024.json') as file:
+    # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_val/down64.json') as file:
+    #     down64: dict = json.load(file)
+    # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_val/down32.json') as file:
+    #     down32: dict = json.load(file)
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_val/ae1024.json') as file:
         ae1024: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists/vae1024.json') as file:
+    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_val/vae1024.json') as file:
         vae1024: dict = json.load(file)
 
     tumor_ids = baseline.keys()
@@ -162,25 +162,25 @@ def plot_bmp_val_overview():
     top_vae_lists = []
     for tumor_id in tumor_ids:
         top_baseline_lists.append(baseline[tumor_id])
-        top_ds64_lists.append(down64[tumor_id])
-        top_ds32_lists.append(down32[tumor_id])
+        # top_ds64_lists.append(down64[tumor_id])
+        # top_ds32_lists.append(down32[tumor_id])
         top_ae_lists.append(ae1024[tumor_id])
         top_vae_lists.append(vae1024[tumor_id])
 
     # down64
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds64_lists, top_n=1, ax=axes[0][0], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds64_lists, top_n=5, ax=axes[1][0], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds64_lists, top_n=15, ax=axes[2][0], value_type=value_type)
-    # down32
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds32_lists, top_n=1, ax=axes[0][1], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds32_lists, top_n=5, ax=axes[1][1], value_type=value_type)
-    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-                                 top_ds32_lists, top_n=15, ax=axes[2][1], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds64_lists, top_n=1, ax=axes[0][0], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds64_lists, top_n=5, ax=axes[1][0], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds64_lists, top_n=15, ax=axes[2][0], value_type=value_type)
+    # # down32
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds32_lists, top_n=1, ax=axes[0][1], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds32_lists, top_n=5, ax=axes[1][1], value_type=value_type)
+    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+    #                              top_ds32_lists, top_n=15, ax=axes[2][1], value_type=value_type)
     # ae
     plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
                                  top_ae_lists, top_n=1, ax=axes[0][2], value_type=value_type)
@@ -202,6 +202,7 @@ def plot_bmp_val_overview():
 sns.set(rc={'figure.figsize': (16, 9)})
 sns.set_theme(style='whitegrid')
 
-plot_bmp_overview()
+# plot_bmp_overview()
+plot_bmp_val_overview()
 
 plt.show()

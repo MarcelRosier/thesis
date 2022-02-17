@@ -25,15 +25,16 @@ def run(val: bool = False):
         vae[tid] = utils.find_n_best_score_ids(
             path=f"{base_path}/vae1024/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=min, n_best=15)
 
-    with open(f"{base_path}/top_15_lists/baseline.json", 'w') as file:
+    sub_path = f"{base_path}/top_15_lists{'_val' if val else ''}"
+    with open(f"{sub_path}/baseline.json", 'w') as file:
         json.dump(baseline, file)
     # with open(f"{base_path}/top_15_lists/down64.json", 'w') as file:
     #     json.dump(down64, file)
     # with open(f"{base_path}/top_15_lists/down32.json", 'w') as file:
     #     json.dump(down32, file)
-    with open(f"{base_path}/top_15_lists/ae1024.json", 'w') as file:
+    with open(f"{sub_path}/ae1024.json", 'w') as file:
         json.dump(ae, file)
-    with open(f"{base_path}/top_15_lists/vae1024.json", 'w') as file:
+    with open(f"{sub_path}/vae1024.json", 'w') as file:
         json.dump(vae, file)
 
 
