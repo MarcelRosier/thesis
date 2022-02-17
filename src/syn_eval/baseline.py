@@ -58,29 +58,6 @@ def get_scores_for_pair(t1c, flair, downsample_to, tumor_id):
     tumor_02, tumor_06 = load_syn_tumor(
         tumor_id=tumor_id, downsample_to=downsample_to)
 
-    # calc and update dice scores and partners
-    # criterion = DiceLoss(
-    #     smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
-    # tumor_02 = torch.from_numpy(tumor_02)
-    # tumor_02.unsqueeze_(0)
-    # tumor_02.unsqueeze_(0)
-    # flair = torch.from_numpy(flair)
-    # flair.unsqueeze_(0)
-    # flair.unsqueeze_(0)
-    # # cur_flair = compute_meandice(
-    # #     tumor_02, flair, include_background=False)
-    # cur_flair = criterion(tumor_02, flair)
-
-    # tumor_06 = torch.from_numpy(tumor_06)
-    # tumor_06.unsqueeze_(0)
-    # tumor_06.unsqueeze_(0)
-    # t1c = torch.from_numpy(t1c)
-    # t1c.unsqueeze_(0)
-    # t1c.unsqueeze_(0)
-    # # cur_t1c = compute_meandice(tumor_06, t1c, include_background=False)
-    # cur_t1c = criterion(tumor_06, t1c)
-    # cur_flair = 1 - cur_flair.item()
-    # cur_t1c = 1 - cur_t1c.item()
     cur_flair = utils.calc_dice_coef(tumor_02, flair)
     cur_t1c = utils.calc_dice_coef(tumor_06, t1c)
     combined = cur_t1c + cur_flair
@@ -106,7 +83,7 @@ def get_scores_for_real_tumor_parallel(input_tumor_id: str, downsample_to: int =
 
     func = partial(get_scores_for_pair, t1c, flair, downsample_to)
 
-    with multiprocessing.Pool(processes=32) as pool:
+    with multiprocessing.Pool(processes=50) as pool:
         results = pool.map_async(func, folders)
         single_scores = results.get()
         scores = {k: v for d in single_scores for k, v in d.items()}
@@ -124,14 +101,17 @@ def get_scores_for_real_tumor_parallel(input_tumor_id: str, downsample_to: int =
     return scores, best_score
 
 
-def run(input_tumor_id, downsample_to: int = None):
+def run(input_tumor_id, downsample_to: int = None, validation: bool = False):
     scores, best_score = get_scores_for_real_tumor_parallel(
         input_tumor_id=input_tumor_id,
         downsample_to=downsample_to)
 
     print(best_score)
 
-    data_path = "/home/ivan_marcel/thesis/src/syn_eval/data"
+    if validation:
+        data_path = "/home/ivan_marcel/thesis/src/syn_eval/val_data"
+    else:
+        data_path = "/home/ivan_marcel/thesis/src/syn_eval/data"
     save_path = f"{data_path}/{'down'+str(downsample_to) if downsample_to else 'baseline'}/{input_tumor_id}.json"
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     with open(save_path, "w") as file:
