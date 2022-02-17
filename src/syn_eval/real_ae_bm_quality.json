@@ -1,0 +1,312 @@
+{
+    "tgm001_preop": {
+        "best_ae_dice": 1.0460987103573904,
+        "best_base_dice": 1.201602831822254,
+        "best_ae_rank_in_base": 42
+    },
+    "tgm002_preop": {
+        "best_ae_dice": 0.6106937139994991,
+        "best_base_dice": 0.7668543711182085,
+        "best_ae_rank_in_base": 48
+    },
+    "tgm003_preop": {
+        "best_ae_dice": 0.4347007397444519,
+        "best_base_dice": 0.5145143091599138,
+        "best_ae_rank_in_base": 24
+    },
+    "tgm004_preop": {
+        "best_ae_dice": 0.0,
+        "best_base_dice": 0.2369620253164557,
+        "best_ae_rank_in_base": 27075
+    },
+    "tgm005_preop": {
+        "best_ae_dice": 1.098520756100696,
+        "best_base_dice": 1.098520756100696,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm006_preop": {
+        "best_ae_dice": 0.9512936481988157,
+        "best_base_dice": 0.9512936481988157,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm008_preop": {
+        "best_ae_dice": 1.1013570154429477,
+        "best_base_dice": 1.200831799168476,
+        "best_ae_rank_in_base": 7
+    },
+    "tgm009_preop": {
+        "best_ae_dice": 1.384587982782944,
+        "best_base_dice": 1.384587982782944,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm010_preop": {
+        "best_ae_dice": 1.1572157777663556,
+        "best_base_dice": 1.158430566533395,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm011_preop": {
+        "best_ae_dice": 1.3107031039305022,
+        "best_base_dice": 1.3107031039305022,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm013_preop": {
+        "best_ae_dice": 0.006310300178433262,
+        "best_base_dice": 0.3376211831149848,
+        "best_ae_rank_in_base": 10711
+    },
+    "tgm014_preop": {
+        "best_ae_dice": 1.1807253342229866,
+        "best_base_dice": 1.1807253342229866,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm015_preop": {
+        "best_ae_dice": 1.2749300509852541,
+        "best_base_dice": 1.322767241936706,
+        "best_ae_rank_in_base": 8
+    },
+    "tgm016_preop": {
+        "best_ae_dice": 1.0956212437226074,
+        "best_base_dice": 1.1436926201697462,
+        "best_ae_rank_in_base": 5
+    },
+    "tgm017_preop": {
+        "best_ae_dice": 1.2010410947128993,
+        "best_base_dice": 1.2751226667550088,
+        "best_ae_rank_in_base": 5
+    },
+    "tgm018_preop": {
+        "best_ae_dice": 0.7878349863757227,
+        "best_base_dice": 0.81258314845804,
+        "best_ae_rank_in_base": 3
+    },
+    "tgm019_preop": {
+        "best_ae_dice": 1.2258724333024826,
+        "best_base_dice": 1.2896268809497355,
+        "best_ae_rank_in_base": 3
+    },
+    "tgm021_preop": {
+        "best_ae_dice": 0.5350252824648701,
+        "best_base_dice": 0.8776791161220261,
+        "best_ae_rank_in_base": 643
+    },
+    "tgm022_preop": {
+        "best_ae_dice": 0.6838140241124844,
+        "best_base_dice": 0.7452889027079088,
+        "best_ae_rank_in_base": 4
+    },
+    "tgm023_preop": {
+        "best_ae_dice": 0.5464971857524552,
+        "best_base_dice": 0.6825863735357764,
+        "best_ae_rank_in_base": 26
+    },
+    "tgm024_preop": {
+        "best_ae_dice": 1.2030136106953435,
+        "best_base_dice": 1.2140483821704318,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm025_preop": {
+        "best_ae_dice": 0.6091982610386703,
+        "best_base_dice": 0.8113485216415087,
+        "best_ae_rank_in_base": 43
+    },
+    "tgm026_preop": {
+        "best_ae_dice": 1.277665000038773,
+        "best_base_dice": 1.277665000038773,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm027_preop": {
+        "best_ae_dice": 0.9133877747477483,
+        "best_base_dice": 1.064436494331472,
+        "best_ae_rank_in_base": 35
+    },
+    "tgm028_preop": {
+        "best_ae_dice": 1.2804665048683206,
+        "best_base_dice": 1.2974586043685978,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm029_preop": {
+        "best_ae_dice": 1.1360484732221963,
+        "best_base_dice": 1.1360484732221963,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm031_preop": {
+        "best_ae_dice": 1.2307130492792808,
+        "best_base_dice": 1.2981183744904707,
+        "best_ae_rank_in_base": 15
+    },
+    "tgm033_preop": {
+        "best_ae_dice": 0.7753494054476749,
+        "best_base_dice": 0.9360744721272323,
+        "best_ae_rank_in_base": 15
+    },
+    "tgm034_preop": {
+        "best_ae_dice": 1.057627055107805,
+        "best_base_dice": 1.057627055107805,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm035_preop": {
+        "best_ae_dice": 0.5961342828077314,
+        "best_base_dice": 0.5961342828077314,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm036_preop": {
+        "best_ae_dice": 1.3583087942294731,
+        "best_base_dice": 1.427468645783733,
+        "best_ae_rank_in_base": 4
+    },
+    "tgm037_preop": {
+        "best_ae_dice": 1.2476271322944534,
+        "best_base_dice": 1.2780985311838537,
+        "best_ae_rank_in_base": 5
+    },
+    "tgm038_preop": {
+        "best_ae_dice": 0.0,
+        "best_base_dice": 0.26672191638504433,
+        "best_ae_rank_in_base": 26769
+    },
+    "tgm039_preop": {
+        "best_ae_dice": 1.315214473748779,
+        "best_base_dice": 1.315214473748779,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm041_preop": {
+        "best_ae_dice": 1.0815119043526127,
+        "best_base_dice": 1.156940973072531,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm042_preop": {
+        "best_ae_dice": 1.1741567006177553,
+        "best_base_dice": 1.2907489462338884,
+        "best_ae_rank_in_base": 22
+    },
+    "tgm044_preop": {
+        "best_ae_dice": 1.1810717066595688,
+        "best_base_dice": 1.1810717066595688,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm045_preop": {
+        "best_ae_dice": 1.3219620381589252,
+        "best_base_dice": 1.3219620381589252,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm046_preop": {
+        "best_ae_dice": 1.2872655682155503,
+        "best_base_dice": 1.3706759866665013,
+        "best_ae_rank_in_base": 12
+    },
+    "tgm047_preop": {
+        "best_ae_dice": 1.3893344911570114,
+        "best_base_dice": 1.3893344911570114,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm048_preop": {
+        "best_ae_dice": 0.0,
+        "best_base_dice": 0.07910750507099391,
+        "best_ae_rank_in_base": 22726
+    },
+    "tgm049_preop": {
+        "best_ae_dice": 1.3160829641043357,
+        "best_base_dice": 1.3160829641043357,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm050_preop": {
+        "best_ae_dice": 0.9786998936465661,
+        "best_base_dice": 1.019292436113366,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm051_preop": {
+        "best_ae_dice": 0.9677407195761751,
+        "best_base_dice": 0.9677407195761751,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm052_preop": {
+        "best_ae_dice": 1.2328555966230013,
+        "best_base_dice": 1.2328555966230013,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm053_preop": {
+        "best_ae_dice": 1.228510757625068,
+        "best_base_dice": 1.2407641458878844,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm054_preop": {
+        "best_ae_dice": 1.1765374947824594,
+        "best_base_dice": 1.1765374947824594,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm055_preop": {
+        "best_ae_dice": 0.7369986245027611,
+        "best_base_dice": 0.99089943153018,
+        "best_ae_rank_in_base": 9
+    },
+    "tgm056_preop": {
+        "best_ae_dice": 0.8075372035436854,
+        "best_base_dice": 0.8880909311312295,
+        "best_ae_rank_in_base": 3
+    },
+    "tgm057_preop": {
+        "best_ae_dice": 0.868638684566148,
+        "best_base_dice": 0.9604449132482097,
+        "best_ae_rank_in_base": 6
+    },
+    "tgm058_preop": {
+        "best_ae_dice": 1.1410231746038741,
+        "best_base_dice": 1.1410231746038741,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm059_preop": {
+        "best_ae_dice": 1.2736690387819458,
+        "best_base_dice": 1.2736690387819458,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm060_preop": {
+        "best_ae_dice": 1.1966260076109578,
+        "best_base_dice": 1.2293230551182113,
+        "best_ae_rank_in_base": 4
+    },
+    "tgm061_preop": {
+        "best_ae_dice": 1.3387501129266768,
+        "best_base_dice": 1.3801537338623002,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm062_preop": {
+        "best_ae_dice": 1.2325241490586687,
+        "best_base_dice": 1.266952411949245,
+        "best_ae_rank_in_base": 7
+    },
+    "tgm063_preop": {
+        "best_ae_dice": 0.8720835455496119,
+        "best_base_dice": 0.9644186944725475,
+        "best_ae_rank_in_base": 30
+    },
+    "tgm064_preop": {
+        "best_ae_dice": 1.2409876873216592,
+        "best_base_dice": 1.2501966791500947,
+        "best_ae_rank_in_base": 2
+    },
+    "tgm065_preop": {
+        "best_ae_dice": 0.8145152708535295,
+        "best_base_dice": 0.854939422311427,
+        "best_ae_rank_in_base": 3
+    },
+    "tgm066_preop": {
+        "best_ae_dice": 1.243111026586391,
+        "best_base_dice": 1.3294148717378884,
+        "best_ae_rank_in_base": 5
+    },
+    "tgm067_preop": {
+        "best_ae_dice": 1.1216974000678137,
+        "best_base_dice": 1.2713892330553316,
+        "best_ae_rank_in_base": 34
+    },
+    "tgm068_preop": {
+        "best_ae_dice": 1.3282020439803284,
+        "best_base_dice": 1.3282020439803284,
+        "best_ae_rank_in_base": 1
+    },
+    "tgm071_preop": {
+        "best_ae_dice": 1.1497774594737549,
+        "best_base_dice": 1.1497774594737549,
+        "best_ae_rank_in_base": 1
+    }
+}
