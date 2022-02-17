@@ -1,5 +1,5 @@
 from constants import (ENV, SYN_TUMOR_PATH_TEMPLATE)
-from syn_eval import baseline, test, query
+from syn_eval import baseline, helper
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
@@ -12,9 +12,10 @@ def run_baseline(downsample_to: int = None):
         baseline.run(input_tumor_id=cur_id, downsample_to=downsample_to)
 
 
+# helper.run()
 # run_baseline(downsample_to=None)
 # run_baseline(downsample_to=64)
 # run_baseline(downsample_to=32)
 # test.bm_presence()
 
-query.run(processes=32)
+# query.run(processes=32)
