@@ -39,10 +39,10 @@ LATENT_DIM = 1024
 TEST_SET_SIZE = "50k"
 TRAIN_SIZE = 1500  # 1500
 SYNTHETIC = False
-SYN_EVAL = True
+SYN_EVAL = False
 SYN_EVAL_START = 80000
 SYN_EVAL_SIZE = 62
-VAE = False
+VAE = True
 BETA = 0.001
 T1C = True
 
@@ -166,7 +166,7 @@ def run(cuda_id=0):
         elif SYNTHETIC:
             save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
         else:
-            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real_doublecheck/{folder_id}.npy"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'wb') as file:
             np.save(file=file, arr=np_encoded)
