@@ -20,7 +20,8 @@ def run_baseline_validation(downsample_to: int = None):
                      downsample_to=downsample_to, validation=True)
 
 
-run_baseline_validation(downsample_to=None)
+helper.run(val=True)
+# run_baseline_validation(downsample_to=None)
 # run_baseline(downsample_to=64)
 # run_baseline(downsample_to=32)
 # test.bm_presence()
