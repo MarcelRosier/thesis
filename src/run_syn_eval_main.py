@@ -1,5 +1,5 @@
 from constants import (ENV, SYN_TUMOR_PATH_TEMPLATE)
-from syn_eval import baseline, query, helper
+from syn_eval import baseline, query, helper, real_query_dc
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
@@ -20,6 +20,7 @@ def run_baseline_validation(downsample_to: int = None):
                      downsample_to=downsample_to, validation=True)
 
 
+# real_query_dc.run(processes=32)
 helper.run(val=True)
 # run_baseline_validation(downsample_to=None)
 # run_baseline(downsample_to=64)
