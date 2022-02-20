@@ -83,7 +83,7 @@ def get_scores_for_real_tumor_parallel(input_tumor_id: str, downsample_to: int =
 
     func = partial(get_scores_for_pair, t1c, flair, downsample_to)
 
-    with multiprocessing.Pool(processes=50) as pool:
+    with multiprocessing.Pool(processes=80) as pool:
         results = pool.map_async(func, folders)
         single_scores = results.get()
         scores = {k: v for d in single_scores for k, v in d.items()}
