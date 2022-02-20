@@ -1,5 +1,5 @@
 from constants import (ENV, SYN_TUMOR_PATH_TEMPLATE)
-from syn_eval import baseline, test, query, helper, real_query_dc
+from syn_eval import baseline, query, helper, real_query_dc
 
 SYN_TUMOR_PATH_TEMPLATE = SYN_TUMOR_PATH_TEMPLATE[ENV]
 
