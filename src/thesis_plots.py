@@ -350,6 +350,89 @@ def plot_best_match_input_dice():
     # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
 
 
+def plot_syn_eval_best_match_input_dice():
+    base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/baseline"
+    tumor_ids = [75000 + i for i in range(62)]
+    t1c_scores = []
+    flair_scores = []
+
+    for tumor_id in tumor_ids:
+        with open(f"{base_dir}/{tumor_id}.json") as json_file:
+            data = json.load(json_file)
+            best_key = max(
+                data.keys(), key=lambda k: data[k][DSValueType.COMBINED.value])
+            t1c_scores.append(data[best_key][DSValueType.T1C.value])
+            flair_scores.append(data[best_key][DSValueType.FLAIR.value])
+
+    fig, axes = plt.subplots(3, 1, sharex=True)
+    # fig.suptitle("Dice score between input and best match")
+    # fig.text(0.5135, 0.075, 'Tumors', ha='center')
+    x_labels = tumor_ids
+    y_ticks = np.linspace(0, 1, 11)
+
+    t1c_avg = sum(t1c_scores) / len(t1c_scores)
+    print(t1c_avg)
+    # t1c_plot = sns.barplot(
+    #     ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
+    norm = TwoSlopeNorm(vmin=0, vcenter=0.5, vmax=1)
+    # red_green_pal = sns.diverging_palette(0, 150, l=50, n=32, as_cmap=True)
+    spectral_palette = sns.color_palette("Spectral", as_cmap=True)
+    # rg2 = sns.color_palette("RdYlGn_r", 5)
+    colors = [spectral_palette(norm(c)) for c in t1c_scores]
+    p = sns.color_palette("Spectral", as_cmap=True)
+    t1c_plot = sns.barplot(
+        ax=axes[0], x=x_labels, y=t1c_scores, palette=colors)
+    t1c_plot.set_xlim(-0.5)
+    t1c_plot.set_ylim(-0.01, 1)
+    # t1c_plot.set_title("T1Gd")
+    # t1c_plot.set_xlabel("tumors")
+    t1c_plot.set_xticklabels([])
+    t1c_plot.set_ylabel("T1Gd dice score", size=16)
+    t1c_plot.set_yticks(y_ticks)
+    t1c_plot.axhline(t1c_avg, color="#446EB0")  # "#5ba56e")
+
+    colors = [spectral_palette(norm(c)) for c in flair_scores]
+    flair_avg = sum(flair_scores) / len(flair_scores)
+    print(flair_avg)
+    flair_plot = sns.barplot(
+        ax=axes[1], x=x_labels, y=flair_scores, palette=colors)
+    flair_plot.set_xlim(-0.5)
+    flair_plot.set_ylim(-0.01, 1)
+    # flair_plot.set_title("FLAIR")
+    # flair_plot.set_xlabel("tumors")
+    flair_plot.set_xticklabels([])
+    flair_plot.set_ylabel("FLAIR dice score", size=16)
+    flair_plot.set_yticks(y_ticks)
+    flair_plot.axhline(flair_avg, color="#446EB0")  # "#5ba56e")
+
+    print(t1c_scores)
+    print(flair_scores)
+    # combined plot
+    y_ticks = np.linspace(0, 2, 21)
+    norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
+    combined_scores = [t + f for t, f in zip(t1c_scores, flair_scores)]
+    colors = [spectral_palette(norm(c)) for c in combined_scores]
+    combined_scores_avg = sum(combined_scores) / len(combined_scores)
+    print(combined_scores_avg)
+    combined_scores_plot = sns.barplot(
+        ax=axes[2], x=x_labels, y=combined_scores, palette=colors)
+    combined_scores_plot.set_xlim(-0.5)
+    combined_scores_plot.set_ylim(-0.01, 2)
+    # combined_scores_plot.set_title("Combined")
+    # combined_scores_plot.set_xlabel("tumors")
+    combined_scores_plot.set_xticklabels([])
+    combined_scores_plot.set_ylabel("Combined dice score", size=16)
+    combined_scores_plot.set_xlabel("Tumors")
+    combined_scores_plot.set_yticks(y_ticks)
+
+    for label in combined_scores_plot.get_yticklabels()[1:][::2]:
+        label.set_visible(False)
+    combined_scores_plot.axhline(
+        combined_scores_avg, color="#446EB0")  # "#5ba56e")
+    # plt.show()
+    # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
+
+
 def plot_t1c_flair_train_and_val_loss_ae():
     base_pkl_path = "/Users/marcelrosier/Projects/uni/thesis/src/autoencoder/data/log_train_loss_pkl/ae"
     train_loss_data = pd.DataFrame()
@@ -767,7 +850,9 @@ sns.set_theme(style='whitegrid')
 # plot_best_match_input_dice()
 # plot_t1c_flair_train_and_val_loss_ae()
 # plot_enc_best_match_presence_overview(is_ae=True, is_1024=True)
-plot_vae_flair_enc_best_match_presence_overview()
+# plot_vae_flair_enc_best_match_presence_overview()
+plot_syn_eval_best_match_input_dice()
+# plot_best_match_input_dice()
 # print("AE")
 # plot_recon_losses(is_ae=True)
 # print("VAE")
