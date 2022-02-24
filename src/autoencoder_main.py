@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--cuda_id', '-c', help='specify the id of the to be used cuda device', type=int, default=0)
 parser.add_argument(
-    '--mode', '-m', help='select mode: 1= train, 2=create test data set, 3= run encoded similarity check', type=int, default=0)
+    '--mode', '-m', help='select mode: 1= train, 2=create test data set, 3= run encoded similarity check, 4=query', type=int, default=0)
 args = parser.parse_args()
 # print(args.cuda_id)
 

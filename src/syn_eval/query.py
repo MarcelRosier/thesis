@@ -161,11 +161,11 @@ def calc_score_for_pair(rt, rf, base_path_t1c, base_path_flair, syn_id):
 
 
 def run(processes: int):
-    is_ae = True
+    is_ae = False
 
-    start_id = 80000  # 75000
-    syn_eval_tumors = [start_id + i for i in range(62)]
-    print(syn_eval_tumors)
+    start_id = 90000  # 80000  # 75000
+    syn_eval_tumors = [start_id + i for i in range(1000)]  # 62
+    # print(syn_eval_tumors)
 
     func = partial(run_query_for_encoded_data,
                    use_stored_real_data=True, is_ae=is_ae)

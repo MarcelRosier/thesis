@@ -8,6 +8,7 @@ tumor_data/
 *.log
 test.py
 Atlas
+src/syn_eval/data/*/9*.json
 src/autoencoder/tutorials/outputs
 src/autoencoder/tutorials/dataset
 src/autoencoder/tutorials/checkpoints

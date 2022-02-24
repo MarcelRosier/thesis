@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from autoencoder import networks
 from autoencoder.datasets import TumorDataset
 from autoencoder.losses import CustomDiceLoss
-from autoencoder.modules import Autoencoder, VarAutoencoder
+from autoencoder.modules import Autoencoder, VarAutoencoder, HashAutoencoder
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 MODEL_SAVE_PATH = AE_MODEL_SAVE_PATH[ENV]
@@ -31,21 +31,21 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 1000
+MAX_EPOCHS = 300
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
-LEARNING_RATE = 3e-5
-CHECKPOINT_FREQUENCY = 1000
-VAE = True
+LEARNING_RATE = 1e-5
+CHECKPOINT_FREQUENCY = 150
+VAE = False
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
-T1C = False
-
+T1C = True
+HASH_AE = True
 
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-run_name = f"{'VAE_'if VAE else ''}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
+run_name = f"{'VAE_'if VAE else ('HASH_' if HASH_AE else '')}{'T1C'if T1C else 'FLAIR'}_BC_{BASE_CHANNELS}_LD_{LATENT_DIM}_MD_{MIN_DIM}_BS_{BATCH_SIZE}_TS_{TRAIN_SIZE}_LR_{LEARNING_RATE}_ME_{MAX_EPOCHS}_BETA_{BETA}_{datetime.timestamp(datetime.now())}"
 
 # remove trailing time details after dot
 run_name = ''.join(run_name.split('.')[:-1])
@@ -75,7 +75,10 @@ def run(cuda_id=0):
                             num_workers=4)
 
     # train
-    if VAE:
+    if HASH_AE:
+        model = train_tumort1c_hash_ae(
+            cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
+    elif VAE:
         model = train_VAE_tumort1c(
             cuda_id=cuda_id, train_loader=train_loader, val_loader=val_loader)
     else:
@@ -99,6 +102,91 @@ def train_tumort1c(cuda_id, train_loader, val_loader):
 
     # Model setup
     model = Autoencoder(nets=nets, min_dim=MIN_DIM)
+    model.to(device)  # move to gpu
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
+
+    # training loop
+    print("Starting training")
+    for epoch in range(MAX_EPOCHS):
+        loss = 0
+        # set to training mode
+        for batch_features, _ in train_loader:
+            model.train()
+            # load it to the active device
+            batch_features = batch_features.to(device)
+
+            # reset the gradients back to zero
+            # PyTorch accumulates gradients on subsequent backward passes
+            optimizer.zero_grad()
+
+            # compute reconstructions = x_hat
+            outputs = model(batch_features)
+
+            # compute loss
+            train_loss = criterion(outputs, batch_features)
+
+            # compute accumulated gradients
+            # perform backpropagation of errors
+            train_loss.backward()
+
+            # perform parameter update based on current gradients
+            # optimize weights
+            optimizer.step()
+
+            # add the mini-batch training loss to epoch loss
+            loss += train_loss.item()
+
+        # compute the epoch training loss
+        loss = loss / len(train_loader)
+
+        # compute validation_loss
+        val_loss = 0
+        with torch.no_grad():
+            model.eval()  # set to eval mode
+            for batch, _ in val_loader:
+                batch = batch.to(device)
+                outputs = model(batch)
+                cur_loss = criterion(outputs, batch)
+                val_loss += cur_loss.item()
+        val_loss = val_loss / len(val_loader)
+
+        # prints
+        print("epoch : {}/{}, train_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, loss))
+        print("epoch : {}/{}, val_loss = {:.6f}".format(epoch + 1, MAX_EPOCHS, val_loss))
+
+        # add scalars to tensorboard
+        writer.add_scalar(f"{criterion} /train", loss, epoch + 1)
+        writer.add_scalar(f"{criterion} /validation", val_loss, epoch + 1)
+
+        writer.flush()
+        # save checkpoints with frequency CHECKPOINT_FREQUENCY
+        if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
+            save_checkpoint(epoch=epoch + 1, model=model,
+                            loss=loss, optimizer=optimizer)
+
+    writer.close()
+    print("Finished Training")
+    save_checkpoint(epoch="final", model=model,
+                    loss=loss, optimizer=optimizer)
+    return model
+
+###########
+# Hash AE
+###########
+
+
+def train_tumort1c_hash_ae(cuda_id, train_loader, val_loader):
+    # set device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    # print gpu info
+    utils.pretty_print_gpu_info(device=device)
+
+    # Model setup
+    model = HashAutoencoder(nets=nets, min_dim=MIN_DIM)
     model.to(device)  # move to gpu
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = DiceLoss(

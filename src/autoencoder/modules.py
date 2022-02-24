@@ -1,3 +1,4 @@
+from torch.autograd import Function
 from typing import Tuple
 import torch
 import torch.nn as nn
@@ -73,6 +74,75 @@ class Autoencoder(nn.Module):
         x_hat = self.decoder(z)
         return x_hat
 
+# HASH section
+# Bi-half layer
+
+
+gamma = 1            # parameter γ
+
+
+class hash(Function):
+    @staticmethod
+    def forward(ctx, U):
+        # if torch.cuda.is_available() else torch.device("cpu")
+        # print(device)
+        import os
+        print(os.environ['CUDA_VISIBLE_DEVICES'])
+        print(torch.cuda.get_device_name())
+        # Yunqiang for half and half (optimal transport)
+        _, index = U.sort(0, descending=True)
+        N, D = U.shape
+        B_creat = torch.cat(
+            (torch.ones([int(N/2), D]), -torch.ones([N - int(N/2), D]))).cuda()
+        print(index.is_cuda)
+        print(B_creat.is_cuda)
+        B = torch.zeros(U.shape).scatter_(0, index, B_creat)
+
+        ctx.save_for_backward(U, B)
+
+        return B
+
+    @ staticmethod
+    def backward(ctx, g):
+        U, B = ctx.saved_tensors
+        add_g = (U - B)/(B.numel())
+
+        grad = g + gamma*add_g
+
+        return grad
+
+
+def hash_layer(input):
+    return hash.apply(input)
+
+
+class HashAutoencoder(nn.Module):
+
+    def __init__(self,
+                 nets: object,
+                 encoder_class: object = Encoder,
+                 decoder_class: object = Decoder,
+                 min_dim: int = 4,
+                 only_encode=False):
+        super().__init__()
+        encoder_net, linear_net, decoder_net = nets
+        # Creating encoder and decoder
+        self.encoder = encoder_class(net=encoder_net)
+        self.decoder = decoder_class(
+            linear=linear_net, net=decoder_net, min_dim=min_dim)
+        self.only_encode = only_encode
+
+    def forward(self, x):
+        """
+        The forward function takes in an tumor batch and returns the reconstructed volume
+        """
+        e = self.encoder(x)
+        b = hash_layer(e)
+        if self.only_encode:
+            return b
+        x_hat = self.decoder(b)
+        return x_hat
+
 
 class VarAutoencoder(nn.Module):
 
@@ -144,11 +214,11 @@ class PrintLayer(nn.Module):
 
 
 class STEThreshold(torch.autograd.Function):
-    @staticmethod
+    @ staticmethod
     def forward(ctx, input, threshold=0.5):
         output = (input > threshold).type(input.dtype)
         return output
 
-    @staticmethod
+    @ staticmethod
     def backward(ctx, grad_output):
         return grad_output, None

@@ -42,6 +42,41 @@ def run(val: bool = False):
         json.dump(vae, file)
 
 
+def run_1k():
+
+    ids = [str((90000) + i) for i in range(1000)]
+    base_path = "/home/ivan_marcel/thesis/src/syn_eval/data"
+
+    baseline = {}
+    down64 = {}
+    down32 = {}
+    ae = {}
+    vae = {}
+    for tid in ids:
+        baseline[tid] = utils.find_n_best_score_ids(
+            path=f"{base_path}/baseline/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=max, n_best=15)
+        down64[tid] = utils.find_n_best_score_ids(
+            path=f"{base_path}/down64/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=max, n_best=15)
+        down32[tid] = utils.find_n_best_score_ids(
+            path=f"{base_path}/down32/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=max, n_best=15)
+        ae[tid] = utils.find_n_best_score_ids(
+            path=f"{base_path}/ae1024/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=min, n_best=15)
+        vae[tid] = utils.find_n_best_score_ids(
+            path=f"{base_path}/vae1024/{tid}.json", value_type=utils.DSValueType.COMBINED, order_func=min, n_best=15)
+
+    sub_path = f"{base_path}/top_15_lists_1k"
+    with open(f"{sub_path}/baseline.json", 'w') as file:
+        json.dump(baseline, file)
+    with open(f"{base_path}/top_15_lists/down64.json", 'w') as file:
+        json.dump(down64, file)
+    with open(f"{base_path}/top_15_lists/down32.json", 'w') as file:
+        json.dump(down32, file)
+    with open(f"{sub_path}/ae1024.json", 'w') as file:
+        json.dump(ae, file)
+    with open(f"{sub_path}/vae1024.json", 'w') as file:
+        json.dump(vae, file)
+
+
 def run_real_dc_lists():
 
     tumor_ids = os.listdir(REAL_TUMOR_BASE_PATH)
