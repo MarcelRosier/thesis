@@ -28,7 +28,7 @@ def run_large_syn_eval(downsample_to: int = None):
                      downsample_to=downsample_to)
 
 
-run_large_syn_eval(downsample_to=64)
+run_large_syn_eval(downsample_to=32)
 # real_query_dc.run(processes=32)
 # helper.run(val=True)
 # run_baseline_validation(downsample_to=None)
