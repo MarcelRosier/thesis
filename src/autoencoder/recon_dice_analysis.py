@@ -1,5 +1,7 @@
 
+from torch.autograd import Variable
 import json
+from operator import is_
 import os
 from datetime import datetime
 from progress.bar import Bar
@@ -12,7 +14,7 @@ from torch.utils.data import DataLoader
 
 from autoencoder import networks
 from autoencoder.datasets import TumorDataset
-from autoencoder.modules import Autoencoder, VarAutoencoder
+from autoencoder.modules import Autoencoder, HashAutoencoder, VarAutoencoder
 
 
 def compute_recon_dice_scores(is_t1c, cuda_id):
@@ -303,3 +305,128 @@ def gen_recons(cuda_id):
         path = f"{save_path}{'vae' if VAE else 'ae'}/{'t1c' if T1C else 'flair'}_{best_match_id}.npy"
         with open(path, "wb") as file:
             np.save(file=file, arr=np_encoded)
+
+
+def compute_hash_recon_dice_scores(is_t1c, cuda_id):
+    SYNTHETIC = True
+    if SYNTHETIC:
+        test_dataset = TumorDataset(
+            subset=(30000, 30000 + 50), t1c=is_t1c)
+        test_loader = DataLoader(dataset=test_dataset,
+                                 batch_size=2,
+                                 shuffle=False,
+                                 num_workers=4)
+    else:
+        test_dataset = TumorDataset(syntethic=False, t1c=is_t1c)
+        test_loader = DataLoader(dataset=test_dataset,
+                                 batch_size=1,
+                                 shuffle=False,
+                                 num_workers=1)
+
+    # print gpu info
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_id)
+    device = torch.device(
+        f"cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    utils.pretty_print_gpu_info(device)
+
+    nets = networks.get_basic_net_16_16_16(
+        c_hid=24,  latent_dim=1024)
+    # # Load model
+    if is_t1c:
+        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/HASH_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787724/best_HASH_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787724_ep_20.pt"
+    else:
+        checkpoint_path = "/mnt/Drive3/ivan_marcel/models/HASH_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787873/best_HASH_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787873_ep_21.pt"
+    model = HashAutoencoder(nets=nets, min_dim=16, only_encode=False)
+    # model = Autoencoder(nets=nets, min_dim=16, only_encode=False)
+    # if is_t1c:
+    #     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438/T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_600_BETA_0001_1642258438_ep_300.pt"
+    # else:
+    #     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/final/final_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260/FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_300_BETA_0001_1642493260_ep_final.pt"
+    print(f"Loading: {checkpoint_path=}")
+
+    checkpoint = torch.load(checkpoint_path)
+    model_state_dict = checkpoint['model_state_dict']
+    model.load_state_dict(model_state_dict)
+    model.to(device)  # move to gpu
+    # model.eval()
+
+    # generate encoded dataset
+    data = {}
+    # bar = Bar('Processing', max=len(test_loader))
+    print(f"Starting @{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    i = 0
+    criterion = DiceLoss(
+        smooth_nr=0, smooth_dr=1e-5, to_onehot_y=False, sigmoid=False)
+    # for tumor, internal_id_tensor in test_loader:
+    #     folder_id = test_dataset.tumor_ids[internal_id_tensor.item()]
+    #     encoded = model(tumor)
+    #     # print(encoded[0].shape)
+    #     # print(encoded[1].shape)
+    #     # save
+    #     np_encoded = encoded.cpu().detach()
+    #     # dice_score = utils.calc_dice_coef(
+    #     #     tumor.cpu().detach().numpy(), np_encoded)
+    #     dice_loss = criterion(tumor.cpu().detach(), np_encoded)
+    #     data[folder_id] = 1 - dice_loss.item()
+    #     i += 1
+    #     print(i)
+    #     if i > 20:
+    #         break
+    loss = 0
+    # set to training mode
+    for batch_features, _ in test_loader:
+        model.train()
+        # load it to the active device
+        batch_features = batch_features.to(device)
+
+        # compute reconstructions = x_hat
+        outputs = model(batch_features)
+
+        # compute loss
+        train_loss = criterion(outputs, batch_features)
+
+        # compute accumulated gradients
+        # perform backpropagation of errors
+        # train_loss.backward()
+
+        # add the mini-batch training loss to epoch loss
+        loss += train_loss.item()
+
+        # compute the epoch training loss
+        loss = loss / len(test_loader)
+    #     bar.next()
+    # bar.finish()
+    print(loss)
+    # print(data)
+    # scores = data.values()
+    # print('avg := ', (sum(scores)/len(scores)))
+
+
+def compress(train, test, model, classes=10):
+    retrievalB = list([])
+    retrievalL = list([])
+    for batch_step, (data, target) in enumerate(train):
+        data = data.view(data.size(0), -1)
+        var_data = Variable(data)
+
+        _, H, _ = model(var_data)
+        code = torch.sign(H)
+        retrievalB.extend(code.cpu().data.numpy())
+        retrievalL.extend(target)
+
+    queryB = list([])
+    queryL = list([])
+    for batch_step, (data, target) in enumerate(test):
+        data = data.view(data.size(0), -1)
+        var_data = Variable(data)
+        _, H, _ = model(var_data)
+        code = torch.sign(H)
+        queryB.extend(code.cpu().data.numpy())
+        queryL.extend(target)
+
+    retrievalB = np.array(retrievalB)
+    retrievalL = np.eye(classes)[np.array(retrievalL)]
+
+    queryB = np.array(queryB)
+    queryL = np.eye(classes)[np.array(queryL)]
+    return retrievalB, retrievalL, queryB, queryL

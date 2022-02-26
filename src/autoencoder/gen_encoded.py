@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 from autoencoder import networks
 from autoencoder.datasets import TumorDataset
 from autoencoder.losses import CustomDiceLoss
-from autoencoder.modules import Autoencoder, VarAutoencoder
+from autoencoder.modules import Autoencoder, HashAutoencoder, VarAutoencoder
 
 CHECKPOINT_PATH = AE_CHECKPOINT_PATH[ENV]
 MODEL_SAVE_PATH = AE_MODEL_SAVE_PATH[ENV]
@@ -39,12 +39,13 @@ LATENT_DIM = 1024
 TEST_SET_SIZE = "50k"
 TRAIN_SIZE = 1500  # 1500
 SYNTHETIC = False
-SYN_EVAL = True
+SYN_EVAL = False
 SYN_EVAL_START = 90000
 SYN_EVAL_SIZE = 1000
 VAE = False
 BETA = 0.001
-T1C = True
+T1C = False
+HASH_AE = True
 
 #
 BASE_CHANNELS = 24
@@ -94,7 +95,13 @@ def run(cuda_id=0):
 
     # Load model
     checkpoint_path = ""
-    if VAE:
+    if HASH_AE:
+        if T1C:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/HASH_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787724/best_HASH_T1C_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787724_ep_20.pt"
+        else:
+            checkpoint_path = "/mnt/Drive3/ivan_marcel/models/HASH_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787873/best_HASH_FLAIR_BC_24_LD_1024_MD_16_BS_2_TS_1500_LR_1e-05_ME_40_BETA_0001_1645787873_ep_21.pt"
+        model = HashAutoencoder(nets=nets, min_dim=MIN_DIM, only_encode=True)
+    elif VAE:
         # if TRAIN_SIZE == 6000:
         #     checkpoint_path = "/mnt/Drive3/ivan_marcel/models/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062/VAE_BC_24_LD_1024_MD_16_BS_2_TS_6000_LR_5e-05_ME_240_BETA_0001_1639739062_ep_final.pt"
         # elif TRAIN_SIZE == 1500:
@@ -162,11 +169,11 @@ def run(cuda_id=0):
         # save
         np_encoded = encoded.cpu().detach().numpy()
         if SYN_EVAL:
-            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_eval/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ('_HASH' if HASH_AE else '')}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_eval/{folder_id}.npy"
         elif SYNTHETIC:
-            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ('_HASH' if HASH_AE else '')}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/syn_{TEST_SET_SIZE}/{folder_id}.npy"
         else:
-            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ''}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real_doublecheck/{folder_id}.npy"
+            save_path = f"/mnt/Drive3/ivan_marcel/final_encs/encoded{'_VAE'if VAE else ('_HASH' if HASH_AE else '')}_{'T1C'if T1C else 'FLAIR'}_{LATENT_DIM}_{TRAIN_SIZE}/real/{folder_id}.npy"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'wb') as file:
             np.save(file=file, arr=np_encoded)

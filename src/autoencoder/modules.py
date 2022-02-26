@@ -85,18 +85,20 @@ class hash(Function):
     @staticmethod
     def forward(ctx, U):
         # if torch.cuda.is_available() else torch.device("cpu")
+        device = torch.device(f"cuda:0")  # ("cpu")  #
         # print(device)
-        import os
-        print(os.environ['CUDA_VISIBLE_DEVICES'])
-        print(torch.cuda.get_device_name())
+        # import os
+        # print(os.environ['CUDA_VISIBLE_DEVICES'])
+        # print(torch.cuda.get_device_name())
         # Yunqiang for half and half (optimal transport)
         _, index = U.sort(0, descending=True)
         N, D = U.shape
         B_creat = torch.cat(
-            (torch.ones([int(N/2), D]), -torch.ones([N - int(N/2), D]))).cuda()
-        print(index.is_cuda)
-        print(B_creat.is_cuda)
-        B = torch.zeros(U.shape).scatter_(0, index, B_creat)
+            (torch.ones([int(N/2), D], device=device), -torch.ones([N - int(N/2), D], device=device)))  # .to(torch.cuda.get_device_name())
+        # print(index.is_cuda)
+        # print(B_creat.is_cuda)
+        B = torch.zeros(U.shape, device=device).scatter_(
+            0, index, B_creat)
 
         ctx.save_for_backward(U, B)
 
@@ -131,17 +133,17 @@ class HashAutoencoder(nn.Module):
         self.decoder = decoder_class(
             linear=linear_net, net=decoder_net, min_dim=min_dim)
         self.only_encode = only_encode
+        self.printlayer = PrintLayer()
 
     def forward(self, x):
-        """
-        The forward function takes in an tumor batch and returns the reconstructed volume
-        """
         e = self.encoder(x)
-        b = hash_layer(e)
         if self.only_encode:
-            return b
+            return torch.sign(e)
+        b = hash_layer(e)
         x_hat = self.decoder(b)
         return x_hat
+
+# /mnt/Drive3/ivan_marcel/final_encs/encoded_HASH_FLAIR_1024_1500/syn_50k
 
 
 class VarAutoencoder(nn.Module):
@@ -208,8 +210,7 @@ class PrintLayer(nn.Module):
 
     def forward(self, x):
         # Do your print / debug stuff here
-        print("unique value:", torch.unique(x))
-        print(f"min={torch.min(x).item()}, max= {torch.max(x).item()}")
+        print("unique latent values:", torch.unique(x, return_counts=True))
         return x
 
 

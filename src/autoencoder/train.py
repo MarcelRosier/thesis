@@ -31,14 +31,14 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper parameters
 BASE_CHANNELS = 24
-MAX_EPOCHS = 300
+MAX_EPOCHS = 5
 LATENT_DIM = 1024
 MIN_DIM = 16
 BATCH_SIZE = 2
 TRAIN_SIZE = 1500
 VAL_SIZE = 150
 LEARNING_RATE = 1e-5
-CHECKPOINT_FREQUENCY = 150
+CHECKPOINT_FREQUENCY = 20
 VAE = False
 BETA = 0.001  # KL beta weighting. increase for disentangled VAE
 T1C = True
@@ -247,14 +247,17 @@ def train_tumort1c_hash_ae(cuda_id, train_loader, val_loader):
 
         writer.flush()
         # save checkpoints with frequency CHECKPOINT_FREQUENCY
-        if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
+        # if (epoch + 1) % CHECKPOINT_FREQUENCY == 0 and epoch + 1 < MAX_EPOCHS:
+        #     save_checkpoint(epoch=epoch + 1, model=model,
+        #                     loss=loss, optimizer=optimizer)
+        if epoch + 1 == 5:
             save_checkpoint(epoch=epoch + 1, model=model,
                             loss=loss, optimizer=optimizer)
 
     writer.close()
     print("Finished Training")
-    save_checkpoint(epoch="final", model=model,
-                    loss=loss, optimizer=optimizer)
+    # save_minimal_checkpoint(epoch="final", model=model)
+
     return model
 
 
@@ -383,4 +386,14 @@ def save_checkpoint(epoch, model, loss, optimizer):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
+    }, os.path.join(save_folder, run_name + f"_ep_{epoch}.pt"))
+
+
+def save_minimal_checkpoint(epoch, model):
+    # save model, ensure models folder exists
+    save_folder = os.path.join(MODEL_SAVE_PATH, run_name)
+    Path(save_folder).mkdir(parents=True, exist_ok=True)
+    torch.save({
+        'epoch': MAX_EPOCHS,
+        'model_state_dict': model.state_dict(),
     }, os.path.join(save_folder, run_name + f"_ep_{epoch}.pt"))

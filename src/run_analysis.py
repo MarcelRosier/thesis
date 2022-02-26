@@ -1,7 +1,9 @@
-from baseline import analysis
+# from baseline import analysis
 from autoencoder import recon_dice_analysis
 from utils import DSValueType
-analysis.get_top_2_baseline_dice_scores()
+
+recon_dice_analysis.compute_hash_recon_dice_scores(is_t1c=True, cuda_id=0)
+# analysis.get_top_2_baseline_dice_scores()
 # analysis.compare_best_match_for_enc(
 #     value_type=DSValueType.T1C, is_ae=False, is_1024=False, is_20k=True)
 # analysis.compare_best_match_for_enc(value_type=DSValueType.T1C)

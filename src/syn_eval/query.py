@@ -40,10 +40,13 @@ def load_syn_tumor(tumor_id):
     return tumor_02, tumor_06
 
 
-def run_query_for_encoded_data(syn_eval_tumor_id, use_stored_real_data=True, is_ae=True):
+def run_query_for_encoded_data(syn_eval_tumor_id, use_stored_real_data=True, is_ae=True, is_hash_ae=False):
     """Run two queries for t1c and flair for 50k dataset and return best combined match"""
     print(syn_eval_tumor_id)
-    if is_ae:
+    if is_hash_ae:
+        base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_HASH_FLAIR_1024_1500"
+        base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_HASH_T1C_1024_1500"
+    elif is_ae:
         base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_FLAIR_1024_1500"
         base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_T1C_1024_1500"
     else:
@@ -135,7 +138,10 @@ def run_query_for_encoded_data(syn_eval_tumor_id, use_stored_real_data=True, is_
     # }
     data_path = "/home/ivan_marcel/thesis/src/syn_eval/data"
     # filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else 'vae'}/{syn_eval_tumor_id}.json"
-    filename_dump = f"{data_path}/{'ae1024' if is_ae else 'vae1024'}/{syn_eval_tumor_id}.json"
+    folder = 'ae1024' if is_ae else 'vae1024'
+    if is_hash_ae:
+        folder = 'hash_ae_1024'
+    filename_dump = f"{data_path}/{folder}/{syn_eval_tumor_id}.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -168,7 +174,7 @@ def run(processes: int):
     # print(syn_eval_tumors)
 
     func = partial(run_query_for_encoded_data,
-                   use_stored_real_data=True, is_ae=is_ae)
+                   use_stored_real_data=True, is_hash_ae=True)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, syn_eval_tumors)
         t = results.get()

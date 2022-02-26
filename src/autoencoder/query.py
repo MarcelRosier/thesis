@@ -13,10 +13,13 @@ import torch
 REAL_TUMOR_BASE_PATH = REAL_TUMOR_BASE_PATH[ENV]
 
 
-def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=True, is_1024=False, is_20k=False):
+def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=True, is_1024=False, is_20k=False, is_hash_ae=False):
     """Run two queries for t1c and flair for 50k dataset and return best combined match"""
     print(real_tumor_id)
-    if is_ae:
+    if is_hash_ae:
+        base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_HASH_FLAIR_1024_1500"
+        base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_HASH_T1C_1024_1500"
+    elif is_ae:
         base_path_flair = "/mnt/Drive3/ivan_marcel/final_encs/encoded_FLAIR_1024_1500"
         base_path_t1c = "/mnt/Drive3/ivan_marcel/final_encs/encoded_T1C_1024_1500"
     else:
@@ -103,7 +106,6 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
 
     results = {}
 
-
     for folder in folders:
         syn_t1c = utils.normalize(
             np.load(f"{base_path_t1c}/syn_50k/{folder}.npy"))
@@ -116,14 +118,14 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
             't1c': str(t1c_score),
             'combined': str(flair_score + t1c_score)
         }
-        
+
     func = partial(calc_score_for_pair, real_tumor_t1c,
                    real_tumor_flair, base_path_t1c, base_path_flair)
 
-    with multiprocessing.Pool(32) as pool:
-        results = pool.map_async(func, folders)
-        single_scores = results.get()
-        results = {k: v for d in single_scores for k, v in d.items()}
+    # with multiprocessing.Pool(32) as pool:
+    #     results = pool.map_async(func, folders)
+    #     single_scores = results.get()
+    #     results = {k: v for d in single_scores for k, v in d.items()}
     # best_key = min(results.keys(), key=lambda k: results[k]['combined'])
 
     # best_score = {
@@ -132,7 +134,8 @@ def run_query_for_encoded_data(real_tumor_id, use_stored_real_data=True, is_ae=T
     # }
     data_path = "/home/ivan_marcel/thesis/src/autoencoder/data"
     # filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else 'vae'}/{real_tumor_id}.json"
-    filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else ('vae20k' if is_20k else 'vae')}/8/{real_tumor_id}.json"
+    # filename_dump = f"{data_path}/final_50k_enc_sim/{'ae' if is_ae else ('vae20k' if is_20k else 'vae')}/8/{real_tumor_id}.json"
+    filename_dump = f"{data_path}/hash_enc_sim/{real_tumor_id}.json"
     os.makedirs(os.path.dirname(filename_dump), exist_ok=True)
 
     with open(filename_dump, "w") as file:
@@ -162,7 +165,7 @@ def run(processes: int):
     real_tumors = os.listdir(REAL_TUMOR_BASE_PATH)
     real_tumors.sort(key=lambda name: int(name[3:6]))
     func = partial(run_query_for_encoded_data,
-                   use_stored_real_data=True, is_ae=is_ae, is_1024=False, is_20k=True)
+                   use_stored_real_data=True, is_hash_ae=True)
     with multiprocessing.Pool(processes=processes) as pool:
         results = pool.map_async(func, real_tumors)
         t = results.get()
