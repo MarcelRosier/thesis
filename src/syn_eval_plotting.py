@@ -199,7 +199,7 @@ def plot_bmp_val_overview():
     fig.tight_layout()
 
 
-def plot_bmp_realdc_overview():
+def plot_bmp_1k_overview():
 
     def plot_enc_best_match_presence(tumor_ids, top_gt_list, top_enc_list, top_n: int, ax, value_type: DSValueType):
 
@@ -212,7 +212,7 @@ def plot_bmp_realdc_overview():
                 pass
             is_present.append(float(enc_best_in_top_n_gt))
         tumor_ids = [int(tumor[3:6]) for tumor in tumor_ids]
-        x_ax = np.linspace(1, len(tumor_ids), 62)
+        x_ax = np.linspace(1, len(tumor_ids), 1000)
         cmap = colors.ListedColormap(['red', 'green'])
         assignedColors = [cmap(int(t)) for t in is_present]
         plot = sns.scatterplot(ax=ax, x=x_ax, y=is_present,
@@ -235,17 +235,17 @@ def plot_bmp_realdc_overview():
     for ax, col in zip(axes[0], cols):
         ax.set_title(col)
 
-    # Combined 8
+    base_path = "/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_1k"
     value_type = DSValueType.COMBINED
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/real_dc_data/baseline.json') as file:
+    with open(f'{base_path}/baseline.json') as file:
         baseline: dict = json.load(file)
-    # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/real_dc_data/down64.json') as file:
-    #     down64: dict = json.load(file)
-    # with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/real_dc_data/down32.json') as file:
-    #     down32: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/real_dc_data/ae1024.json') as file:
+    with open(f'{base_path}/down64.json') as file:
+        down64: dict = json.load(file)
+    with open(f'{base_path}/down32.json') as file:
+        down32: dict = json.load(file)
+    with open(f'{base_path}/ae1024.json') as file:
         ae1024: dict = json.load(file)
-    with open(f'/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/real_dc_data/vae1024.json') as file:
+    with open(f'{base_path}/vae1024.json') as file:
         vae1024: dict = json.load(file)
 
     tumor_ids = baseline.keys()
@@ -256,25 +256,25 @@ def plot_bmp_realdc_overview():
     top_vae_lists = []
     for tumor_id in tumor_ids:
         top_baseline_lists.append(baseline[tumor_id])
-        # top_ds64_lists.append(down64[tumor_id])
-        # top_ds32_lists.append(down32[tumor_id])
+        top_ds64_lists.append(down64[tumor_id])
+        top_ds32_lists.append(down32[tumor_id])
         top_ae_lists.append(ae1024[tumor_id])
         top_vae_lists.append(vae1024[tumor_id])
 
     # down64
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds64_lists, top_n=1, ax=axes[0][0], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds64_lists, top_n=5, ax=axes[1][0], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds64_lists, top_n=15, ax=axes[2][0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds64_lists, top_n=1, ax=axes[0][0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds64_lists, top_n=5, ax=axes[1][0], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds64_lists, top_n=15, ax=axes[2][0], value_type=value_type)
     # # down32
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds32_lists, top_n=1, ax=axes[0][1], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds32_lists, top_n=5, ax=axes[1][1], value_type=value_type)
-    # plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
-    #                              top_ds32_lists, top_n=15, ax=axes[2][1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds32_lists, top_n=1, ax=axes[0][1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds32_lists, top_n=5, ax=axes[1][1], value_type=value_type)
+    plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
+                                 top_ds32_lists, top_n=15, ax=axes[2][1], value_type=value_type)
     # ae
     plot_enc_best_match_presence(tumor_ids, top_baseline_lists,
                                  top_ae_lists, top_n=1, ax=axes[0][2], value_type=value_type)
@@ -297,7 +297,8 @@ sns.set(rc={'figure.figsize': (16, 9)})
 sns.set_theme(style='whitegrid')
 
 # plot_bmp_overview()
-plot_bmp_val_overview()
+# plot_bmp_val_overview()
+plot_bmp_1k_overview()
 # plot_bmp_realdc_overview()
 
 plt.show()
