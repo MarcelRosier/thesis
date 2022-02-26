@@ -272,19 +272,32 @@ def plot_best_match_input_dice():
     tumor_ids.sort(key=lambda f: int(f[3:6]))
     t1c_scores = []
     flair_scores = []
+    entries = []
+    spectral_palette = sns.color_palette("viridis", as_cmap=True)
 
     for tumor_id in tumor_ids:
         with open(f"{base_dir}/{tumor_id}") as json_file:
             data = json.load(json_file)
             best_key = max(
                 data.keys(), key=lambda k: data[k][DSValueType.COMBINED.value])
-            t1c_scores.append(data[best_key][DSValueType.T1C.value])
-            flair_scores.append(data[best_key][DSValueType.FLAIR.value])
+            # t1c_scores.append(data[best_key][DSValueType.T1C.value])
+            # flair_scores.append(data[best_key][DSValueType.FLAIR.value])
+            entries.append(data[best_key])
+
+     # sort
+    entries.sort(key=lambda entry: entry['combined'])
+    # entries = entries[::2]
+    t1c_scores = [entry['t1c'] for entry in entries]
+    flair_scores = [entry['flair'] for entry in entries]
+    combined_scores = [entry['combined'] for entry in entries]
 
     fig, axes = plt.subplots(3, 1, sharex=True)
+    for ax in axes:
+        ax.xaxis.grid(False)
     # fig.suptitle("Dice score between input and best match")
     # fig.text(0.5135, 0.075, 'Tumors', ha='center')
-    x_labels = [int(tumor[3:6]) for tumor in tumor_ids]
+    # [int(tumor[3:6]) for tumor in tumor_ids]
+    x_labels = np.linspace(0, len(entries), len(entries))
     y_ticks = np.linspace(0, 1, 11)
 
     t1c_avg = sum(t1c_scores) / len(t1c_scores)
@@ -293,12 +306,14 @@ def plot_best_match_input_dice():
     #     ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
     norm = TwoSlopeNorm(vmin=0, vcenter=0.5, vmax=1)
     # red_green_pal = sns.diverging_palette(0, 150, l=50, n=32, as_cmap=True)
-    spectral_palette = sns.color_palette("Spectral", as_cmap=True)
     # rg2 = sns.color_palette("RdYlGn_r", 5)
     colors = [spectral_palette(norm(c)) for c in t1c_scores]
-    p = sns.color_palette("Spectral", as_cmap=True)
-    t1c_plot = sns.barplot(
-        ax=axes[0], x=x_labels, y=t1c_scores, palette=colors)
+    # print(len(colors))
+    # print(len(t1c_scores))
+    # print(len(tumor_ids))
+    # p = sns.color_palette("Spectral", as_cmap=True)
+    t1c_plot = sns.scatterplot(
+        ax=axes[0], x=x_labels, y=t1c_scores, hue=t1c_scores, palette=spectral_palette, legend=False)
     t1c_plot.set_xlim(-0.5)
     t1c_plot.set_ylim(-0.01, 1)
     # t1c_plot.set_title("T1Gd")
@@ -306,13 +321,13 @@ def plot_best_match_input_dice():
     t1c_plot.set_xticklabels([])
     t1c_plot.set_ylabel("T1Gd dice score", size=16)
     t1c_plot.set_yticks(y_ticks)
-    t1c_plot.axhline(t1c_avg, color="#446EB0")  # "#5ba56e")
+    t1c_plot.axhline(t1c_avg, color="purple")  # "#5ba56e")
 
     colors = [spectral_palette(norm(c)) for c in flair_scores]
     flair_avg = sum(flair_scores) / len(flair_scores)
     print(flair_avg)
-    flair_plot = sns.barplot(
-        ax=axes[1], x=x_labels, y=flair_scores, palette=colors)
+    flair_plot = sns.scatterplot(
+        ax=axes[1], x=x_labels, y=flair_scores, hue=flair_scores, palette=colors, legend=False)
     flair_plot.set_xlim(-0.5)
     flair_plot.set_ylim(-0.01, 1)
     # flair_plot.set_title("FLAIR")
@@ -320,19 +335,21 @@ def plot_best_match_input_dice():
     flair_plot.set_xticklabels([])
     flair_plot.set_ylabel("FLAIR dice score", size=16)
     flair_plot.set_yticks(y_ticks)
-    flair_plot.axhline(flair_avg, color="#446EB0")  # "#5ba56e")
+    flair_plot.axhline(flair_avg, color="purple")  # "#5ba56e")
 
     print(t1c_scores)
     print(flair_scores)
     # combined plot
     y_ticks = np.linspace(0, 2, 21)
     norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
-    combined_scores = [t + f for t, f in zip(t1c_scores, flair_scores)]
+    # combined_scores = [t + f for t, f in zip(t1c_scores, flair_scores)]
     colors = [spectral_palette(norm(c)) for c in combined_scores]
     combined_scores_avg = sum(combined_scores) / len(combined_scores)
     print(combined_scores_avg)
-    combined_scores_plot = sns.barplot(
-        ax=axes[2], x=x_labels, y=combined_scores, palette=colors)
+    # combined_scores_plot = sns.barplot(
+    #     ax=axes[2], x=x_labels, y=combined_scores, palette=colors)
+    combined_scores_plot = sns.scatterplot(
+        ax=axes[2], x=x_labels, y=combined_scores, hue=combined_scores, palette=colors, legend=False)
     combined_scores_plot.set_xlim(-0.5)
     combined_scores_plot.set_ylim(-0.01, 2)
     # combined_scores_plot.set_title("Combined")
@@ -345,78 +362,88 @@ def plot_best_match_input_dice():
     for label in combined_scores_plot.get_yticklabels()[1:][::2]:
         label.set_visible(False)
     combined_scores_plot.axhline(
-        combined_scores_avg, color="#446EB0")  # "#5ba56e")
+        combined_scores_avg, color="purple")  # "#5ba56e")
     # plt.show()
     # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
 
 
 def plot_syn_eval_best_match_input_dice():
+    tumor_ids = [str(90000 + i) for i in range(1000)]
     base_dir = "/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/baseline"
-    tumor_ids = [75000 + i for i in range(62)]
     t1c_scores = []
     flair_scores = []
+    combined_scores = []
+    entries = []
+
+    with open("/Users/marcelrosier/Projects/uni/thesis/src/syn_eval/data/top_15_lists_1k/baseline.json") as file:
+        top_lists = json.load(file)
 
     for tumor_id in tumor_ids:
-        with open(f"{base_dir}/{tumor_id}.json") as json_file:
-            data = json.load(json_file)
-            best_key = max(
-                data.keys(), key=lambda k: data[k][DSValueType.COMBINED.value])
-            t1c_scores.append(data[best_key][DSValueType.T1C.value])
-            flair_scores.append(data[best_key][DSValueType.FLAIR.value])
+        with open(f"{base_dir}/{tumor_id}.json") as file:
+            data = json.load(file)
+        entry = data[top_lists[tumor_id][0]]
+        entries.append(entry)
+
+    # sort
+    entries.sort(key=lambda entry: entry['combined'])
+    entries = entries[::2]
+    t1c_scores = [entry['t1c'] for entry in entries]
+    flair_scores = [entry['flair'] for entry in entries]
+    combined_scores = [entry['combined'] for entry in entries]
+    spectral_palette = sns.color_palette("viridis", as_cmap=True)
 
     fig, axes = plt.subplots(3, 1, sharex=True)
+    for ax in axes:
+        ax.xaxis.grid(False)
     # fig.suptitle("Dice score between input and best match")
     # fig.text(0.5135, 0.075, 'Tumors', ha='center')
-    x_labels = tumor_ids
+    x_labels = np.linspace(0, len(entries), len(entries))
     y_ticks = np.linspace(0, 1, 11)
 
     t1c_avg = sum(t1c_scores) / len(t1c_scores)
-    print(t1c_avg)
+    print(t1c_avg)  # TODO 0.8567121306911138
     # t1c_plot = sns.barplot(
     #     ax=axes[0], x=x_labels, y=t1c_scores, color="#3070B3")
-    norm = TwoSlopeNorm(vmin=0, vcenter=0.5, vmax=1)
-    # red_green_pal = sns.diverging_palette(0, 150, l=50, n=32, as_cmap=True)
-    spectral_palette = sns.color_palette("Spectral", as_cmap=True)
+
     # rg2 = sns.color_palette("RdYlGn_r", 5)
+    norm = TwoSlopeNorm(vmin=0, vcenter=.5, vmax=1)
     colors = [spectral_palette(norm(c)) for c in t1c_scores]
-    p = sns.color_palette("Spectral", as_cmap=True)
-    t1c_plot = sns.barplot(
-        ax=axes[0], x=x_labels, y=t1c_scores, palette=colors)
-    t1c_plot.set_xlim(-0.5)
+    t1c_plot = sns.scatterplot(
+        ax=axes[0], x=x_labels, y=t1c_scores, hue=t1c_scores, palette=colors, legend=False)
+    t1c_plot.set_xlim(-0.5, len(entries)+1)
     t1c_plot.set_ylim(-0.01, 1)
     # t1c_plot.set_title("T1Gd")
     # t1c_plot.set_xlabel("tumors")
     t1c_plot.set_xticklabels([])
     t1c_plot.set_ylabel("T1Gd dice score", size=16)
     t1c_plot.set_yticks(y_ticks)
-    t1c_plot.axhline(t1c_avg, color="#446EB0")  # "#5ba56e")
+    t1c_plot.axhline(t1c_avg, color="purple")  # "#5ba56e")
 
-    colors = [spectral_palette(norm(c)) for c in flair_scores]
     flair_avg = sum(flair_scores) / len(flair_scores)
-    print(flair_avg)
-    flair_plot = sns.barplot(
-        ax=axes[1], x=x_labels, y=flair_scores, palette=colors)
-    flair_plot.set_xlim(-0.5)
+    print(flair_avg)  # TODO 0.8328020920815562
+    colors = [spectral_palette(norm(c)) for c in flair_scores]
+    flair_plot = sns.scatterplot(
+        ax=axes[1], x=x_labels, y=flair_scores, hue=flair_scores, palette=colors, legend=False)
+    flair_plot.set_xlim(-0.5, len(entries)+1)
     flair_plot.set_ylim(-0.01, 1)
     # flair_plot.set_title("FLAIR")
     # flair_plot.set_xlabel("tumors")
     flair_plot.set_xticklabels([])
     flair_plot.set_ylabel("FLAIR dice score", size=16)
     flair_plot.set_yticks(y_ticks)
-    flair_plot.axhline(flair_avg, color="#446EB0")  # "#5ba56e")
+    flair_plot.axhline(flair_avg, color="purple")  # "#5ba56e")
 
-    print(t1c_scores)
-    print(flair_scores)
+    # print(t1c_scores)
+    # print(flair_scores)
     # combined plot
     y_ticks = np.linspace(0, 2, 21)
-    norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
-    combined_scores = [t + f for t, f in zip(t1c_scores, flair_scores)]
-    colors = [spectral_palette(norm(c)) for c in combined_scores]
     combined_scores_avg = sum(combined_scores) / len(combined_scores)
-    print(combined_scores_avg)
-    combined_scores_plot = sns.barplot(
-        ax=axes[2], x=x_labels, y=combined_scores, palette=colors)
-    combined_scores_plot.set_xlim(-0.5)
+    norm = TwoSlopeNorm(vmin=0, vcenter=1, vmax=2)
+    colors = [spectral_palette(norm(c)) for c in combined_scores]
+    print(combined_scores_avg)  # TODO 1.6895142227726714
+    combined_scores_plot = sns.scatterplot(
+        ax=axes[2], x=x_labels, y=combined_scores, hue=combined_scores, palette=colors, legend=False)
+    combined_scores_plot.set_xlim(-0.5, len(entries)+1)
     combined_scores_plot.set_ylim(-0.01, 2)
     # combined_scores_plot.set_title("Combined")
     # combined_scores_plot.set_xlabel("tumors")
@@ -428,7 +455,7 @@ def plot_syn_eval_best_match_input_dice():
     for label in combined_scores_plot.get_yticklabels()[1:][::2]:
         label.set_visible(False)
     combined_scores_plot.axhline(
-        combined_scores_avg, color="#446EB0")  # "#5ba56e")
+        combined_scores_avg, color="purple")  # "#5ba56e")
     # plt.show()
     # plt.savefig("test_dice.png", bbox_inches='tight', dpi=800)
 
@@ -755,7 +782,7 @@ def plot_vae_flair_enc_best_match_presence_overview():
 
 
 def plot_recon_losses(is_ae: bool):
-    tum_blue = "#446EB0"
+    tum_blue = "purple"
     orange = "#F0746E"
     lime = "#7CCBA2"
     purple = "#7C1D6F"
