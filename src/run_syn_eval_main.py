@@ -36,4 +36,4 @@ def run_large_syn_eval(downsample_to: int = None):
 # run_baseline(downsample_to=32)
 # test.bm_presence()
 # query.run(40)
-helper.run_1k()
+helper.run_real_lists()
